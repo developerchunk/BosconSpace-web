@@ -52,7 +52,8 @@ h1, h2, h3 { margin: 0; font-family: var(--head); font-weight: 500; letter-spaci
   mix-blend-mode: difference;
 }
 .nav.is-hidden { transform: translateY(-110%); }
-.brand { font-family: var(--head); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; color: #fff; }
+.brand { display: inline-flex; align-items: center; color: #fff; }
+.brand__wm { height: 13px; width: auto; display: block; }
 .nav__links { display: flex; gap: 30px; }
 .nav__links a {
   font-size: 13px; font-weight: 500; color: #fff; position: relative; padding-bottom: 3px;
@@ -280,6 +281,7 @@ h1, h2, h3 { margin: 0; font-family: var(--head); font-weight: 500; letter-spaci
 
 @media (max-width: 960px) {
   .nav { padding: 18px var(--gutter); }
+  .brand__wm { height: 12px; }
   .nav__links { display: none; }
   .nav__toggle { display: block; }
   .sec { grid-template-columns: 1fr; gap: 14px; }
