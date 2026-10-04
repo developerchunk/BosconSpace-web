@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boscon Space</title>
+  <meta name="description" content="Boscon Space builds AI hardware and research centres in orbit, and a mesh that keeps every satellite in contact with the ground, every minute of every orbit.">
+  <meta property="og:title" content="Boscon Space">
+  <meta property="og:description" content="AI in orbit. Always in contact.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=70">
+  <meta property="og:url" content="https://space.ketoy.dev/">
+  <link rel="canonical" href="https://space.ketoy.dev/">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="#top" aria-label="Boscon Space, home">Boscon Space</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#mesh">Mesh</a>
+      <a href="#platform">Platform</a>
+      <a href="#missions">Missions</a>
+      <a href="#progress">Progress</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav__toggle" id="navToggle" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="#mesh">Mesh</a>
+      <a href="#platform">Platform</a>
+      <a href="#missions">Missions</a>
+      <a href="#progress">Progress</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="menu__foot" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+  </div>
+
+  <main id="top">
+
+    <!-- HERO: full-bleed photo that scales into a frame as you scroll -->
+    <section class="hero" id="hero">
+      <div class="hero__frame" id="heroFrame">
+        <img class="hero__img" id="heroImg" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2400&q=80" alt="Earth at night from orbit, city lights tracing the coastlines" fetchpriority="high">
+      </div>
+      <div class="hero__text" id="heroText">
+        <h1 class="hero__title">
+          <span class="line"><span>AI in orbit.</span></span>
+          <span class="line"><span>Always in contact.</span></span>
+        </h1>
+        <p class="hero__lede rv">Boscon Space builds AI hardware and research centres in space, and a mesh that keeps every satellite talking to the ground, every minute of every orbit.</p>
+      </div>
+      <div class="hero__foot rv">
+        <span>Boscon Space</span>
+        <span>AI and communication infrastructure for orbit</span>
+        <span>Scroll</span>
+      </div>
+    </section>
+
+    <!-- THESIS: word-by-word reveal scrubbed by scroll -->
+    <section class="thesis" id="thesis">
+      <p class="thesis__text" id="thesisText">Compute belongs where the data is made. No satellite should wait for a pass. Boscon Space builds the hardware, the links and the ground, end to end, so that space is no limit for AI or communication.</p>
+    </section>
+
+    <!-- MESH: sticky photo scrollytelling -->
+    <section class="story" id="mesh">
+      <header class="sec">
+        <span class="label">Boscon Mesh</span>
+        <h2 class="sec__title rv">Every satellite can see one that can see the ground.</h2>
+      </header>
+      <div class="story__grid">
+        <div class="story__stage">
+          <img class="story__img is-active" src="https://images.unsplash.com/photo-1572224104782-91a08d296390?auto=format&fit=crop&w=1800&q=80" alt="A large ground-station dish at dusk" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=1800&q=80" alt="A satellite in low-Earth orbit against the curve of the planet" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=80" alt="The full disc of Earth against black space" loading="lazy">
+          <span class="story__count" id="storyCount">01 — 03</span>
+        </div>
+        <div class="story__steps">
+          <div class="story__step" data-step="0">
+            <span class="label">Today</span>
+            <h3>A satellite reaches its ground station for minutes per pass.</h3>
+            <p>Only while it is high above the horizon. The rest of the orbit, data waits on board.</p>
+          </div>
+          <div class="story__step" data-step="1">
+            <span class="label">With Boscon Mesh</span>
+            <h3>Traffic hands off across satellites, ours or anyone's.</h3>
+            <p>Whichever spacecraft has a station in view carries the signal down. Nothing waits for a pass.</p>
+          </div>
+          <div class="story__step" data-step="2">
+            <span class="label">Result</span>
+            <h3>A live link, every minute of every orbit.</h3>
+            <p>Signals reach their operators when they are produced. Ground-station elevation stops being a constraint.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLATFORM: ledger with image swap -->
+    <section class="platform" id="platform">
+      <header class="sec">
+        <span class="label">Platform</span>
+        <h2 class="sec__title rv">Three segments. One piece of infrastructure.</h2>
+      </header>
+      <div class="platform__grid">
+        <div class="ledger" id="ledger">
+          <article class="ledger__row is-active">
+            <span class="label">01 &nbsp;Compute</span>
+            <h3>AI nodes</h3>
+            <p>Accelerators, storage and a mesh radio. Inference, training and research in orbit. Results come down, not raw data.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=75" alt="Rows of server racks lit from within" loading="lazy">
+          </article>
+          <article class="ledger__row">
+            <span class="label">02 &nbsp;Hosting</span>
+            <h3>Research centres</h3>
+            <p>Larger platforms for partner, university and agency workloads, operated autonomously with a permanent link home.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=75" alt="A spacecraft module above cloud-covered ocean" loading="lazy">
+          </article>
+          <article class="ledger__row">
+            <span class="label">03 &nbsp;Communication</span>
+            <h3>Relay satellites</h3>
+            <p>Store, route and forward. Any spacecraft equipped for the mesh is never out of contact with its ground station.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1200&q=75" alt="A small satellite with folded solar panels above Earth" loading="lazy">
+          </article>
+        </div>
+        <div class="ledger__media" aria-hidden="true">
+          <div class="ledger__frame">
+            <img class="is-active" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MISSIONS: grid, photo reveals on hover -->
+    <section class="missions" id="missions">
+      <header class="sec">
+        <span class="label">Missions</span>
+        <h2 class="sec__title rv">Built for work that cannot wait for the next pass.</h2>
+      </header>
+      <ul class="missions__grid">
+        <li class="rv"><img src="https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">01</span><h3>Research</h3><p>Experiments and models run on data as it is captured.</p></li>
+        <li class="rv"><img src="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">02</span><h3>Autonomous operations</h3><p>Constellations plan, retask and respond on their own, with people informed live.</p></li>
+        <li class="rv"><img src="https://images.unsplash.com/photo-1662614380507-72f8d36f1d2b?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">03</span><h3>Defence</h3><p>Continuous awareness and a channel that is live at every point of the orbit.</p></li>
+        <li class="rv"><img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">04</span><h3>Disaster response</h3><p>Floods, fires and storms detected from orbit, with the alert delivered while it still matters.</p></li>
+        <li class="rv"><img src="https://images.unsplash.com/photo-1522030299830-16b8d3d049fe?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">05</span><h3>Earth observation</h3><p>Agriculture, logistics and climate science, from satellites that think and talk.</p></li>
+        <li class="rv"><img src="https://images.unsplash.com/photo-1454789548928-9efd52dc4031?auto=format&fit=crop&w=900&q=60" alt="" loading="lazy"><span class="label">06</span><h3>Third-party fleets</h3><p>Any operator's spacecraft, equipped for the mesh, gets the same always-on link.</p></li>
+      </ul>
+    </section>
+
+    <!-- PROGRESS: timeline over photo -->
+    <section class="progress" id="progress">
+      <div class="progress__media" data-parallax>
+        <img src="https://images.unsplash.com/photo-1743412059152-d577187040c1?auto=format&fit=crop&w=2400&q=75" alt="A ground-station dish in silhouette against a dark sky" loading="lazy">
+      </div>
+      <div class="progress__inner">
+        <header class="sec sec--tight">
+          <span class="label">Progress</span>
+          <h2 class="sec__title rv">Built and tested from the ground up.</h2>
+        </header>
+        <ol class="timeline" id="timeline">
+          <li class="timeline__item is-now">
+            <span class="label">Now</span>
+            <h3>HAB-1</h3>
+            <p>Stratospheric balloon flight of the Boscon telemetry radio and flight computer. Thirty days of continuous ground testing come before launch.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Next</span>
+            <h3>First relay</h3>
+            <p>One relay in low-Earth orbit, carrying third-party traffic to the ground through the mesh.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Then</span>
+            <h3>AI nodes</h3>
+            <p>Compute joins the mesh. The first models run on data in orbit.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Then</span>
+            <h3>Research centres</h3>
+            <p>Hosted platforms for partner workloads, with the mesh as their link home.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact">
+      <div class="contact__media" data-parallax>
+        <img src="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=2400&q=80" alt="The blue limb of Earth against black space" loading="lazy">
+      </div>
+      <div class="contact__inner">
+        <span class="label rv">Contact</span>
+        <h2 class="contact__title">
+          <span class="line"><span>Talk to us.</span></span>
+        </h2>
+        <a class="contact__mail rv" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>© 2026 Boscon Space</span>
+    <span>Photography: NASA and Unsplash contributors</span>
+    <a href="#top">Back to top</a>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>
