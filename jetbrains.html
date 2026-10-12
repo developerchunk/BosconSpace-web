@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://images.unsplash.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
   <style>
     .facts { list-style: none; margin: 0; padding: 0 var(--gutter) clamp(80px, 12vh, 160px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); max-width: 1400px; margin: 0 auto; }
     .facts li { background: var(--bg); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: 10px; min-height: 220px; }
@@ -102,9 +102,9 @@
       </header>
       <div class="story__grid">
         <div class="story__stage">
-          <img class="story__img is-active" src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=80" alt="The full disc of Earth against black space" loading="lazy">
-          <img class="story__img" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1800&q=80" alt="Rows of server racks lit from within" loading="lazy">
-          <img class="story__img" src="https://images.unsplash.com/photo-1572224104782-91a08d296390?auto=format&fit=crop&w=1800&q=80" alt="A large ground-station dish at dusk" loading="lazy">
+          <img class="story__img is-active" src="https://images.unsplash.com/photo-1561484930-ac8e09d9cbc4?auto=format&fit=crop&w=1800&q=80" alt="A team launching a sounding balloon at dusk" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1631553127988-36343ac5bb0c?auto=format&fit=crop&w=1800&q=80" alt="A Raspberry Pi single-board computer on a dark table" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1708807472445-d33589e6b090?auto=format&fit=crop&w=1800&q=80" alt="An operator in front of a wall of monitors" loading="lazy">
           <span class="story__count" id="storyCount">01 — 03</span>
         </div>
         <div class="story__steps">
@@ -139,26 +139,26 @@
             <span class="label">01 &nbsp;Hardware access</span>
             <h3>The pins, the buses, the radio</h3>
             <p>A Kotlin layer that talks to the Linux kernel directly: switching pins, counting pulses, the two standard chip-to-chip buses, and a driver for the Semtech SX1262 radio that matches the established C++ library byte for byte, so our frames are received by unchanged equipment.</p>
-            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1200&q=75" alt="A small satellite with folded solar panels above Earth" loading="lazy">
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1760842543713-108c3cadbba1?auto=format&fit=crop&w=1200&q=75" alt="Close-up of a dark printed circuit board" loading="lazy">
           </article>
           <article class="ledger__row">
             <span class="label">02 &nbsp;Intelligence</span>
             <h3>The model, the agent, the analysis</h3>
             <p>A 1.5-billion-parameter model runs inside the Kotlin program with the llama.cpp kernel linked in. An agent lets it read live sensors with a single line, and refuses to run when the computer is too hot or the battery too low. Analysis code finds the radiation peak, the burst and the free fall, and flags any sensor that lies.</p>
-            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=75" alt="Rows of server racks lit from within" loading="lazy">
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1587845323226-bad89242c735?auto=format&fit=crop&w=1200&q=75" alt="A silicon wafer, a grid of iridescent dies" loading="lazy">
           </article>
           <article class="ledger__row">
             <span class="label">03 &nbsp;Operations</span>
             <h3>The flight process and the console</h3>
             <p>One process ticks once a second: sensors, analysis, beacon, log, watchdog, with the model answering on its own thread. The Mac console shows all of it live and can build, deploy and reflash the payload over the air of the bench. Every panel reads the real board.</p>
-            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=75" alt="A spacecraft module above cloud-covered ocean" loading="lazy">
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1754039984985-ef607d80113a?auto=format&fit=crop&w=1200&q=75" alt="Code on two screens at a dark desk" loading="lazy">
           </article>
         </div>
         <div class="ledger__media" aria-hidden="true">
           <div class="ledger__frame">
-            <img class="is-active" src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
-            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
-            <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img class="is-active" src="https://images.unsplash.com/photo-1760842543713-108c3cadbba1?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1587845323226-bad89242c735?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1754039984985-ef607d80113a?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
           </div>
         </div>
       </div>
@@ -217,8 +217,7 @@
 
     <!-- FOR JETBRAINS -->
     <section class="platform" id="jetbrains">
-      <header class="sec">
-        <span class="label">For JetBrains</span>
+      <header class="sec sec--one">
         <h2 class="sec__title rv">A story the Kotlin community has not seen yet.</h2>
       </header>
       <div class="sec__body">
@@ -232,15 +231,14 @@
 
     <!-- LINKS -->
     <section class="platform" id="see">
-      <header class="sec">
+      <header class="sec sec--one">
         <span class="label">See for yourself</span>
         <h2 class="sec__title rv">Everything is in the open.</h2>
       </header>
       <div class="sec__body">
         <ul class="links">
-          <li class="rv"><a href="https://github.com/developerchunk/BosconSpace"><span>The repository<small>Every line of code, every decision, every bench result and every failure.</small></span><span>GitHub</span></a></li>
-          <li class="rv"><a href="https://github.com/developerchunk/BosconSpace/blob/main/payload/docs/07-kotlin-on-the-balloon.md"><span>Kotlin on the balloon<small>The engineering write-up for Kotlin developers: what existed, what we built, how, and how to reuse it.</small></span><span>Document</span></a></li>
-          <li class="rv"><a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case we print for the flight computer and its battery. Interactive.</small></span><span>Open</span></a></li>
+          <li class="rv"><a href="/kotlin"><span>Kotlin on the balloon<small>The engineering write-up for Kotlin developers: what existed, what we built, how it is integrated, and how to reuse it.</small></span><span>Read</span></a></li>
+          <li class="rv"><a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case we print for the flight computer and its battery. Explode it, section it, turn it.</small></span><span>Open</span></a></li>
         </ul>
       </div>
     </section>

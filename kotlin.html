@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boscon Space — Kotlin on the balloon</title>
+  <meta name="description" content="HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.">
+  <meta property="og:title" content="Kotlin on the balloon">
+  <meta property="og:description" content="HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.">
+  <meta property="og:image" content="https://space.ketoy.dev/assets/og.jpg">
+  <meta property="og:url" content="https://space.ketoy.dev/kotlin">
+  <link rel="canonical" href="https://space.ketoy.dev/kotlin">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/doc.css?v=1">
+</head>
+<body class="doc-page">
+
+  <header class="nav" id="nav">
+    <a class="brand" href="/" aria-label="Boscon Space, home"><img class="brand__mark" src="assets/logo-mark.png" alt="" width="574" height="519"><img class="brand__wm" src="assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/jetbrains">HAB-1 for JetBrains</a>
+      <a href="/payload-box">Payload in 3D</a>
+      <a href="/#contact">Contact</a>
+    </nav>
+    <button class="nav__toggle" id="navToggle" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="/jetbrains">For JetBrains</a>
+      <a href="/payload-box">Payload in 3D</a>
+      <a href="/#contact">Contact</a>
+    </nav>
+    <a class="menu__foot" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+  </div>
+
+  <main id="top">
+    <header class="doc__head">
+      <span class="label">HAB-1 · Engineering write-up · Updated 2026-10-11</span>
+      <h1 class="doc__title">Kotlin on the balloon.</h1>
+      <p class="doc__lede">HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.</p>
+      <p class="doc__note">Every number here was measured on our bench unless it says <em>assumed</em>. Changes are logged at the end.</p>
+    </header>
+    <article class="doc">
+
+<h2 id="the-idea"><span class="label">01</span>The idea</h2>
+<p>Boscon Space is flying a latex balloon to about 25–30 km over Maharashtra,
+India, carrying a Raspberry Pi 5 that runs a small language model. From the
+ground you send a prompt over a 866 MHz radio link; the payload answers from
+the stratosphere, while a beacon reports where it is so we can get it back.
+The mission is tracking-and-recovery; the LLM is the passenger
+(<code>docs/01-mission-and-architecture.md</code>).</p>
+<p>The software decision, made with JetBrains as a collaborator: <strong>the payload
+computer runs Kotlin, all the way down to the pins.</strong> Not Kotlin as a shell
+around Python and C, but one Kotlin/Native binary that owns the GPIO, the SPI
+radio, the sensors, the data analysis, the LLM session and the flight log —
+and a Kotlin desktop console on the Mac that watches it. Two things are
+deliberately not Kotlin: the independent recovery beacon's microcontroller
+(C++ on a Heltec ESP32, because it must not share a software stack with the
+LLM box, and because Kotlin/Native has no ESP32 target) and the matrix-maths
+kernel of llama.cpp, which we link into the Kotlin binary rather than
+rewrite.</p>
+<h2 id="what-existed-and-what-we-built"><span class="label">02</span>What existed, and what we built</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Existed</th>
+<th>We built (Kotlin unless noted)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Board</td>
+<td>Raspberry Pi 5, 4 GB, Raspberry Pi OS Trixie (kernel 6.18)</td>
+<td>first-boot config (cloud-init), partition/journal/fan setup scripts</td>
+</tr>
+<tr>
+<td>Pin access</td>
+<td>Linux kernel character devices: <code>/dev/gpiochip0</code> (GPIO v2 uAPI), <code>/dev/i2c-1</code>, <code>/dev/spidev0.0</code>, termios</td>
+<td><strong><code>hal/</code></strong> — direct <code>ioctl</code> bindings, no libgpiod, no Pi4J, no JVM. GPIO in/out/edge events, I²C transactions, SPI transfers, serial. The GPIO v2 structs are declared by us with compile-time size asserts because the toolchain's sysroot headers predate them</td>
+</tr>
+<tr>
+<td>Radio</td>
+<td>Semtech SX1262 inside a Heltec V3; RadioLib (C++) on the ESP32</td>
+<td><strong><code>drivers/Sx1262</code></strong> — the GFSK configuration RadioLib 7.7.1 produces, reproduced register-for-register so our frames are received by the unchanged C++ receiver. <strong><code>BridgeBus</code></strong> — the Heltec as a dumb SPI/GPIO adapter over USB serial (<code>firmware/23_spi_bridge</code>, C++, ~250 lines, no radio logic)</td>
+</tr>
+<tr>
+<td>Sensors</td>
+<td>BMP280 on I²C (bench), more to come</td>
+<td><strong><code>drivers/Bmp280</code></strong> with the datasheet's integer compensation, unit-tested against Bosch's reference numbers; <strong><code>NmeaParser</code></strong></td>
+</tr>
+<tr>
+<td>Wire format</td>
+<td>a 28-byte packed C struct in the firmware</td>
+<td><strong><code>protocol/TelemetryFrame</code></strong> — byte-identical, cross-checked against the C source by a script in CI-style (<code>tools/check_packet_abi.py</code>)</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>llama.cpp (C/C++), Qwen2.5-1.5B-Instruct Q4_K_M</td>
+<td><strong><code>llm/</code></strong> — cinterop binding; <code>Llm</code> wraps load (mlocked), ChatML prompt, greedy sampling, 128-token and 90-second guards</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>—</td>
+<td><strong><code>agent/</code></strong> — tool calling with a one-line <code>CALL &lt;tool&gt;</code> grammar a 1.5 B model follows; guards (busy, chip temperature, pack voltage) that refuse <em>before</em> the model is touched</td>
+</tr>
+<tr>
+<td>Analysis</td>
+<td>—</td>
+<td><strong><code>analysis/</code></strong> — rolling statistics, altitude-binned profiles, a Regener-Pfotzer peak detector for the radiation curve, burst and free-fall detection, stuck/rate/stale channel flags, honest prompt text ("unavailable", never invented)</td>
+</tr>
+<tr>
+<td>Process</td>
+<td>systemd</td>
+<td><strong><code>flightd/</code></strong> — the one process: 1 Hz tick → sensors → analysis → frame → beacon → synced NDJSON log → watchdog pet; agent on its own thread; sd_notify over a raw Unix socket</td>
+</tr>
+<tr>
+<td>Ground side</td>
+<td>—</td>
+<td><strong><code>station/</code></strong> — Compose for Desktop console on the Mac: pins, radio, charts, prompts, analysis, fan, code editor with build/flash/deploy, Wi-Fi, hardware watchdog. Reuses <code>protocol</code> and <code>analysis</code> as libraries</td>
+</tr>
+<tr>
+<td>Ops</td>
+<td>esptool, arduino-cli, Gradle</td>
+<td>scripts to image the card, flash the Heltec <em>from the Pi</em> with rollback, deploy flightd, run every probe</td>
+</tr>
+</tbody>
+</table>
+<p>Code size on 2026-10-11, measured with <code>wc -l</code>: 2,814 lines of Kotlin across
+9 modules, 118 lines of cinterop definitions, 166 lines of bridge C++, 333 lines
+of shell tooling.</p>
+<h2 id="how-kotlin-is-integrated"><span class="label">03</span>How Kotlin is integrated</h2>
+<p><strong>One Gradle Kotlin Multiplatform build, pinned to Kotlin 2.4.10.</strong>
+<code>linuxArm64</code> is a Tier 2 target (compiled on CI, not run-tested) so we freeze
+the compiler for the 30-day test campaign. The Mac is the build host —
+Kotlin/Native cannot build on an aarch64 Linux host — and a 650 KB to 2 MB
+ELF is copied to the Pi over SSH.</p>
+<p><strong>Logic in common Kotlin, I/O in thin native modules.</strong> <code>protocol</code>,
+<code>analysis</code> and <code>agent</code> are pure Kotlin with <code>linuxArm64</code>, <code>macosArm64</code> and
+<code>jvm</code> targets. They are unit-tested on the Mac and reused unchanged by the
+desktop console. The <code>hal</code>, <code>drivers</code>, <code>llm</code> and <code>flightd</code> modules are
+<code>linuxArm64</code> and touch file descriptors.</p>
+<p><strong>cinterop is the only bridge to C</strong>, used three times, each with a lesson:</p>
+<ol>
+<li><em>Kernel interfaces</em> (<code>hal/src/nativeInterop/cinterop/linuxio.def</code>): the
+   bundled sysroot is glibc 2.25 / kernel 4.9 headers, so the GPIO v2 ABI is
+   declared in the <code>.def</code> itself, with <code>_Static_assert</code> on every struct size.
+   <code>ioctl</code> request numbers are computed by the toolchain's own <code>_IOWR</code>, not
+   typed by hand.</li>
+<li><em>llama.cpp</em> (<code>llm/.../llama.def</code>): headers and <code>.so</code> files come from a
+   build done on the Pi, pulled to the Mac by a script. Opaque C structs land
+   in <code>cnames.structs</code>; C enum values are top-level constants; linker flags
+   belong in the <code>.def</code> so every executable that links the klib inherits
+   them; Kotlin/Native drives <code>ld.lld</code> directly, so <code>--rpath=</code>, not <code>-Wl,</code>.</li>
+<li><em>A Unix datagram socket</em> for systemd's <code>READY=1</code> / <code>WATCHDOG=1</code>, because
+   the bundled POSIX bindings lack <code>sockaddr_un</code>.</li>
+</ol>
+<p><strong>Coroutines where blocking would hurt.</strong> The beacon tick and the LLM share
+a process; <code>flightd</code> runs the agent on <code>Dispatchers.Default</code> and the tick
+on the main loop, so a 6-second model answer never delays a frame. Measured:
+1000 ms ± 6 ms between frames while the model was answering.</p>
+<h2 id="how-kotlin-is-helping"><span class="label">04</span>How Kotlin is helping</h2>
+<ul>
+<li><strong>One language from pin to pixel.</strong> The same <code>TelemetryFrame</code> encodes on
+  the Pi and decodes in the Mac console; the same <code>ChannelMonitor</code> flags a
+  stuck sensor on board and in the replay view. There is no second
+  implementation to drift.</li>
+<li><strong>Tests that run before hardware exists.</strong> The BMP280 compensation, the
+  NMEA parser, the frame layout, the radio register maths (bit-rate 26666,
+  deviation 41943, frequency 908,171,648 — the float32 values RadioLib
+  produces), the agent's guard logic and the Pfotzer detector all pass on the
+  Mac. Hardware probes then check the last mile, and each probe has a
+  failing case we saw before the passing one.</li>
+<li><strong>A small, inspectable binary on a 4 GB board.</strong> No JVM, no package tree
+  on the read-only root we fly with. <code>flightd</code> is 1.97 MB and links libc,
+  libm and libllama. Deployment is one <code>scp</code> and a <code>systemctl restart</code>;
+  rollback is copying the previous file.</li>
+<li><strong>Type-safe I/O.</strong> <code>GpioOutput</code>, <code>I2cBus</code>, <code>SpiBus</code>, <code>SerialPort</code>,
+  <code>Sx1262Bus</code> are interfaces. The SX1262 driver does not know whether its
+  bytes go through <code>spidev</code> on the Pi or through the Heltec bridge over USB;
+  the flight article swaps one class.</li>
+<li><strong>Honest failure.</strong> <code>HalException</code> carries the kernel call and <code>errno</code>;
+  the agent returns <code>ERR_HOT</code> or <code>ERR_LOWBAT</code> instead of a guess; the
+  analysis hands the model "uv index unavailable" rather than a number.</li>
+</ul>
+<h2 id="what-we-have-achieved-all-on-the-real-board-2026-10-11"><span class="label">05</span>What we have achieved (all on the real board, 2026-10-11)</h2>
+<table>
+<thead>
+<tr>
+<th>Milestone</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kotlin/Native runs on the Pi 5</td>
+<td>655 KB probe reads the GPIO chip through our own kernel structs</td>
+</tr>
+<tr>
+<td>GPIO, edges, SPI, I²C</td>
+<td>loopback 20/20; 4,000 edge events at ~3 kHz with zero loss; 1280/1280 SPI bytes at 8 MHz; BMP280 found and read (938 hPa, 31 °C)</td>
+</tr>
+<tr>
+<td>Radio from Kotlin</td>
+<td>SX1262 reset, status and version read through the bridge; GFSK frames transmitted and received by the unchanged C++ receiver with its display</td>
+</tr>
+<tr>
+<td>Continuous beacon</td>
+<td>one 28-byte frame per second as a systemd service; survives a crash, a hang (30 s watchdog) and the bridge being unplugged and re-plugged</td>
+</tr>
+<tr>
+<td>LLM in-process</td>
+<td>Qwen2.5-1.5B, 11.9 tokens/s generation in Kotlin against 12.06 tokens/s for the C++ benchmark; deterministic; load 2.4 s</td>
+</tr>
+<tr>
+<td>Agent</td>
+<td>"What is the air pressure around you?" → <code>CALL read_sensors</code> → "The air pressure around me is 938.5 hPa." Live reading at that moment: 938.5 hPa. A tripped temperature guard refuses in 0 ms</td>
+</tr>
+<tr>
+<td>Analysis</td>
+<td>synthetic 0–30 km ascent: radiation peak found at 19 km ± 250 m; burst/free-fall state machine; channel flags</td>
+</tr>
+<tr>
+<td>Station</td>
+<td>nine live panels on the Mac; a prompt typed in the app is answered by the balloon computer</td>
+</tr>
+<tr>
+<td>Ops</td>
+<td>Heltec flashed <em>from the Pi</em> with automatic rollback, proven with a deliberately broken image</td>
+</tr>
+</tbody>
+</table>
+<p>What is <strong>not</strong> done: power during inference is unmeasured (needs an inline
+USB-C meter); the prompt <em>uplink</em> over the radio is next (the file queue
+stands in); the Geiger, UV, spectral and IMU sensors are on order; the chip's
+version string reads "SX1261" and the +22 dBm assumption is unverified; the
+24-hour soak of <code>flightd</code> is running.</p>
+<h2 id="how-it-all-works-now"><span class="label">06</span>How it all works now</h2>
+<pre><code>Mac (HAB-1 Station, Compose Desktop) ── Wi-Fi/SSH ── Raspberry Pi 5 (4 GB, Trixie)
+                                                       └─ flightd (Kotlin/Native, systemd, watchdog 30 s)
+                                                            ├─ hal: /dev/gpiochip0, /dev/i2c-1, /dev/ttyUSB0
+                                                            ├─ BMP280 → analysis → TelemetryFrame (28 B)
+                                                            ├─ Sx1262 driver ── USB serial ── Heltec bridge (C++) ── SX1262 ── 866.1 MHz ──▶ RX Heltec (C++, unchanged)
+                                                            ├─ llm: libllama in-process, Qwen2.5-1.5B mlocked
+                                                            ├─ agent: prompt → CALL read_sensors → answer, guards first
+                                                            └─ log: /log/flight/*.ndjson, O_SYNC, 10-min rotation
+</code></pre>
+<p>Prompts today enter as files in <code>~/prompts/</code> (from the station or <code>scp</code>);
+answers land in <code>/log/answers/</code>. The radio uplink will feed the same queue.</p>
+<h2 id="how-kotlin-developers-can-use-this"><span class="label">07</span>How Kotlin developers can use this</h2>
+<p><strong>Reuse as libraries.</strong> <code>hal/</code> is a generic Kotlin/Native HAL for any Linux
+board with the GPIO character device, <code>i2c-dev</code> and <code>spidev</code> — any Pi, and
+most SBCs. <code>drivers/Sx1262</code> works with any SX126x module. <code>analysis/</code> and
+<code>agent/</code> are plain Kotlin and run on JVM, Native or desktop.</p>
+<p><strong>Build it.</strong></p>
+<pre><code class="language-bash"># prerequisites on the Mac: JDK 17+, Gradle 9, Kotlin/Native toolchain (downloads on first build)
+cd payload
+gradle :protocol:macosArm64Test :drivers:macosArm64Test :agent:macosArm64Test :analysis:macosArm64Test   # pure-Kotlin tests
+gradle :probes:linkGpio_probeReleaseExecutableLinuxArm64   # one probe for the Pi
+gradle :flightd:linkFlightdReleaseExecutableLinuxArm64     # the flight binary
+gradle :station:run                                        # the Mac console
+</code></pre>
+<p>The <code>llm</code> module needs <code>tools/pi_llama_setup.sh</code> run once on a Pi (builds
+llama.cpp there) and <code>tools/pi_llama_pull.sh</code> to fetch the headers and <code>.so</code>.</p>
+<p><strong>Add a sensor.</strong> Write a class in <code>drivers/</code> against <code>I2cBus</code> or <code>SpiBus</code>
+(see <code>Bmp280</code>), put the maths in <code>commonMain</code> and test it on the Mac with the
+datasheet's example, then add a probe in <code>probes/</code> whose pass condition can
+fail, and wire the reading into <code>flightd</code> as a <code>Reading</code> with its
+<code>ChannelMonitor</code> flags. The model sees it on the next <code>read_sensors</code>.</p>
+<p><strong>Add a tool for the model.</strong> <code>Tool("name", "what it returns") { ... }</code> in
+the registry handed to <code>AgentLoop</code>. Keep results short and numeric; the
+grammar is one line, <code>CALL name</code>, which Qwen2.5-1.5B follows from a single
+system-prompt sentence.</p>
+<p><strong>Run it on your own Pi.</strong> <code>tools/image_card.sh</code>, <code>tools/boot_config.sh</code>
+(cloud-init: note the <code>instance-id</code> hyphen and <code>enable_ssh</code>),
+<code>tools/pi_firstboot_setup.sh</code>, then <code>tools/pi_flightd.sh install</code>. The
+bench history, every dead end included, is in <code>04-worklog.md</code>.</p>
+<p><strong>Known Kotlin/Native pitfalls we hit, so you don't:</strong> forward-declared C
+structs live in <code>cnames.structs</code>; <code>String.format</code> does not exist on Native;
+<code>assert()</code> is experimental, use <code>kotlin.test</code>; a <code>@Composable</code> call cannot
+sit inside <code>remember { }</code>; linker options go in the cinterop <code>.def</code>;
+<code>-Wl,</code> is wrong because <code>ld.lld</code> is called directly.</p>
+
+<h3 class="doc__changelog">Changelog of this document</h3>
+<ul>
+<li>2026-10-11 — first version, after the first bench day: M0–M3, M5, M6, M7a,
+  M8, M9, M11, M16 passed; M12 soaking.</li>
+</ul>
+    </article>
+    <nav class="doc__next" aria-label="Related">
+      <a href="/jetbrains"><span>HAB-1, for JetBrains<small>The flight, the software, the bench results, and what we are asking.</small></span><span>Page</span></a>
+      <a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case for the flight computer. Explode it, section it, turn it.</small></span><span>Open</span></a>
+    </nav>
+  </main>
+
+  <footer class="foot">
+    <span>© 2026 Boscon Space</span>
+    <span>Generated from the maintained document in the HAB-1 repository</span>
+    <a href="#top">Back to top</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>
