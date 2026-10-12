@@ -42,12 +42,15 @@
 
   <main id="top">
     <header class="doc__head">
-      <span class="label">HAB-1 · Engineering write-up · Updated 2026-10-11</span>
+      <span class="label">HAB-1 · Engineering write-up · Updated </span>
       <h1 class="doc__title">Kotlin on the balloon.</h1>
       <p class="doc__lede">HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.</p>
       <p class="doc__note">Every number here was measured on our bench unless it says <em>assumed</em>. Changes are logged at the end.</p>
     </header>
     <article class="doc">
+<p>The project is called <strong>Kapex</strong>: Kotlin plus apex, the top of the flight. Maintained
+document. Last updated 2026-10-12. Every number here was measured
+on our bench unless it says <em>assumed</em>. Changes are logged at the end.</p>
 
 <h2 id="the-idea"><span class="label">01</span>The idea</h2>
 <p>Boscon Space is flying a latex balloon to about 25–30 km over Maharashtra,
@@ -261,7 +264,7 @@ most SBCs. <code>drivers/Sx1262</code> works with any SX126x module. <code>analy
 <code>agent/</code> are plain Kotlin and run on JVM, Native or desktop.</p>
 <p><strong>Build it.</strong></p>
 <pre><code class="language-bash"># prerequisites on the Mac: JDK 17+, Gradle 9, Kotlin/Native toolchain (downloads on first build)
-cd payload
+cd kapex
 gradle :protocol:macosArm64Test :drivers:macosArm64Test :agent:macosArm64Test :analysis:macosArm64Test   # pure-Kotlin tests
 gradle :probes:linkGpio_probeReleaseExecutableLinuxArm64   # one probe for the Pi
 gradle :flightd:linkFlightdReleaseExecutableLinuxArm64     # the flight binary
@@ -292,6 +295,9 @@ sit inside <code>remember { }</code>; linker options go in the cinterop <code>.d
 <ul>
 <li>2026-10-11 — first version, after the first bench day: M0–M3, M5, M6, M7a,
   M8, M9, M11, M16 passed; M12 soaking.</li>
+<li>2026-10-12 — the project is named Kapex. The folder <code>payload/</code> became <code>kapex/</code>, the
+  Gradle root project is <code>kapex</code>, and the Kotlin packages moved from
+  <code>space.boscon.hab</code> to <code>space.boscon.kapex</code>. No behaviour changed.</li>
 </ul>
     </article>
     <nav class="doc__next" aria-label="Related">

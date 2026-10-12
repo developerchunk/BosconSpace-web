@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render payload/docs/07-kotlin-on-the-balloon.md as /kotlin (kotlin/index.html) in the site's own design.
+"""Render kapex/docs/07-kotlin-on-the-balloon.md as /kotlin (kotlin/index.html) in the site's own design.
 
 Run from anywhere:  python3 website/tools/build_kotlin_page.py
 Reads the maintained Markdown from the main repo and writes website/kotlin/index.html.
@@ -9,7 +9,7 @@ import markdown  # python-markdown 3.x
 
 HERE = pathlib.Path(__file__).resolve().parent
 SITE = HERE.parent
-SRC = SITE.parent / "payload" / "docs" / "07-kotlin-on-the-balloon.md"
+SRC = SITE.parent / "kapex" / "docs" / "07-kotlin-on-the-balloon.md"
 OUT = SITE / "kotlin" / "index.html"
 
 text = SRC.read_text()

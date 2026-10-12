@@ -4,7 +4,7 @@ Static site, no build step. Each page is a directory with an `index.html`, so `/
 
 - `/` — `index.html`, the landing page
 - `/jetbrains` — `jetbrains/index.html`, HAB-1 presented to JetBrains (same structure and photography rules as the landing page)
-- `/kotlin` — `kotlin/index.html`, the "Kotlin on the balloon" write-up. **Generated**: edit `../payload/docs/07-kotlin-on-the-balloon.md` in the main repo, then run `python3 tools/build_kotlin_page.py` (needs `pip install markdown`). Styles in `css/doc.css`.
+- `/kotlin` — `kotlin/index.html`, the "Kotlin on the balloon" write-up. **Generated**: edit `../kapex/docs/07-kotlin-on-the-balloon.md` in the main repo, then run `python3 tools/build_kotlin_page.py` (needs `pip install markdown`). Styles in `css/doc.css`.
 - `/payload-box` — `payload-box/index.html`, the interactive 3D payload case (self-contained, three.js inlined)
 
 Shared: `css/style.css`, `js/main.js`.
