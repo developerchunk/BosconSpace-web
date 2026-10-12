@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Render payload/docs/07-kotlin-on-the-balloon.md as /kotlin in the site's own design.
+"""Render payload/docs/07-kotlin-on-the-balloon.md as /kotlin (kotlin/index.html) in the site's own design.
 
 Run from anywhere:  python3 website/tools/build_kotlin_page.py
-Reads the maintained Markdown from the main repo and writes website/kotlin.html.
+Reads the maintained Markdown from the main repo and writes website/kotlin/index.html.
 """
 import pathlib, re, sys
 import markdown  # python-markdown 3.x
@@ -10,7 +10,7 @@ import markdown  # python-markdown 3.x
 HERE = pathlib.Path(__file__).resolve().parent
 SITE = HERE.parent
 SRC = SITE.parent / "payload" / "docs" / "07-kotlin-on-the-balloon.md"
-OUT = SITE / "kotlin.html"
+OUT = SITE / "kotlin" / "index.html"
 
 text = SRC.read_text()
 # Drop the H1 and the bold one-line summary: the page carries its own title block.
@@ -45,18 +45,18 @@ page = f"""<!doctype html>
   <meta property="og:url" content="https://space.ketoy.dev/kotlin">
   <link rel="canonical" href="https://space.ketoy.dev/kotlin">
   <meta name="theme-color" content="#0a0a0b">
-  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=8">
-  <link rel="stylesheet" href="css/doc.css?v=1">
+  <link rel="stylesheet" href="/css/style.css?v=8">
+  <link rel="stylesheet" href="/css/doc.css?v=1">
 </head>
 <body class="doc-page">
 
   <header class="nav" id="nav">
-    <a class="brand" href="/" aria-label="Boscon Space, home"><img class="brand__mark" src="assets/logo-mark.png" alt="" width="574" height="519"><img class="brand__wm" src="assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
+    <a class="brand" href="/" aria-label="Boscon Space, home"><img class="brand__mark" src="/assets/logo-mark.png" alt="" width="574" height="519"><img class="brand__wm" src="/assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
     <nav class="nav__links" aria-label="Primary">
       <a href="/jetbrains">HAB-1 for JetBrains</a>
       <a href="/payload-box">Payload in 3D</a>
@@ -97,7 +97,7 @@ page = f"""<!doctype html>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-  <script src="js/main.js?v=3"></script>
+  <script src="/js/main.js?v=3"></script>
 </body>
 </html>
 """
