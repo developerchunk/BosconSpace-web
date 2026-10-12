@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boscon Space — HAB-1, for JetBrains</title>
+  <meta name="description" content="HAB-1: a language model flies to the edge of space on a flight computer written entirely in Kotlin. Boscon Space, presented to JetBrains.">
+  <meta property="og:title" content="Boscon Space — HAB-1, for JetBrains">
+  <meta property="og:description" content="A language model flies to the edge of space on a flight computer written in Kotlin.">
+  <meta property="og:image" content="https://space.ketoy.dev/assets/og.jpg">
+  <meta property="og:url" content="https://space.ketoy.dev/jetbrains">
+  <link rel="canonical" href="https://space.ketoy.dev/jetbrains">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=7">
+  <style>
+    .facts { list-style: none; margin: 0; padding: 0 var(--gutter) clamp(80px, 12vh, 160px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); max-width: 1400px; margin: 0 auto; }
+    .facts li { background: var(--bg); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: 10px; min-height: 220px; }
+    .facts strong { font-family: var(--head); font-weight: 500; font-size: clamp(26px, 3vw, 40px); letter-spacing: -0.02em; line-height: 1; }
+    .facts p { color: var(--fg-dim); margin: 0; font-size: 15px; line-height: 1.5; }
+    .facts .label { margin: 0; }
+    @media (max-width: 960px) { .facts { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } }
+    .asks { list-style: none; margin: 0; padding: 0; max-width: 820px; }
+    .asks li { padding: clamp(24px, 4vh, 40px) 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 56px 1fr; gap: 20px; }
+    .asks li:last-child { border-bottom: 1px solid var(--rule); }
+    .asks h3 { margin: 0 0 8px; font-family: var(--head); font-weight: 500; font-size: clamp(20px, 2.4vw, 28px); letter-spacing: -0.015em; }
+    .asks p { margin: 0; color: var(--fg-dim); max-width: 60ch; }
+    .links { list-style: none; margin: 0; padding: 0; max-width: 820px; }
+    .links li { border-top: 1px solid var(--rule); }
+    .links li:last-child { border-bottom: 1px solid var(--rule); }
+    .links a { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: baseline; padding: 22px 0; color: var(--fg); text-decoration: none; }
+    .links a span:last-child { color: var(--fg-mute); font-size: 14px; }
+    .links a:hover span:first-child { text-decoration: underline; text-underline-offset: 4px; }
+    .links small { display: block; color: var(--fg-dim); font-size: 15px; margin-top: 4px; }
+    .sec__body { padding: 0 var(--gutter) clamp(80px, 12vh, 160px); }
+    .sec__body > p { max-width: 64ch; color: var(--fg-dim); font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; margin: 0 0 18px; }
+  </style>
+</head>
+<body>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="/" aria-label="Boscon Space, home"><img class="brand__mark" src="assets/logo-mark.png" alt="" width="574" height="519"><img class="brand__wm" src="assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="/#mesh">Mesh</a>
+      <a href="/#platform">Platform</a>
+      <a href="/#missions">Missions</a>
+      <a href="/#progress">Progress</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav__toggle" id="navToggle" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="/#mesh">Mesh</a>
+      <a href="/#platform">Platform</a>
+      <a href="/#missions">Missions</a>
+      <a href="/#progress">Progress</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="menu__foot" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+  </div>
+
+  
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="hero__frame" id="heroFrame">
+        <img class="hero__img" id="heroImg" src="https://images.unsplash.com/photo-1534996858221-380b92700493?auto=format&fit=crop&w=2400&q=80" alt="The blue limb of Earth against black space" fetchpriority="high">
+      </div>
+      <div class="hero__text" id="heroText">
+        <h1 class="hero__title">
+          <span class="line"><span>AI at the edge of space.</span></span>
+          <span class="line"><span>Written in Kotlin.</span></span>
+        </h1>
+        <p class="hero__lede rv">In the last week of October 2026, Boscon Space flies a language model to the stratosphere on HAB-1. Its flight computer, from the pins to the model, is one Kotlin program. This page is for JetBrains.</p>
+      </div>
+      <div class="hero__foot rv">
+        <span>Boscon Space</span>
+        <span>HAB-1 · For JetBrains</span>
+        <span>Scroll</span>
+      </div>
+    </section>
+
+    <!-- THESIS -->
+    <section class="thesis" id="thesis">
+      <p class="thesis__text" id="thesisText">Compute belongs where the data is made. Before it belongs in orbit, it belongs under a balloon. HAB-1 carries a small computer, a radio and a language model to twenty-five kilometres, answers questions from the ground, and comes home. It is the first node of the Boscon mesh, and every line of its software is Kotlin.</p>
+    </section>
+
+    <!-- STORY: the flight, the software, the proof -->
+    <section class="story" id="flight">
+      <header class="sec">
+        <span class="label">HAB-1</span>
+        <h2 class="sec__title rv">A question goes up by radio. The answer comes back from the stratosphere.</h2>
+      </header>
+      <div class="story__grid">
+        <div class="story__stage">
+          <img class="story__img is-active" src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=80" alt="The full disc of Earth against black space" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1800&q=80" alt="Rows of server racks lit from within" loading="lazy">
+          <img class="story__img" src="https://images.unsplash.com/photo-1572224104782-91a08d296390?auto=format&fit=crop&w=1800&q=80" alt="A large ground-station dish at dusk" loading="lazy">
+          <span class="story__count" id="storyCount">01 — 03</span>
+        </div>
+        <div class="story__steps">
+          <div class="story__step" data-step="0">
+            <span class="label">The flight</span>
+            <h3>A balloon lifts a small box to the edge of space.</h3>
+            <p>A hydrogen weather balloon carries an insulated payload to between 25 and 30 kilometres, where the air is a hundred times thinner and the daytime sky is black. It bursts, the payload descends under a parachute, and the team recovers it.</p>
+          </div>
+          <div class="story__step" data-step="1">
+            <span class="label">The software</span>
+            <h3>One Kotlin program owns the whole payload.</h3>
+            <p>Compiled with Kotlin/Native into a single small file. It drives the computer's pins and the radio chip directly, reads the sensors, runs the language model, keeps a flight log that survives power loss, and answers questions. No virtual machine, no second language in the loop.</p>
+          </div>
+          <div class="story__step" data-step="2">
+            <span class="label">The ground</span>
+            <h3>The same Kotlin runs the ground station.</h3>
+            <p>A Compose for Desktop console watches the payload live: pins, radio, charts, prompts and answers. It shares the payload's own code for the radio messages and the data analysis, so nothing is written twice.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LEDGER: what we built -->
+    <section class="platform" id="built">
+      <header class="sec">
+        <span class="label">What we built</span>
+        <h2 class="sec__title rv">Kotlin, from the pins to the model.</h2>
+      </header>
+      <div class="platform__grid">
+        <div class="ledger" id="ledger">
+          <article class="ledger__row is-active">
+            <span class="label">01 &nbsp;Hardware access</span>
+            <h3>The pins, the buses, the radio</h3>
+            <p>A Kotlin layer that talks to the Linux kernel directly: switching pins, counting pulses, the two standard chip-to-chip buses, and a driver for the Semtech SX1262 radio that matches the established C++ library byte for byte, so our frames are received by unchanged equipment.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1200&q=75" alt="A small satellite with folded solar panels above Earth" loading="lazy">
+          </article>
+          <article class="ledger__row">
+            <span class="label">02 &nbsp;Intelligence</span>
+            <h3>The model, the agent, the analysis</h3>
+            <p>A 1.5-billion-parameter model runs inside the Kotlin program with the llama.cpp kernel linked in. An agent lets it read live sensors with a single line, and refuses to run when the computer is too hot or the battery too low. Analysis code finds the radiation peak, the burst and the free fall, and flags any sensor that lies.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=75" alt="Rows of server racks lit from within" loading="lazy">
+          </article>
+          <article class="ledger__row">
+            <span class="label">03 &nbsp;Operations</span>
+            <h3>The flight process and the console</h3>
+            <p>One process ticks once a second: sensors, analysis, beacon, log, watchdog, with the model answering on its own thread. The Mac console shows all of it live and can build, deploy and reflash the payload over the air of the bench. Every panel reads the real board.</p>
+            <img class="ledger__mimg" src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1200&q=75" alt="A spacecraft module above cloud-covered ocean" loading="lazy">
+          </article>
+        </div>
+        <div class="ledger__media" aria-hidden="true">
+          <div class="ledger__frame">
+            <img class="is-active" src="https://images.unsplash.com/photo-1640796433065-f423a9d9a5fd?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+            <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1400&q=80" alt="" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FACTS: measured on the bench -->
+    <section class="missions" id="measured">
+      <header class="sec">
+        <span class="label">Measured on the bench, 11 October 2026</span>
+        <h2 class="sec__title rv">Not a plan. Running.</h2>
+      </header>
+      <ul class="facts">
+        <li class="rv"><span class="label">Model speed</span><strong>11.9 tok/s</strong><p>Generated from Kotlin on the Raspberry Pi 5. The C++ benchmark on the same board gives 12.06. The binding costs nothing.</p></li>
+        <li class="rv"><span class="label">Beacon timing</span><strong>1,000 ms ± 6</strong><p>Between position frames, measured from the flight log, while the model was busy answering a question.</p></li>
+        <li class="rv"><span class="label">A real exchange</span><strong>938.5 hPa</strong><p>"What is the air pressure around you?" The model called its sensor tool and quoted the live reading exactly.</p></li>
+        <li class="rv"><span class="label">Hardware</span><strong>4,000 / 4,000</strong><p>Pulse edges counted without loss; 1,280 bytes round-tripped over the chip bus at 8 MHz; radio frames received by the unchanged receiver.</p></li>
+        <li class="rv"><span class="label">Resilience</span><strong>40 s</strong><p>From a deliberately frozen flight program to a watchdog restart. Unplugging the radio mid-flight: it kept answering and re-attached by itself.</p></li>
+        <li class="rv"><span class="label">Code</span><strong>2,814 lines</strong><p>Of Kotlin across nine modules, with 166 lines of C++ on a helper board and 333 lines of scripts. All of it public.</p></li>
+      </ul>
+    </section>
+
+    <!-- PROGRESS: cleared to fly -->
+    <section class="progress" id="progress">
+      <div class="progress__media" data-parallax>
+        <img src="https://images.unsplash.com/photo-1743412059152-d577187040c1?auto=format&fit=crop&w=2400&q=75" alt="A ground-station dish in silhouette against a dark sky" loading="lazy">
+      </div>
+      <div class="progress__inner">
+        <header class="sec sec--tight">
+          <span class="label">Progress</span>
+          <h2 class="sec__title rv">Cleared to fly.</h2>
+        </header>
+        <ol class="timeline" id="timeline">
+          <li class="timeline__item is-now">
+            <span class="label">Now</span>
+            <h3>HAB-1, first launch: 24 October 2026</h3>
+            <p>Clearances from the Government of India, the Ministry of Civil Aviation and the Indian Air Force are in hand. The launch window is 24 October, with 31 October held as the reserve date. Thirty days of continuous ground testing precede it.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Next</span>
+            <h3>November and December: the mesh in the stratosphere</h3>
+            <p>Further flights carrying the language model together with inter-communication modules, talking to multiple ground stations at once: the Boscon mesh exercised under balloons before it goes to orbit.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Then</span>
+            <h3>First relay in orbit</h3>
+            <p>One relay in low-Earth orbit, carrying third-party traffic to the ground through the mesh.</p>
+          </li>
+          <li class="timeline__item">
+            <span class="label">Then</span>
+            <h3>AI nodes</h3>
+            <p>Compute joins the mesh. The first models run on data in orbit, on the software proven on HAB-1.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- FOR JETBRAINS -->
+    <section class="platform" id="jetbrains">
+      <header class="sec">
+        <span class="label">For JetBrains</span>
+        <h2 class="sec__title rv">A story the Kotlin community has not seen yet.</h2>
+      </header>
+      <div class="sec__body">
+        <p class="rv">Balloon and small-satellite computers run Python or C. We chose Kotlin for all of it, met every edge of the Linux ARM64 target on the way, and wrote each one down: C interop against raw kernel interfaces, linking a C++ inference library, the handful of missing POSIX bindings, a Tier 2 target pinned for a flight campaign. The result is a working flight computer and a ground console in one language, in the open, about to fly.</p>
+        <ol class="asks">
+          <li class="rv"><span class="label">01</span><div><h3>A Kotlin/Native point of contact.</h3><p>We have worked around every edge we hit and documented it. A conversation with the people who build the toolchain makes the next ones faster, and gives you a real deployment at the edge of the platform.</p></div></li>
+          <li class="rv"><span class="label">02</span><div><h3>Tell the story together.</h3><p>When it flies, we publish the code, the flight data and what we learned, mistakes included. A blog post, a talk, a case study, in whatever form fits JetBrains.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- LINKS -->
+    <section class="platform" id="see">
+      <header class="sec">
+        <span class="label">See for yourself</span>
+        <h2 class="sec__title rv">Everything is in the open.</h2>
+      </header>
+      <div class="sec__body">
+        <ul class="links">
+          <li class="rv"><a href="https://github.com/developerchunk/BosconSpace"><span>The repository<small>Every line of code, every decision, every bench result and every failure.</small></span><span>GitHub</span></a></li>
+          <li class="rv"><a href="https://github.com/developerchunk/BosconSpace/blob/main/payload/docs/07-kotlin-on-the-balloon.md"><span>Kotlin on the balloon<small>The engineering write-up for Kotlin developers: what existed, what we built, how, and how to reuse it.</small></span><span>Document</span></a></li>
+          <li class="rv"><a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case we print for the flight computer and its battery. Interactive.</small></span><span>Open</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact">
+      <div class="contact__media" data-parallax>
+        <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2400&q=80" alt="Earth at night from orbit" loading="lazy">
+      </div>
+      <div class="contact__inner">
+        <span class="label rv">Contact</span>
+        <h2 class="contact__title">
+          <span class="line"><span>Let's talk before it flies.</span></span>
+        </h2>
+        <a class="contact__mail rv" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>© 2026 Boscon Space</span>
+    <span>Photography: NASA and Unsplash contributors</span>
+    <a href="#top">Back to top</a>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+  <script src="js/main.js?v=3"></script>
+</body>
+</html>
