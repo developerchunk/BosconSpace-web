@@ -1,4 +1,4 @@
-/* Boscon Space — long-form document pages (/kotlin) */
+/* Boscon Space: long-form document pages (/kotlin) */
 
 .doc__head { padding: clamp(140px, 22vh, 220px) var(--gutter) clamp(48px, 8vh, 96px); }
 .doc__head .label { margin-bottom: 22px; }

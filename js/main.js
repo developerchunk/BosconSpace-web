@@ -1,4 +1,4 @@
-/* Boscon Space — v3 interactions */
+/* Boscon Space v3 interactions */
 (function () {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hasGsap = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
@@ -113,7 +113,7 @@
         const s = Number(en.target.dataset.step);
         storyImgs.forEach((im, k) => im.classList.toggle('is-active', k === s));
         steps.forEach((el) => el.classList.toggle('is-active', el === en.target));
-        if (storyCount) storyCount.textContent = String(s + 1).padStart(2, '0') + ' — ' + String(storyImgs.length).padStart(2, '0');
+        if (storyCount) storyCount.textContent = String(s + 1).padStart(2, '0') + ' / ' + String(storyImgs.length).padStart(2, '0');
       });
     }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
     steps.forEach((el) => stepIO.observe(el));

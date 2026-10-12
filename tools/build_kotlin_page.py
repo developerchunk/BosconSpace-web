@@ -37,7 +37,7 @@ page = f"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Boscon Space — Kotlin on the balloon</title>
+  <title>Boscon Space: Kotlin on the balloon</title>
   <meta name="description" content="{summary}">
   <meta property="og:title" content="Kotlin on the balloon">
   <meta property="og:description" content="{summary}">

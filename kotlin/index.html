@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Boscon Space — Kotlin on the balloon</title>
+  <title>Boscon Space: Kotlin on the balloon</title>
   <meta name="description" content="HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.">
   <meta property="og:title" content="Kotlin on the balloon">
   <meta property="og:description" content="HAB-1: a Raspberry Pi 5 running a local LLM under a hydrogen balloon, with the whole payload computer written in Kotlin.">
@@ -62,8 +62,8 @@ The mission is tracking-and-recovery; the LLM is the passenger
 <p>The software decision, made with JetBrains as a collaborator: <strong>the payload
 computer runs Kotlin, all the way down to the pins.</strong> Not Kotlin as a shell
 around Python and C, but one Kotlin/Native binary that owns the GPIO, the SPI
-radio, the sensors, the data analysis, the LLM session and the flight log —
-and a Kotlin desktop console on the Mac that watches it. Two things are
+radio, the sensors, the data analysis, the LLM session and the flight log,
+plus a Kotlin desktop console on the Mac that watches it. Two things are
 deliberately not Kotlin: the independent recovery beacon's microcontroller
 (C++ on a Heltec ESP32, because it must not share a software stack with the
 LLM box, and because Kotlin/Native has no ESP32 target) and the matrix-maths
@@ -87,12 +87,12 @@ rewrite.</p>
 <tr>
 <td>Pin access</td>
 <td>Linux kernel character devices: <code>/dev/gpiochip0</code> (GPIO v2 uAPI), <code>/dev/i2c-1</code>, <code>/dev/spidev0.0</code>, termios</td>
-<td><strong><code>hal/</code></strong> — direct <code>ioctl</code> bindings, no libgpiod, no Pi4J, no JVM. GPIO in/out/edge events, I²C transactions, SPI transfers, serial. The GPIO v2 structs are declared by us with compile-time size asserts because the toolchain's sysroot headers predate them</td>
+<td><strong><code>hal/</code></strong>: direct <code>ioctl</code> bindings, no libgpiod, no Pi4J, no JVM. GPIO in/out/edge events, I²C transactions, SPI transfers, serial. The GPIO v2 structs are declared by us with compile-time size asserts because the toolchain's sysroot headers predate them</td>
 </tr>
 <tr>
 <td>Radio</td>
 <td>Semtech SX1262 inside a Heltec V3; RadioLib (C++) on the ESP32</td>
-<td><strong><code>drivers/Sx1262</code></strong> — the GFSK configuration RadioLib 7.7.1 produces, reproduced register-for-register so our frames are received by the unchanged C++ receiver. <strong><code>BridgeBus</code></strong> — the Heltec as a dumb SPI/GPIO adapter over USB serial (<code>firmware/23_spi_bridge</code>, C++, ~250 lines, no radio logic)</td>
+<td><strong><code>drivers/Sx1262</code></strong>: the GFSK configuration RadioLib 7.7.1 produces, reproduced register-for-register so our frames are received by the unchanged C++ receiver. <strong><code>BridgeBus</code></strong>: the Heltec as a dumb SPI/GPIO adapter over USB serial (<code>firmware/23_spi_bridge</code>, C++, ~250 lines, no radio logic)</td>
 </tr>
 <tr>
 <td>Sensors</td>
@@ -102,32 +102,32 @@ rewrite.</p>
 <tr>
 <td>Wire format</td>
 <td>a 28-byte packed C struct in the firmware</td>
-<td><strong><code>protocol/TelemetryFrame</code></strong> — byte-identical, cross-checked against the C source by a script in CI-style (<code>tools/check_packet_abi.py</code>)</td>
+<td><strong><code>protocol/TelemetryFrame</code></strong>: byte-identical, cross-checked against the C source by a script in CI-style (<code>tools/check_packet_abi.py</code>)</td>
 </tr>
 <tr>
 <td>LLM</td>
 <td>llama.cpp (C/C++), Qwen2.5-1.5B-Instruct Q4_K_M</td>
-<td><strong><code>llm/</code></strong> — cinterop binding; <code>Llm</code> wraps load (mlocked), ChatML prompt, greedy sampling, 128-token and 90-second guards</td>
+<td><strong><code>llm/</code></strong>: cinterop binding; <code>Llm</code> wraps load (mlocked), ChatML prompt, greedy sampling, 128-token and 90-second guards</td>
 </tr>
 <tr>
 <td>Agent</td>
-<td>—</td>
-<td><strong><code>agent/</code></strong> — tool calling with a one-line <code>CALL &lt;tool&gt;</code> grammar a 1.5 B model follows; guards (busy, chip temperature, pack voltage) that refuse <em>before</em> the model is touched</td>
+<td>none</td>
+<td><strong><code>agent/</code></strong>: tool calling with a one-line <code>CALL &lt;tool&gt;</code> grammar a 1.5 B model follows; guards (busy, chip temperature, pack voltage) that refuse <em>before</em> the model is touched</td>
 </tr>
 <tr>
 <td>Analysis</td>
-<td>—</td>
-<td><strong><code>analysis/</code></strong> — rolling statistics, altitude-binned profiles, a Regener-Pfotzer peak detector for the radiation curve, burst and free-fall detection, stuck/rate/stale channel flags, honest prompt text ("unavailable", never invented)</td>
+<td>none</td>
+<td><strong><code>analysis/</code></strong>: rolling statistics, altitude-binned profiles, a Regener-Pfotzer peak detector for the radiation curve, burst and free-fall detection, stuck/rate/stale channel flags, honest prompt text ("unavailable", never invented)</td>
 </tr>
 <tr>
 <td>Process</td>
 <td>systemd</td>
-<td><strong><code>flightd/</code></strong> — the one process: 1 Hz tick → sensors → analysis → frame → beacon → synced NDJSON log → watchdog pet; agent on its own thread; sd_notify over a raw Unix socket</td>
+<td><strong><code>flightd/</code></strong>: the one process: 1 Hz tick → sensors → analysis → frame → beacon → synced NDJSON log → watchdog pet; agent on its own thread; sd_notify over a raw Unix socket</td>
 </tr>
 <tr>
 <td>Ground side</td>
-<td>—</td>
-<td><strong><code>station/</code></strong> — Compose for Desktop console on the Mac: pins, radio, charts, prompts, analysis, fan, code editor with build/flash/deploy, Wi-Fi, hardware watchdog. Reuses <code>protocol</code> and <code>analysis</code> as libraries</td>
+<td>none</td>
+<td><strong><code>station/</code></strong>: Compose for Desktop console on the Mac: pins, radio, charts, prompts, analysis, fan, code editor with build/flash/deploy, Wi-Fi, hardware watchdog. Reuses <code>protocol</code> and <code>analysis</code> as libraries</td>
 </tr>
 <tr>
 <td>Ops</td>
@@ -142,8 +142,8 @@ of shell tooling.</p>
 <h2 id="how-kotlin-is-integrated"><span class="label">03</span>How Kotlin is integrated</h2>
 <p><strong>One Gradle Kotlin Multiplatform build, pinned to Kotlin 2.4.10.</strong>
 <code>linuxArm64</code> is a Tier 2 target (compiled on CI, not run-tested) so we freeze
-the compiler for the 30-day test campaign. The Mac is the build host —
-Kotlin/Native cannot build on an aarch64 Linux host — and a 650 KB to 2 MB
+the compiler for the 30-day test campaign. The Mac is the build host, because
+Kotlin/Native cannot build on an aarch64 Linux host. A 650 KB to 2 MB
 ELF is copied to the Pi over SSH.</p>
 <p><strong>Logic in common Kotlin, I/O in thin native modules.</strong> <code>protocol</code>,
 <code>analysis</code> and <code>agent</code> are pure Kotlin with <code>linuxArm64</code>, <code>macosArm64</code> and
@@ -177,7 +177,7 @@ on the main loop, so a 6-second model answer never delays a frame. Measured:
   implementation to drift.</li>
 <li><strong>Tests that run before hardware exists.</strong> The BMP280 compensation, the
   NMEA parser, the frame layout, the radio register maths (bit-rate 26666,
-  deviation 41943, frequency 908,171,648 — the float32 values RadioLib
+  deviation 41943, frequency 908,171,648, the float32 values RadioLib
   produces), the agent's guard logic and the Pfotzer detector all pass on the
   Mac. Hardware probes then check the last mile, and each probe has a
   failing case we saw before the passing one.</li>
@@ -259,7 +259,7 @@ version string reads "SX1261" and the +22 dBm assumption is unverified; the
 answers land in <code>/log/answers/</code>. The radio uplink will feed the same queue.</p>
 <h2 id="how-kotlin-developers-can-use-this"><span class="label">07</span>How Kotlin developers can use this</h2>
 <p><strong>Reuse as libraries.</strong> <code>hal/</code> is a generic Kotlin/Native HAL for any Linux
-board with the GPIO character device, <code>i2c-dev</code> and <code>spidev</code> — any Pi, and
+board with the GPIO character device, <code>i2c-dev</code> and <code>spidev</code>, so it runs on any Pi and
 most SBCs. <code>drivers/Sx1262</code> works with any SX126x module. <code>analysis/</code> and
 <code>agent/</code> are plain Kotlin and run on JVM, Native or desktop.</p>
 <p><strong>Build it.</strong></p>
@@ -293,9 +293,9 @@ sit inside <code>remember { }</code>; linker options go in the cinterop <code>.d
 
 <h3 class="doc__changelog">Changelog of this document</h3>
 <ul>
-<li>2026-10-11 — first version, after the first bench day: M0–M3, M5, M6, M7a,
+<li>2026-10-11: first version, after the first bench day: M0–M3, M5, M6, M7a,
   M8, M9, M11, M16 passed; M12 soaking.</li>
-<li>2026-10-12 — the project is named Kapex. The folder <code>payload/</code> became <code>kapex/</code>, the
+<li>2026-10-12: the project is named Kapex. The folder <code>payload/</code> became <code>kapex/</code>, the
   Gradle root project is <code>kapex</code>, and the Kotlin packages moved from
   <code>space.boscon.hab</code> to <code>space.boscon.kapex</code>. No behaviour changed.</li>
 </ul>
