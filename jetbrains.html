@@ -26,11 +26,11 @@
     .facts .label { margin: 0; }
     @media (max-width: 960px) { .facts { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 560px) { .facts { grid-template-columns: 1fr; } }
-    .asks { list-style: none; margin: 0; padding: 0; max-width: 820px; }
+    .asks { list-style: none; margin: 0; padding: 0; }
     .asks li { padding: clamp(24px, 4vh, 40px) 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 56px 1fr; gap: 20px; }
     .asks li:last-child { border-bottom: 1px solid var(--rule); }
     .asks h3 { margin: 0 0 8px; font-family: var(--head); font-weight: 500; font-size: clamp(20px, 2.4vw, 28px); letter-spacing: -0.015em; }
-    .asks p { margin: 0; color: var(--fg-dim); max-width: 60ch; }
+    .asks p { margin: 0; color: var(--fg-dim); }
     .links { list-style: none; margin: 0; padding: 0; max-width: 820px; }
     .links li { border-top: 1px solid var(--rule); }
     .links li:last-child { border-bottom: 1px solid var(--rule); }
@@ -40,6 +40,10 @@
     .links small { display: block; color: var(--fg-dim); font-size: 15px; margin-top: 4px; }
     .sec__body { padding: 0 var(--gutter) clamp(80px, 12vh, 160px); }
     .sec__body > p { max-width: 64ch; color: var(--fg-dim); font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; margin: 0 0 18px; }
+    .sec__body--split { display: grid; grid-template-columns: 1fr 1.25fr; gap: clamp(32px, 6vw, 96px); align-items: start; }
+    .sec__body--split > p { max-width: none; font-size: clamp(18px, 1.6vw, 24px); line-height: 1.5; margin: 0; }
+    .sec__body--split .asks li:first-child { border-top: 0; padding-top: 0; }
+    @media (max-width: 960px) { .sec__body--split { grid-template-columns: 1fr; gap: 32px; } .sec__body--split .asks li:first-child { border-top: 1px solid var(--rule); padding-top: clamp(24px, 4vh, 40px); } }
   </style>
 </head>
 <body>
@@ -220,7 +224,7 @@
       <header class="sec sec--one">
         <h2 class="sec__title rv">A story the Kotlin community has not seen yet.</h2>
       </header>
-      <div class="sec__body">
+      <div class="sec__body sec__body--split">
         <p class="rv">Balloon and small-satellite computers run Python or C. We chose Kotlin for all of it, met every edge of the Linux ARM64 target on the way, and wrote each one down: C interop against raw kernel interfaces, linking a C++ inference library, the handful of missing POSIX bindings, a Tier 2 target pinned for a flight campaign. The result is a working flight computer and a ground console in one language, in the open, about to fly.</p>
         <ol class="asks">
           <li class="rv"><span class="label">01</span><div><h3>A Kotlin/Native point of contact.</h3><p>We have worked around every edge we hit and documented it. A conversation with the people who build the toolchain makes the next ones faster, and gives you a real deployment at the edge of the platform.</p></div></li>
