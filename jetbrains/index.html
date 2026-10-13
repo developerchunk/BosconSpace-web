@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://images.unsplash.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=8">
+  <link rel="stylesheet" href="/css/style.css?v=9">
   <style>
     .facts { list-style: none; margin: 0; padding: 0 var(--gutter) clamp(80px, 12vh, 160px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); max-width: 1400px; margin: 0 auto; }
     .facts li { background: var(--bg); padding: clamp(22px, 3vw, 36px); display: flex; flex-direction: column; gap: 10px; min-height: 220px; }
@@ -171,16 +171,16 @@
     <!-- FACTS: measured on the bench -->
     <section class="missions" id="measured">
       <header class="sec">
-        <span class="label">Measured on the bench, 11 October 2026</span>
-        <h2 class="sec__title rv">Not a plan. Running.</h2>
+        <span class="label">Bench results, 11 October 2026</span>
+        <h2 class="sec__title rv">What runs today.</h2>
       </header>
       <ul class="facts">
         <li class="rv"><span class="label">Model speed</span><strong>11.9 tok/s</strong><p>Generated from Kotlin on the Raspberry Pi 5. The C++ benchmark on the same board gives 12.06. The binding costs nothing.</p></li>
         <li class="rv"><span class="label">Beacon timing</span><strong>1,000 ms ± 6</strong><p>Between position frames, measured from the flight log, while the model was busy answering a question.</p></li>
-        <li class="rv"><span class="label">A real exchange</span><strong>938.5 hPa</strong><p>"What is the air pressure around you?" The model called its sensor tool and quoted the live reading exactly.</p></li>
+        <li class="rv"><span class="label">Tool calling</span><strong>938.5 hPa</strong><p>"What is the air pressure around you?" The model called its sensor tool and quoted the live reading exactly.</p></li>
         <li class="rv"><span class="label">Hardware</span><strong>4,000 / 4,000</strong><p>Pulse edges counted without loss; 1,280 bytes round-tripped over the chip bus at 8 MHz; radio frames received by the unchanged receiver.</p></li>
         <li class="rv"><span class="label">Resilience</span><strong>40 s</strong><p>From a deliberately frozen flight program to a watchdog restart. Unplugging the radio mid-flight: it kept answering and re-attached by itself.</p></li>
-        <li class="rv"><span class="label">Code</span><strong>2,814 lines</strong><p>Of Kotlin across nine modules, with 166 lines of C++ on a helper board and 333 lines of scripts. All of it public.</p></li>
+        <li class="rv"><span class="label">Code</span><strong>2,814 lines</strong><p>Of Kotlin across nine modules, counted on 13 October and public under Apache 2.0, plus 349 lines of shell tooling in the same repository. The 166-line C++ for the helper board is not published yet.</p></li>
       </ul>
     </section>
 
@@ -236,14 +236,15 @@
     <!-- LINKS -->
     <section class="platform" id="see">
       <header class="sec sec--one">
-        <span class="label">See for yourself</span>
-        <h2 class="sec__title rv">Everything is in the open.</h2>
+        <span class="label">Source and notes</span>
+        <h2 class="sec__title rv">Read it, build it, send us what breaks.</h2>
       </header>
       <div class="sec__body">
         <ul class="links">
-          <li class="rv"><a href="/kotlin"><span>Kotlin on the balloon<small>The engineering write-up for Kotlin developers: what existed, what we built, how it is integrated, and how to reuse it.</small></span><span>Read</span></a></li>
+          <li class="rv"><a href="https://github.com/developerchunk/Kapex"><span>Kapex<small>The Kotlin flight computer and the ground console, under Apache 2.0. Its pure-Kotlin tests run on a Mac with no hardware attached.</small></span><span>GitHub</span></a></li>
+          <li class="rv"><a href="/kotlin"><span>Kotlin on the balloon<small>The engineering write-up for Kotlin developers: what existed, what we built, how it is integrated, and the Kotlin/Native pitfalls we hit.</small></span><span>Read</span></a></li>
           <li class="rv"><a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case we print for the flight computer and its battery. Explode it, section it, turn it.</small></span><span>Open</span></a></li>
-          <li class="rv"><a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1, the tool we plan the launch with. Runs in the browser.</small></span><span>Open</span></a></li>
+          <li class="rv"><a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1. Runs in the browser.</small></span><span>Open</span></a></li>
         </ul>
       </div>
     </section>

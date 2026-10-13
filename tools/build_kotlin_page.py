@@ -50,7 +50,7 @@ page = f"""<!doctype html>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=8">
+  <link rel="stylesheet" href="/css/style.css?v=9">
   <link rel="stylesheet" href="/css/doc.css?v=2">
 </head>
 <body class="doc-page">
@@ -85,15 +85,16 @@ page = f"""<!doctype html>
 {body}
     </article>
     <nav class="doc__next" aria-label="Related">
+      <a href="https://github.com/developerchunk/Kapex"><span>Kapex on GitHub<small>The source this write-up describes, under Apache 2.0.</small></span><span>GitHub</span></a>
       <a href="/jetbrains"><span>HAB-1, for JetBrains<small>The flight, the software, the bench results, and what we are asking.</small></span><span>Page</span></a>
       <a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case for the flight computer. Explode it, section it, turn it.</small></span><span>Open</span></a>
-      <a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1, the tool we plan the launch with. Runs in the browser.</small></span><span>Open</span></a>
+      <a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1. Runs in the browser.</small></span><span>Open</span></a>
     </nav>
   </main>
 
   <footer class="foot">
     <span>© 2026 Boscon Space</span>
-    <span>Generated from the maintained document in the HAB-1 repository</span>
+    <span>From docs/07 in the Kapex repository</span>
     <a href="#top">Back to top</a>
   </footer>
 

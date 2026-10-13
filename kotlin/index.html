@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=8">
+  <link rel="stylesheet" href="/css/style.css?v=9">
   <link rel="stylesheet" href="/css/doc.css?v=2">
 </head>
 <body class="doc-page">
@@ -263,8 +263,9 @@ board with the GPIO character device, <code>i2c-dev</code> and <code>spidev</cod
 most SBCs. <code>drivers/Sx1262</code> works with any SX126x module. <code>analysis/</code> and
 <code>agent/</code> are plain Kotlin and run on JVM, Native or desktop.</p>
 <p><strong>Build it.</strong></p>
-<pre><code class="language-bash"># prerequisites on the Mac: JDK 17+, Gradle 9, Kotlin/Native toolchain (downloads on first build)
-cd kapex
+<pre><code class="language-bash"># prerequisites on the Mac: JDK 21 (the build pins its toolchain to 21), Gradle 9, Kotlin/Native toolchain (downloads on first build)
+git clone https://github.com/developerchunk/Kapex.git
+cd Kapex
 gradle :protocol:macosArm64Test :drivers:macosArm64Test :agent:macosArm64Test :analysis:macosArm64Test   # pure-Kotlin tests
 gradle :probes:linkGpio_probeReleaseExecutableLinuxArm64   # one probe for the Pi
 gradle :flightd:linkFlightdReleaseExecutableLinuxArm64     # the flight binary
@@ -298,18 +299,21 @@ sit inside <code>remember { }</code>; linker options go in the cinterop <code>.d
 <li>2026-10-12: the project is named Kapex. The folder <code>payload/</code> became <code>kapex/</code>, the
   Gradle root project is <code>kapex</code>, and the Kotlin packages moved from
   <code>space.boscon.hab</code> to <code>space.boscon.kapex</code>. No behaviour changed.</li>
+<li>2026-10-13: build steps start from <code>git clone</code> of the public repository; JDK prerequisite
+  corrected to 21; code counts for the page recounted (2,814 lines of Kotlin, 349 lines of shell).</li>
 </ul>
     </article>
     <nav class="doc__next" aria-label="Related">
+      <a href="https://github.com/developerchunk/Kapex"><span>Kapex on GitHub<small>The source this write-up describes, under Apache 2.0.</small></span><span>GitHub</span></a>
       <a href="/jetbrains"><span>HAB-1, for JetBrains<small>The flight, the software, the bench results, and what we are asking.</small></span><span>Page</span></a>
       <a href="/payload-box"><span>The payload, in 3D<small>The honeycomb case for the flight computer. Explode it, section it, turn it.</small></span><span>Open</span></a>
-      <a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1, the tool we plan the launch with. Runs in the browser.</small></span><span>Open</span></a>
+      <a href="https://boscon-hab-predictor.vercel.app/"><span>The flight predictor<small>Landing predictor, burst calculator and wind climatology for HAB-1. Runs in the browser.</small></span><span>Open</span></a>
     </nav>
   </main>
 
   <footer class="foot">
     <span>© 2026 Boscon Space</span>
-    <span>Generated from the maintained document in the HAB-1 repository</span>
+    <span>From docs/07 in the Kapex repository</span>
     <a href="#top">Back to top</a>
   </footer>
 
