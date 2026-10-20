@@ -41,9 +41,9 @@ page = f"""<!doctype html>
   <meta name="description" content="{summary}">
   <meta property="og:title" content="Kotlin on the balloon">
   <meta property="og:description" content="{summary}">
-  <meta property="og:image" content="https://space.ketoy.dev/assets/og.jpg">
-  <meta property="og:url" content="https://space.ketoy.dev/kotlin">
-  <link rel="canonical" href="https://space.ketoy.dev/kotlin">
+  <meta property="og:image" content="https://boscon.space/assets/og.jpg">
+  <meta property="og:url" content="https://boscon.space/kotlin">
+  <link rel="canonical" href="https://boscon.space/kotlin">
   <meta name="theme-color" content="#0a0a0b">
   <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">

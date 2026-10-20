@@ -10,7 +10,7 @@ Static site, no build step. Each page is a directory with an `index.html`, so `/
 
 Shared: `css/style.css`, `js/main.js`.
 
-Live at https://space.ketoy.dev (Vercel, static). Serve locally:
+Live at https://boscon.space (Vercel, static). Serve locally:
 
 ```bash
 npx --yes serve -l 8096 .
