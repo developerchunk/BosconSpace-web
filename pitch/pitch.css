@@ -46,8 +46,8 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 /* Title and end */
 .reveal .bottom { position: absolute; left: 120px; right: 120px; bottom: 140px; display: flex; flex-direction: column; }
 .reveal .s-end h1 { font-size: 150px; margin-bottom: 40px; }
-.reveal .mail { font-family: var(--head); font-weight: 500; font-size: 52px; letter-spacing: -0.02em; color: var(--fg); border-bottom: 1px solid var(--fg); padding-bottom: 8px; align-self: flex-start; }
-.reveal .s-end .lede { color: var(--fg-dim); margin-top: 28px; font-size: 22px; }
+.reveal .site { text-decoration: none; font-family: var(--head); font-weight: 500; font-size: 64px; letter-spacing: -0.025em; line-height: 1.1; color: var(--fg); border-bottom: 1px solid var(--fg); padding-bottom: 8px; align-self: flex-start; }
+.reveal .mail { text-decoration: none; font-size: 22px; color: var(--fg-dim); margin-top: 26px; align-self: flex-start; }
 
 /* Big numbers */
 .reveal .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
