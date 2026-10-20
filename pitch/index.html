@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boscon Space: Investor briefing</title>
+  <meta name="description" content="Boscon Space builds orbital data centres joined by a mesh. Why compute is moving to orbit, who is building it, what it costs now and later, and where Boscon Space stands.">
+  <meta property="og:title" content="Boscon Space: Investor briefing">
+  <meta property="og:description" content="Data centres in orbit. Connected by a mesh.">
+  <meta property="og:image" content="https://space.ketoy.dev/assets/og.jpg">
+  <meta property="og:url" content="https://space.ketoy.dev/pitch">
+  <link rel="canonical" href="https://space.ketoy.dev/pitch">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="icon" href="/assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reset.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+  <link rel="stylesheet" href="/pitch/pitch.css?v=3">
+</head>
+<body>
+
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 01 TITLE -->
+    <section class="s s-title" data-background-image="/pitch/img/sunrise-limb.jpg" data-background-position="50% 40%">
+      <div class="bottom">
+      <span class="label">Boscon Space · Investor briefing · October 2026</span>
+      <h1>Data centres in orbit.<br>Connected by a mesh.</h1>
+      <p class="lede">The next place to build AI infrastructure is above the clouds, where the sun never sets. Boscon Space builds the computers that go there, and the network that joins them to each other and to the ground.</p>
+      </div>
+      <aside class="notes">One line: we are building orbital data centres and the mesh network that connects them. The rest of the deck explains why that is where computing is heading, who else is going there, what it costs, and where we are today.</aside>
+    </section>
+
+    <!-- 02 PROBLEM ON EARTH -->
+    <section class="s" data-background-image="/pitch/img/supercomputer-hall.jpg" data-background-opacity="0.32">
+      <span class="label">01 &nbsp;The problem on Earth</span>
+      <h2>AI is running out of power, not chips.</h2>
+      <div class="stats">
+        <div><strong>415 TWh</strong><p>Electricity used by the world's data centres in 2024. About 1.5% of all electricity.</p><em>IEA estimate</em></div>
+        <div><strong>~945 TWh</strong><p>Where the same number is heading by 2030. More than double in six years.</p><em>IEA projection</em></div>
+        <div><strong>4.4% → 12%</strong><p>Share of all US electricity going to data centres in 2023, and the top of the 2028 range.</p><em>Berkeley Lab, measured and projected</em></div>
+      </div>
+      <p class="kicker">New data centres now wait years for a grid connection, land and water. Power has become the bottleneck for AI.</p>
+      <p class="src">Sources: IEA, Energy and AI (Apr 2025); Lawrence Berkeley National Laboratory, US Data Center Energy Usage Report (Dec 2024).</p>
+      <aside class="notes">Familiar to anyone in IT: every hyperscaler is now constrained by power and grid connections. That pressure is the reason serious companies are looking up.</aside>
+    </section>
+
+    <!-- 03 WHY SPACE -->
+    <section class="s" data-background-image="/pitch/img/solar-array.jpg" data-background-position="70% 50%" data-background-opacity="0.5">
+      <span class="label">02 &nbsp;Why space</span>
+      <h2>In the right orbit, the sun never sets.</h2>
+      <div class="rows">
+        <div><span>Power</span><p>A solar panel in a dawn-to-dusk orbit sees the sun almost all the time, with no night, clouds or weather. Google estimates it produces <b>up to 8x</b> more energy than the same panel on the ground.</p></div>
+        <div><span>Cooling</span><p>Heat is radiated straight into the cold of deep space. No chillers, no cooling towers, no water.</p></div>
+        <div><span>Space</span><p>No land to buy, no permits to wait for, no queue for the grid.</p></div>
+      </div>
+      <p class="src">Source: Google Research, Project Suncatcher (Nov 2025), company estimate.</p>
+      <aside class="notes">Think of it as moving the server room to where the power plant is. The physics argument is settled; the cost argument is the next slides.</aside>
+    </section>
+
+    <!-- 04 SATELLITES OFFLINE -->
+    <section class="s" data-background-image="/pitch/img/dish-dusk.jpg" data-background-opacity="0.42">
+      <span class="label">03 &nbsp;The problem in space</span>
+      <h2>Satellites are online for minutes, offline for hours.</h2>
+      <p class="body">A satellite can only send data while it passes over one of its ground stations. For the rest of the orbit, its data waits on board. And satellites now collect far more than they can send down.</p>
+      <div class="stats stats--two">
+        <div><strong>~100x</strong><p>How much more data each new generation of satellite sensors produces.</p><em>ESA, expert estimate</em></div>
+        <div><strong>3x to 5x</strong><p>How much faster each generation of download links gets.</p><em>ESA, expert estimate</em></div>
+      </div>
+      <p class="kicker">The fix is the one IT already uses at the edge: process the data where it is made, and send down the answer, not the raw file.</p>
+      <p class="src">Source: ESA, quoted in HPCwire (Oct 2020).</p>
+    </section>
+
+    <!-- 05 PROOF IT WORKS -->
+    <section class="s s-split">
+      <div class="split">
+      <div class="split__text">
+        <span class="label">04 &nbsp;It already works</span>
+        <h2>Computing in orbit is not science fiction.</h2>
+        <p class="body">In 2021, a server on the International Space Station analysed a human genome on board. Instead of sending the raw data home, it sent only the result.</p>
+        <div class="big"><strong>182 GB → 13 MB</strong><p>Raw data versus what was actually sent down. About 14,000x less.</p><em>Measured, reported by Microsoft and HPE</em></div>
+        <p class="body">Since then, an Nvidia H100 data-centre GPU has run an AI model in orbit (Starcloud, Nov 2025), and Google has launched its first AI chips on a satellite (Oct 2026, reported).</p>
+        <p class="src">Sources: Microsoft Azure blog (2021), HPE Spaceborne Computer-2; CNBC (Dec 2025); NPR (Oct 2026).</p>
+      </div>
+      <div class="split__media"><img src="/pitch/img/spaceborne-computer.jpg" alt="HPE Spaceborne Computer-2 installed inside the International Space Station"><span class="cap">Spaceborne Computer-2 on the ISS. NASA</span></div>
+      </div>
+    </section>
+
+    <!-- 06 IT ARCHITECTURE -->
+    <section class="s" data-background-image="/pitch/img/racks-close.jpg" data-background-opacity="0.2">
+      <span class="label">05 &nbsp;In IT terms</span>
+      <h2>You already know this architecture.</h2>
+      <table class="map">
+        <thead><tr><th>On the ground</th><th>In orbit</th></tr></thead>
+        <tbody>
+          <tr><td>Server rack</td><td>An AI node: a satellite carrying GPUs, storage and a radio</td></tr>
+          <tr><td>Data centre</td><td>A cluster of nodes flying together in one orbit</td></tr>
+          <tr><td>Fibre backbone</td><td>Laser and radio links between satellites: the mesh</td></tr>
+          <tr><td>Edge computing</td><td>AI running next to the camera or sensor that made the data</td></tr>
+          <tr><td>Power bill</td><td>Sunlight</td></tr>
+          <tr><td>Cooling plant</td><td>Radiators facing deep space</td></tr>
+          <tr><td>Internet uplink</td><td>Ground stations that receive the results</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 07 WHO IS BUILDING -->
+    <section class="s cards-slide" data-background-image="/pitch/img/station.jpg" data-background-opacity="0.22">
+      <span class="label">06 &nbsp;The field</span>
+      <h2>The biggest names are already building it.</h2>
+      <ul class="cards">
+        <li><span class="tag">Building</span><h3>SpaceX · Starmind</h3><p>AI satellites with up to 250 kW of compute each, linked by lasers to Starlink. A factory for thousands of them from late 2027.</p></li>
+        <li><span class="tag tag--on">Flying</span><h3>Google · Suncatcher</h3><p>Google's own AI chips on solar-powered satellites. First prototype in orbit; two more with Planet in 2027.</p></li>
+        <li><span class="tag tag--on">Flying</span><h3>Starcloud</h3><p>Ran an AI model on an Nvidia H100 in orbit in 2025. Backed by Nvidia. Next satellites in 2027.</p></li>
+        <li><span class="tag">Building</span><h3>Pixxel · Sarvam</h3><p>India's first orbital data centre satellite, Pathfinder: 200 kg class, data-centre GPUs, as early as Q4 2026.</p></li>
+        <li><span class="tag tag--on">Flying</span><h3>China · Three-Body</h3><p>20 computing satellites launched by ADA Space. 2,800 planned.</p></li>
+        <li><span class="tag tag--on">Flying</span><h3>Kepler</h3><p>A laser relay mesh in orbit with 40 Nvidia Jetson computers on board. Commercial since August 2026.</p></li>
+        <li><span class="tag">Filed</span><h3>Blue Origin · Sunrise</h3><p>Application to the US regulator for up to 51,600 satellites.</p></li>
+        <li><span class="tag">Announced</span><h3>Nvidia · Space-1</h3><p>A Vera Rubin computing module designed for space, announced March 2026.</p></li>
+      </ul>
+      <p class="src">Sources: spacex.com/starmind; Google Research (Nov 2025) and NPR (Oct 2026); CNBC (Dec 2025); Pixxel (May 2026); CGTN (Oct 2026); Kepler (Aug 2026); FCC filing (Mar 2026); Nvidia GTC (Mar 2026). Company claims unless marked flying.</p>
+    </section>
+
+    <!-- 08 CAPITAL -->
+    <section class="s" data-background-image="/pitch/img/earth-night.jpg" data-background-opacity="0.35">
+      <span class="label">07 &nbsp;Capital is moving</span>
+      <h2>Investors are already pricing in this future.</h2>
+      <div class="stats stats--four">
+        <div><strong>$2.3B</strong><p>Starcloud's valuation after a $250M round, with one satellite in orbit.</p><em>Aug 2026</em></div>
+        <div><strong>$2B</strong><p>Cowboy Space (formerly Aetherflux), $275M raised for space power and compute. Nothing flown yet.</p><em>May 2026</em></div>
+        <div><strong>$1.25T</strong><p>SpaceX's value when it merged with xAI. The merger plan centres on AI compute in orbit.</p><em>Feb 2026</em></div>
+        <div><strong>$240–320B</strong><p>Yearly AI data-centre market BCG sees as better served from orbit by 2040.</p><em>BCG projection, Aug 2026</em></div>
+      </div>
+      <p class="src">Sources: TechCrunch and SiliconANGLE (Aug 2026); Cowboy Space release (May 2026); Reuters and Bloomberg (2026); BCG, Space-based data centers cost outlook (Aug 2026).</p>
+    </section>
+
+    <!-- 09 COST CURVE -->
+    <section class="s" data-background-image="/pitch/img/starship-from-iss.jpg" data-background-opacity="0.4">
+      <span class="label">08 &nbsp;Cost, now and next</span>
+      <h2>Launch is getting cheap the way storage did.</h2>
+      <p class="body">The price of putting one kilogram into orbit decides everything. It has already fallen about 20x, and the next step is in flight.</p>
+      <ol class="curve">
+        <li><span>Space Shuttle</span><strong>~$54,500</strong><em>per kg, historical</em></li>
+        <li><span>Falcon 9</span><strong>~$2,700</strong><em>per kg, today</em></li>
+        <li class="is-target"><span>Starship era</span><strong>under $200</strong><em>per kg, mid-2030s target</em></li>
+      </ol>
+      <p class="kicker">Below about $200 per kg, power in orbit costs about the same as power on the ground. Starship, the rocket built for that price, reached orbit in September 2026.</p>
+      <p class="src">Sources: NASA cost papers (Shuttle, Falcon 9 list price); Google Research, Suncatcher (Nov 2025), company projection. Photo: Starship launch seen from the ISS, NASA.</p>
+    </section>
+
+    <!-- 10 PARITY -->
+    <section class="s" data-background-image="/pitch/img/sunrise-limb.jpg" data-background-opacity="0.18">
+      <span class="label">09 &nbsp;When it becomes cheaper</span>
+      <h2>Today orbit costs more. The gap is closing.</h2>
+      <div class="stats stats--three">
+        <div><strong>3x to 4x</strong><p>What a data centre in orbit costs today compared with one on the ground.</p><em>BCG, SemiAnalysis, Wood Mackenzie, 2026</em></div>
+        <div><strong>2028 to 2029</strong><p>When the companies building it say orbit becomes the cheapest place for AI.</p><em>SpaceX, Starcloud, company claims</em></div>
+        <div><strong>2032 to 2040</strong><p>When independent analysts see the costs meeting.</p><em>Deutsche Bank, SemiAnalysis projections</em></div>
+      </div>
+      <p class="kicker">We plan on the independent numbers. The early work, computing at the edge and the network that joins satellites, pays before parity arrives.</p>
+      <p class="src">Sources: BCG (Aug 2026); SemiAnalysis and Wood Mackenzie via SoftwareSeni (2026); Deutsche Bank via KuCoin News (Jul 2026); Musk at Davos (Jan 2026); Starcloud via TechCrunch (Mar 2026).</p>
+    </section>
+
+    <!-- 11 WHO WILL USE IT -->
+    <section class="s" data-background-image="/pitch/img/earthrise-orion.jpg" data-background-position="80% 50%" data-background-opacity="0.4">
+      <span class="label">10 &nbsp;Who will use it</span>
+      <h2>Every industry that works above the clouds.</h2>
+      <div class="eras">
+        <div><span class="label">Now</span><ul><li>Earth observation: farms, floods, fires, shipping</li><li>Defence and missile tracking</li><li>Disaster alerts</li><li>Science on the space station</li></ul></div>
+        <div><span class="label">2027 to 2030</span><ul><li>Commercial space stations and space tourism</li><li>Moon missions and lunar bases</li><li>Phones talking directly to satellites</li><li>Repairing satellites and clearing debris</li></ul></div>
+        <div><span class="label">2030s</span><ul><li>AI training and inference at scale</li><li>National, sovereign AI capacity</li><li>Off-planet backup for critical data</li><li>Mars and deep-space autonomy</li></ul></div>
+      </div>
+      <p class="src">Examples: NASA's commercial space station programme, up to $34B through 2042 (Oct 2026); Vast Haven-1 station (2027 target); ESA Moonlight lunar network (2028 to 2030). Company and government targets.</p>
+      <aside class="notes">Space tourism and private stations are a natural customer: every station needs computing that keeps working when the link to Earth drops. No station has asked for onboard AI yet, so this is a market we would be early to.</aside>
+    </section>
+
+    <!-- 12 BOSCON VISION -->
+    <section class="s s-vision" data-background-image="/pitch/img/earth-night.jpg" data-background-opacity="0.55">
+      <span class="label">11 &nbsp;Boscon Space</span>
+      <h2>Orbital data centres, joined by one mesh.</h2>
+      <div class="ledger">
+        <div><span class="label">01 &nbsp;Compute</span><h3>AI nodes</h3><p>Satellites carrying AI chips and storage. Models run on data in orbit; results come down, not raw files.</p></div>
+        <div><span class="label">02 &nbsp;Network</span><h3>Boscon Mesh</h3><p>Every satellite can see one that can see the ground. Traffic hands off across satellites, ours or anyone's, so nothing waits for a pass.</p></div>
+        <div><span class="label">03 &nbsp;Ground</span><h3>Stations and software</h3><p>Ground stations and the operating software that make many satellites behave like one data centre.</p></div>
+      </div>
+      <p class="kicker">Big compute satellites need a network to become a data centre. We build both, and the mesh is open to any operator.</p>
+    </section>
+
+    <!-- 13 WHERE WE ARE -->
+    <section class="s s-split">
+      <div class="split">
+      <div class="split__text">
+        <span class="label">12 &nbsp;Where we are</span>
+        <h2>HAB-1: our AI computer, under a balloon.</h2>
+        <p class="body">A small computer runs a 1.5-billion-parameter AI model and answers questions sent by radio, while a balloon carries it to 25 to 30 km, where the sky is black and the air is a hundred times thinner.</p>
+        <dl class="spec">
+          <div><dt>Model speed</dt><dd>11.9 tokens/s <em>measured on the flight computer</em></dd></div>
+          <div><dt>Software</dt><dd>One program, open source (Apache 2.0)</dd></div>
+          <div><dt>Clearances</dt><dd>Government of India, Ministry of Civil Aviation, Indian Air Force</dd></div>
+          <div><dt>First launch</dt><dd>24 October 2026, reserve 31 October</dd></div>
+        </dl>
+        <p class="note">This is near space, not orbit. It proves the computer, the software and the radio in cold, thin air with nobody touching it. Radiation testing comes before orbit.</p>
+      </div>
+      <div class="split__media"><img src="/pitch/img/dish-night.jpg" alt="A large radio dish pointed at a night sky full of stars"><span class="cap">Deep Space Network antenna, Goldstone. NASA/JPL-Caltech</span></div>
+      </div>
+    </section>
+
+    <!-- 14 ROADMAP -->
+    <section class="s" data-background-image="/pitch/img/launch-streak.jpg" data-background-position="50% 30%" data-background-opacity="0.3">
+      <span class="label">13 &nbsp;Roadmap</span>
+      <h2>From a balloon to a data centre in orbit.</h2>
+      <ol class="road">
+        <li class="is-now"><span class="label">Now</span><h3>HAB-1</h3><p>AI computer and radio in the stratosphere.</p></li>
+        <li><span class="label">Nov to Dec 2026</span><h3>Mesh under balloons</h3><p>Several payloads talking to each other and to multiple ground stations.</p></li>
+        <li><span class="label">Next</span><h3>First relay in orbit</h3><p>One mesh relay in low Earth orbit, carrying other operators' traffic.</p></li>
+        <li><span class="label">Then</span><h3>AI nodes</h3><p>Compute joins the mesh. The first models run on data in orbit.</p></li>
+        <li><span class="label">Then</span><h3>Orbital data centre</h3><p>Clusters of nodes, joined by the mesh, sold like cloud capacity.</p></li>
+      </ol>
+      <p class="src">Dates beyond December 2026 are not yet set and are shown as sequence only. Photo: launch from Kennedy Space Center, NASA.</p>
+    </section>
+
+    <!-- 15 WHY INDIA -->
+    <section class="s" data-background-image="/pitch/img/array-limb.jpg" data-background-position="60% 50%" data-background-opacity="0.35">
+      <span class="label">14 &nbsp;Why India, why now</span>
+      <h2>India has opened space to private companies.</h2>
+      <div class="rows">
+        <div><span>Market</span><p>India targets a <b>$44B</b> space economy by 2033, up from about $8.4B. <em>Government target</em></p></div>
+        <div><span>Access</span><p>Private payloads now ride ISRO rockets. Ten of the 24 payloads on POEM-4, December 2024, were from non-government teams.</p></div>
+        <div><span>Demand</span><p>Sovereign AI is national policy, and the first Indian orbital data centre satellite is being built now.</p></div>
+      </div>
+      <p class="src">Sources: IN-SPACe Decadal Vision (2024); ISRO POEM-4 payload list (Dec 2024); Pixxel and Sarvam (May 2026).</p>
+    </section>
+
+    <!-- 16 CONTACT -->
+    <section class="s s-end" data-background-image="/pitch/img/array-limb.jpg" data-background-opacity="0.6">
+      <div class="bottom">
+      <span class="label">Boscon Space</span>
+      <h1>Talk to us.</h1>
+      <a class="mail" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+      <p class="lede">space.ketoy.dev</p>
+      </div>
+    </section>
+
+    <!-- 17 SOURCES -->
+    <section class="s s-sources">
+      <span class="label">Sources and notes</span>
+      <h2>Every number, and where it came from.</h2>
+      <ul class="refs">
+        <li>Data-centre electricity: IEA, Energy and AI, April 2025 (via Scientific American). US share: Lawrence Berkeley National Laboratory, December 2024.</li>
+        <li>Orbital solar up to 8x: Google Research, Exploring a space-based, scalable AI infrastructure system design, November 2025 (company estimate).</li>
+        <li>Sensor vs downlink growth: ESA, quoted in HPCwire, October 2020 (expert estimate).</li>
+        <li>182 GB to 13 MB: Microsoft Azure blog on HPE Spaceborne Computer-2, 2021 (measured).</li>
+        <li>SpaceX Starmind, 250 kW peak per satellite, factory from late 2027: spacex.com/spacexsi/starmind, read 20 October 2026 (company claim).</li>
+        <li>Google Suncatcher prototype launch, 1 October 2026: NPR and TechTimes (secondary reports).</li>
+        <li>Starcloud H100 in orbit and funding: CNBC, December 2025; TechCrunch and SiliconANGLE, August 2026 (company claims).</li>
+        <li>Pixxel Pathfinder: pixxel.space, May 2026 (company target). ADA Space: CGTN, 14 October 2026. Kepler: kepler.space, August 2026.</li>
+        <li>Launch cost: NASA cost papers (Shuttle about $54,500/kg, Falcon 9 about $2,720/kg list price); under $200/kg by the mid-2030s, Google (company projection).</li>
+        <li>Cost premium and parity: BCG, August 2026; SemiAnalysis and Wood Mackenzie via SoftwareSeni, 2026; Deutsche Bank via KuCoin News, July 2026 (analyst projections).</li>
+        <li>NASA commercial stations, $34.06B ceiling: final Phase 2 RFP, 9 October 2026. India: IN-SPACe Decadal Vision; ISRO POEM-4.</li>
+        <li>HAB-1 figures: Boscon Space bench measurement, 11 October 2026. Photographs: NASA, public domain.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+<a class="brandmark" href="/" aria-label="Boscon Space"><img src="/assets/logo-mark.png" alt="" width="574" height="519"><img src="/assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
+<span class="counter" id="counter">01 / 17</span>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    width: 1600,
+    height: 900,
+    margin: 0,
+    center: false,
+    controls: true,
+    controlsTutorial: false,
+    progress: true,
+    transition: 'fade',
+    backgroundTransition: 'fade',
+    plugins: [RevealNotes]
+  });
+  const counter = document.getElementById('counter');
+  const pad = n => String(n).padStart(2, '0');
+  const update = () => { counter.textContent = pad(Reveal.getIndices().h + 1) + ' / ' + pad(Reveal.getTotalSlides()); };
+  Reveal.on('ready', update);
+  Reveal.on('slidechanged', update);
+</script>
+</body>
+</html>
