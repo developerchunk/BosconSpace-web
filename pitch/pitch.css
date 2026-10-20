@@ -154,3 +154,9 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 .reveal-scroll .brandmark img { height: 24px; }
 .reveal-scroll .brandmark img + img { height: 18px; }
 .reveal-scroll .counter { display: none; }
+
+/* PDF export (?print-pdf): the live counter is replaced by reveal's per-page number */
+.print-pdf .counter { display: none; }
+.print-pdf .reveal .slide-number { top: 32px; right: 40px; bottom: auto; left: auto; background: none; color: var(--fg-dim); font-family: var(--body); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; padding: 0; }
+.print-pdf .reveal .slides .pdf-page > section.s { padding: 112px 120px 88px !important; box-sizing: border-box; width: 1600px !important; height: 900px !important; left: 0 !important; top: 0 !important; }
+.print-pdf .reveal .slides .pdf-page > section.s-split { padding: 0 0 0 120px !important; }

@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reset.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
-  <link rel="stylesheet" href="/pitch/pitch.css?v=5">
+  <link rel="stylesheet" href="/pitch/pitch.css?v=6">
 </head>
 <body>
 
@@ -284,6 +284,9 @@
     progress: true,
     transition: 'fade',
     backgroundTransition: 'fade',
+    slideNumber: s => { const i = Reveal.getSlides().indexOf(s) + 1; return String(i).padStart(2, '0') + ' / ' + String(Reveal.getTotalSlides()).padStart(2, '0'); },
+    showSlideNumber: 'print',
+    pdfSeparateFragments: false,
     plugins: [RevealNotes]
   });
   const counter = document.getElementById('counter');
