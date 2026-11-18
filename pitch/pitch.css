@@ -77,6 +77,7 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 .reveal .split__media { position: relative; height: 900px; overflow: hidden; }
 .reveal .split__media img { width: 100%; height: 100%; object-fit: cover; margin: 0; max-width: none; max-height: none; }
 .reveal .cap { position: absolute; left: 24px; bottom: 22px; font-size: 13px; letter-spacing: 0.04em; color: rgba(255,255,255,0.8); text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
+.reveal .cap--on-light { padding: 5px 10px; border-radius: 4px; background: rgba(10, 10, 11, 0.6); text-shadow: none; }
 .reveal .big { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 24px 0; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
 .reveal .big strong { font-family: var(--head); font-weight: 500; font-size: 64px; letter-spacing: -0.03em; line-height: 1; }
 .reveal .big p { font-size: 20px; color: var(--fg-dim); }
@@ -147,6 +148,8 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 .brandmark img { height: 30px; width: auto; display: block; }
 .brandmark img + img { height: 22px; }
 .counter { position: fixed; top: 32px; right: 40px; z-index: 30; font-family: var(--body); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; color: var(--fg-dim); }
+.pdf-dl { position: fixed; top: 24px; right: 112px; z-index: 30; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 1px solid var(--rule); border-radius: 999px; background: rgba(10, 10, 11, 0.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font-family: var(--body); font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg); text-decoration: none; transition: border-color 0.2s, background 0.2s; }
+.pdf-dl:hover, .pdf-dl:focus-visible { border-color: var(--fg-mute); background: rgba(10, 10, 11, 0.8); outline: none; }
 .reveal .controls { color: var(--fg); }
 .reveal .progress { color: var(--fg); height: 2px; }
 
@@ -154,9 +157,10 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 .reveal-scroll .brandmark img { height: 24px; }
 .reveal-scroll .brandmark img + img { height: 18px; }
 .reveal-scroll .counter { display: none; }
+.reveal-scroll .pdf-dl { top: 20px; right: 16px; padding: 6px 12px; font-size: 11px; }
 
 /* PDF export (?print-pdf): the live counter is replaced by reveal's per-page number */
-.print-pdf .counter { display: none; }
+.print-pdf .counter, .print-pdf .pdf-dl { display: none; }
 .print-pdf .reveal .slide-number { top: 32px; right: 40px; bottom: auto; left: auto; background: none; color: var(--fg-dim); font-family: var(--body); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; padding: 0; }
 .print-pdf .reveal .slides .pdf-page > section.s { padding: 112px 120px 88px !important; box-sizing: border-box; width: 1600px !important; height: 900px !important; left: 0 !important; top: 0 !important; }
 .print-pdf .reveal .slides .pdf-page > section.s-split { padding: 0 0 0 120px !important; }
