@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/hab-2-probe/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-2 Probe Model</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#c8743a;--canvas:#e6e9ee;--chip:#eef1f5;--hot:#c8743a;--cold:#2f6f9f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#e08a4e;--canvas:#0f1217;--chip:#232a34;--hot:#e08a4e;--cold:#6fa8d6}}
+:root[data-theme="dark"]{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#e08a4e;--canvas:#0f1217;--chip:#232a34;--hot:#e08a4e;--cold:#6fa8d6}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:340px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px}.row label{flex:1;cursor:pointer}.row .g{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.25);flex:none}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:6px 10px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+ol,ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+.card{border:1px solid var(--rule);border-radius:8px;padding:10px;background:var(--chip);font-size:13px;min-height:58px}
+.card b{display:block;margin-bottom:2px}.card .m{color:var(--muted);font-size:12px}
+main{position:relative;background:var(--canvas);min-height:0}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+.legend{position:absolute;right:12px;top:12px;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;font-size:12px;max-width:260px;display:none}
+.legend.show{display:block}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto}main{order:-1;height:60vh}aside{border-right:0;border-top:1px solid var(--rule)}}
+</style></head><body><div class="app"><aside>
+<h1>HAB-2 probe</h1>
+<div class="sub">Layout and heat-path model of the second flight's payload: Orin Nano at 25 W, eight heat pipes (two per panel) to four white radiator panels, 4S2P pack. From <code>hab-2/cad/probe.py</code>; design notes in <code>hab-2/docs/07-probe-layout.md</code>. A model to check fit and the heat path, not a print pack. Nothing is built.</div>
+
+<h2>View</h2>
+<div class="btns"><button id="b_heat">Show the heat path</button><button id="b_reset">Reset view</button></div>
+<div class="lab" style="margin-top:10px"><span>Foam opacity</span><span id="fov">25%</span></div><input id="fo" type="range" min="0" max="100" value="25">
+<div class="lab" style="margin-top:6px"><span>Explode</span><span id="exv">0 mm</span></div><input id="ex" type="range" min="0" max="80" value="0">
+<div class="lab" style="margin-top:6px"><span>Section</span><select id="ax"><option value="off">off</option><option value="x">cut at x = 0 (through the stack)</option><option value="y">cut at y = 16 (along the +x pipe)</option><option value="z">cut at z = 76 (pipe level, from above)</option></select></div>
+
+<h2>Parts (click one in the model)</h2>
+<div class="card" id="pick"><b>Nothing selected</b><span class="m">Click a part to see what it is, its mass and where the mass comes from.</span></div>
+
+<h2>Show</h2>
+<div id="groups"></div>
+
+<h2>How the heat leaves</h2>
+<ol>
+<li><b>SoC to spreader:</b> Carbice-class pad, then an 80 × 80 × 3 mm copper spreader on the module.</li>
+<li><b>Paraffin buffer:</b> an aluminium can of 0.2 kg paraffin on the spreader. Its grooved base clamps the pipes, and it soaks up heat on the hot pad.</li>
+<li><b>Eight heat pipes, two per panel, pinwheel:</b> 6 mm copper, sintered wick, methanol (water freezes in the cold condenser; sizing in docs/08). Each leaves the spreader sideways, crosses 50 mm of foam in its own bore and bends up. With one pipe failed, the other seven still carry 25 W (computed, 1.39x after model error).</li>
+<li><b>Condenser above evaporator:</b> the vertical leg sits in an aluminium saddle on a panel, 16.5 mm or more above the evaporator, so gravity returns the liquid. Heat flows up, out and not back: the thermal diode of docs/05.</li>
+<li><b>White panels:</b> 4 × 150 cm² aluminium, ZnO white outside (absorbs 16% of sunlight, emits 93% of IR). Bare aluminium faces the foam. Fins stand vertical in the climb airflow.</li>
+<li><b>Sun out:</b> aluminised Mylar on the lid (low emissivity) with windows over the two GPS patches. No vents.</li>
+</ol>
+
+<h2>Numbers</h2>
+<ul>
+<li>Outer box 260 × 260 × 280 mm; cavity 160 × 160 × 180; walls 50 mm (CAD).</li>
+<li>Mass <span id="mass"></span>, against the 3,000 g single-package "heavy" line (docs/24). Most masses are <b>assumed</b>; click parts for their source.</li>
+<li>Radiators 600 cm² in all: junction 86 °C at 25 W, 30 km, if the die-to-panel path is 1.8 K/W or less (computed, docs/05; not measured).</li>
+<li>Pack 4S2P Molicel P45B, 8 cells, 575 g: 96 Wh at 0 °C against 68 / 121 Wh nominal / upper (docs/06).</li>
+<li>Checks: no part overlaps another, all inside the cavity, condenser above evaporator. <code>hab-2/cad/check_probe.py</code>; broken once on purpose (pack dropped 15 mm) and caught.</li>
+</ul>
+</aside>
+<main><canvas id="c"></canvas><div class="legend" id="legend"><div><i style="background:var(--hot)"></i>heat, vapour moving out to the panels</div><div style="margin-top:4px"><i style="background:var(--cold)"></i>IR leaving the white panels</div></div><div class="hud">drag to orbit · right-drag to pan · scroll to zoom · click a part</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="probe_data.js"></script>
+<script>
+(function(){
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const canvas=document.getElementById("c"),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.localClippingEnabled=true;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,1,6000),controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8890a0,0.75));const sun=new THREE.DirectionalLight(0xffffff,0.75);sun.position.set(1.2,2,1.4);scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,0.3);fill.position.set(-1.5,-.4,-1);scene.add(fill);
+scene.background=new THREE.Color(css("--canvas"));
+const clip=new THREE.Plane(new THREE.Vector3(1,0,0),1e6);
+function dec(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Float32Array(u.buffer);}
+const root=new THREE.Group();root.rotation.x=-Math.PI/2;scene.add(root);
+const ZC=PROBE.meta.outer[2]/2;root.position.y=-ZC;
+const items=[],byGroup={};
+const GROUPS={foam:"Foam box, lid, Mylar top",thermal:"Heat path: spreader, paraffin, pipes, panels",compute:"Jetson module, carrier, SSD",power:"4S2P pack and protection board",comms:"Beacon, uplink, 433 MHz, SMS backup, GPS",cameras:"Cameras (C270, Lenovo)",antennas:"Antennas below the box",cradle:"Cradle placeholder (PETG)"};
+for(const o of PROBE.parts){
+ const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(dec(o.pos),3));geo.computeVertexNormals();
+ const isFoam=o.group==="foam"&&o.name!=="mylar";
+ const mat=new THREE.MeshStandardMaterial({color:o.color,roughness:o.name==="mylar"?.35:.6,metalness:o.name==="mylar"?.15:(/^(pipe|spreader|saddle|pcm_can)/.test(o.name)?.35:0),side:THREE.DoubleSide,clippingPlanes:[clip],transparent:isFoam,opacity:isFoam?.25:1,depthWrite:!isFoam});
+ const mesh=new THREE.Mesh(geo,mat);mesh.userData=o;mesh.renderOrder=isFoam?2:1;
+ const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo,28),new THREE.LineBasicMaterial({color:0x10151c,transparent:true,opacity:isFoam?.12:.28,clippingPlanes:[clip]}));
+ const h=new THREE.Group();h.add(mesh);h.add(edges);h.userData=o;root.add(h);
+ items.push({h,mesh,mat,o,isFoam,base:new THREE.Color(o.color)});(byGroup[o.group]=byGroup[o.group]||[]).push(items[items.length-1]);
+}
+document.getElementById("mass").textContent=PROBE.meta.total_g.toLocaleString()+" g (incl. "+PROBE.meta.wiring_g+" g wiring, assumed)";
+const gdiv=document.getElementById("groups");
+for(const [g,lab] of Object.entries(GROUPS)){if(!byGroup[g])continue;
+ const grams=byGroup[g].reduce((s,i)=>s+i.o.grams,0);
+ const r=document.createElement("div");r.className="row";
+ r.innerHTML=`<input type="checkbox" id="g_${g}" checked><span class="sw" style="background:${byGroup[g][0].o.color}"></span><label for="g_${g}">${lab}</label><span class="g">${Math.round(grams)} g</span>`;
+ gdiv.appendChild(r);r.querySelector("input").onchange=e=>{for(const i of byGroup[g])i.h.visible=e.target.checked;};
+}
+// explode, foam, section
+const ex=document.getElementById("ex"),fo=document.getElementById("fo");
+function doEx(){const v=+ex.value;document.getElementById("exv").textContent=v+" mm";for(const i of items){const d=i.o.explode;i.h.position.set(d[0]*v,d[1]*v,d[2]*v);}updFlow();}
+function doFo(){const v=+fo.value/100;document.getElementById("fov").textContent=Math.round(v*100)+"%";for(const i of items)if(i.isFoam){i.mat.opacity=v;i.h.visible=v>0&&document.getElementById("g_foam").checked;i.mat.depthWrite=v>=.99;}}
+ex.oninput=doEx;fo.oninput=doFo;
+document.getElementById("ax").onchange=e=>{const a=e.target.value;
+ if(a==="off")clip.set(new THREE.Vector3(1,0,0),1e6);
+ if(a==="x")clip.set(new THREE.Vector3(-1,0,0),0);            // keep CAD x <= 0 (world x = CAD x)
+ if(a==="y")clip.set(new THREE.Vector3(0,0,-1),-16);          // keep CAD y >= 16 (world z = -CAD y)
+ if(a==="z")clip.set(new THREE.Vector3(0,-1,0),76-ZC);        // CAD z -> world y
+};
+// picking
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let picked=null,down=null;
+canvas.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY];});
+canvas.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4)return;
+ const r=canvas.getBoundingClientRect();mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mouse,camera);
+ const vis=items.filter(i=>i.h.visible&&!(i.isFoam&&+fo.value<60)).map(i=>i.mesh);
+ const hit=ray.intersectObjects(vis,false).find(x=>{const p=x.point;return clip.distanceToPoint(p)>=0;});
+ if(picked){picked.mat.emissive.setHex(0);}
+ const card=document.getElementById("pick");
+ if(!hit){picked=null;card.innerHTML='<b>Nothing selected</b><span class="m">Click a part to see what it is, its mass and where the mass comes from.</span>';return;}
+ picked=items.find(i=>i.mesh===hit.object);picked.mat.emissive.setHex(0x553311);
+ const o=picked.o;card.innerHTML=`<b>${o.label}</b><span class="m">${o.grams} g · ${o.src}<br>group: ${GROUPS[o.group]||o.group} · <code>${o.name}</code></span>`;
+});
+// heat path: dim the rest, run dots along each pipe and IR ticks off the panels
+const P=PROBE.meta.pipe,flow=new THREE.Group();root.add(flow);flow.visible=false;
+function pipePts(off){const pts=[],n=60;const r=P.bend,xb=P.x-r,zb=P.z+r;
+ for(let i=0;i<=n;i++)pts.push([xb*i/n,off,P.z]);
+ for(let i=1;i<=16;i++){const a=-Math.PI/2+i/16*Math.PI/2;pts.push([xb+r*Math.cos(a),off,zb+r*Math.sin(a)]);}
+ for(let i=1;i<=50;i++)pts.push([P.x,off,zb+(P.top-zb)*i/50]);return pts;}
+const bases=(P.offs||[P.off]).map(o=>pipePts(o)),dots=[],rays=[];
+const hot=new THREE.MeshBasicMaterial({color:0xffc04d,depthTest:false,transparent:true,opacity:.95,clippingPlanes:[clip]}),cold=new THREE.MeshBasicMaterial({color:css("--cold"),clippingPlanes:[clip]});
+for(const [f,ang] of Object.entries(P.faces)){const a=ang*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+ for(const base of bases){const pts=base.map(p=>new THREE.Vector3(p[0]*c-p[1]*s,p[0]*s+p[1]*c,p[2]));
+  for(let k=0;k<6;k++){const m=new THREE.Mesh(new THREE.SphereGeometry(4,14,10),hot);m.renderOrder=5;m.userData={pts,t:k/6,face:f};flow.add(m);dots.push(m);}}
+ for(let k=0;k<6;k++){const z=P.panel_z[0]+15+k*22,m=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,18,6),cold);
+  m.userData={a,c,s,z,t:k/6,face:f};m.rotation.z=Math.PI/2;const g=new THREE.Group();g.rotation.z=a;g.add(m);g.userData=m.userData;flow.add(g);rays.push(g);}
+}
+function offOf(face){const i=items.find(x=>x.o.name==="pipe_a_"+face);return i?i.h.position:new THREE.Vector3();}
+function updFlow(){}
+let heat=false;const bh=document.getElementById("b_heat");
+bh.onclick=()=>{heat=!heat;bh.classList.toggle("on",heat);bh.textContent=heat?"Hide the heat path":"Show the heat path";flow.visible=heat;document.getElementById("legend").classList.toggle("show",heat);
+ for(const i of items){const th=i.o.group==="thermal"||i.o.name==="soc"||i.o.name==="module";
+  if(i.isFoam)continue;i.mat.transparent=heat&&!th;i.mat.opacity=heat&&!th?.18:1;i.mat.depthWrite=!(heat&&!th);}
+};
+function home(){controls.target.set(0,0,0);camera.position.set(560,330,620);controls.update();}
+document.getElementById("b_reset").onclick=home;
+function rs(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();}
+new ResizeObserver(rs).observe(canvas);rs();home();doEx();doFo();
+let last=performance.now();
+(function L(now){const dt=Math.min((now-last)/1000,.05);last=now;
+ if(heat){for(const m of dots){const u=m.userData;u.t=(u.t+dt*.18)%1;const n=u.pts.length-1,f=u.t*n,i=Math.floor(f),w=f-i;const a=u.pts[i],b=u.pts[Math.min(i+1,n)];
+   const o=offOf(u.face);m.position.set(a.x+(b.x-a.x)*w+o.x,a.y+(b.y-a.y)*w+o.y,a.z+(b.z-a.z)*w);}
+  const ex0=+ex.value;
+  for(const g of rays){const u=g.userData;u.t=(u.t+dt*.5)%1;const m=g.children[0];const d=P.panel_x+22+u.t*60;
+   const ang=Object.entries(P.faces).find(([f])=>f===u.face)[1];const k=1.6*ex0;m.position.set(d+k,P.off,u.z);m.material=cold;m.scale.set(1,1-u.t*.6,1);}
+ }
+ controls.update();renderer.render(scene,camera);requestAnimationFrame(L);})(last);
+})();
+</script></body></html>

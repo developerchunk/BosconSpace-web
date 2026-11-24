@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/link-ecg/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Link ECG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#E7ECF2; --surface:#F6F8FB; --sunk:#DCE3EC;
+  --ink:#0B121D; --ink-2:#31404F; --muted:#5B6B80; --faint:#8A9AAE;
+  --rule:#C4CFDC; --rule-soft:#D6DEE8;
+  --accent:#D9501C; --accent-soft:#FBE6DC;
+  --signal:#16778D; --signal-soft:#DCEDF1;
+  --ok:#1B7A54; --warn:#9A6606; --crit:#B32A40;
+  --ok-bg:#DFF0E7; --warn-bg:#F8ECD5; --crit-bg:#F8E0E4;
+  /* the instrument screen is dark in both themes -- it is a device, not a page */
+  --scope-bg:#050A12; --scope-grid:#13233A; --scope-grid-hi:#1D3550;
+  --scope-ok:#3FD69A; --scope-warn:#F0B849; --scope-crit:#FF6B80; --scope-ect:#FF8A4C;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --paper:#070C16; --surface:#0F1725; --sunk:#0A1020;
+  --ink:#E3EAF4; --ink-2:#BAC7D8; --muted:#8B9BB2; --faint:#5E6E85;
+  --rule:#1F2C3F; --rule-soft:#182334;
+  --accent:#FF7440; --accent-soft:#2A160D;
+  --signal:#4FB9D0; --signal-soft:#0C2530;
+  --ok:#4FC28C; --warn:#DFA53C; --crit:#F0687F;
+  --ok-bg:#0D2419; --warn-bg:#2A1F09; --crit-bg:#2B0F16;
+}}
+:root[data-theme="dark"]{
+  --paper:#070C16; --surface:#0F1725; --sunk:#0A1020;
+  --ink:#E3EAF4; --ink-2:#BAC7D8; --muted:#8B9BB2; --faint:#5E6E85;
+  --rule:#1F2C3F; --rule-soft:#182334;
+  --accent:#FF7440; --accent-soft:#2A160D;
+  --signal:#4FB9D0; --signal-soft:#0C2530;
+  --ok:#4FC28C; --warn:#DFA53C; --crit:#F0687F;
+  --ok-bg:#0D2419; --warn-bg:#2A1F09; --crit-bg:#2B0F16;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Chivo,"Helvetica Neue",Arial,sans-serif;text-wrap:balance;margin:0;letter-spacing:-.012em}
+.mono,code,table,.vnum,.tag{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  font-variant-numeric:tabular-nums}
+
+.wrap{max-width:1180px;margin:0 auto;padding:30px 26px 72px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 30px;
+  border-bottom:1px solid var(--rule);padding-bottom:18px}
+.brand{font-family:Chivo;font-weight:900;font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--accent)}
+h1{font-size:33px;font-weight:900;line-height:1.05}
+.sub{color:var(--muted);font-size:14.5px;max-width:60ch;margin-top:7px}
+.srcs{margin-left:auto;font-size:11px;color:var(--faint);text-align:right;line-height:1.75}
+.srcs b{color:var(--ink-2);font-weight:500}
+
+/* ---------- the instrument ---------- */
+.scope{margin-top:24px;background:var(--scope-bg);border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.scope-top{display:flex;align-items:center;gap:14px;padding:9px 14px;
+  border-bottom:1px solid #14233A;font-family:"IBM Plex Mono";font-size:11px;
+  color:#6E8AA8;letter-spacing:.04em;flex-wrap:wrap}
+.lead{color:#3FD69A;font-weight:600;letter-spacing:.12em}
+.scope-top .dx{margin-left:auto;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+canvas{display:block;width:100%;height:258px;touch-action:none}
+.scope-foot{display:flex;gap:0;border-top:1px solid #14233A;flex-wrap:wrap}
+.vital{flex:1 1 116px;padding:11px 14px;border-right:1px solid #14233A;min-width:0}
+.vital:last-child{border-right:0}
+.vital .k{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:#5E7A98}
+.vnum{font-size:23px;font-weight:600;line-height:1.18;color:#C8DCF0;white-space:nowrap}
+.vnum small{font-size:11px;font-weight:400;color:#6E8AA8;margin-left:3px}
+.v-ok .vnum{color:var(--scope-ok)} .v-warn .vnum{color:var(--scope-warn)}
+.v-crit .vnum{color:var(--scope-crit)}
+
+/* ---------- rhythm strip ---------- */
+.rhythm{margin-top:14px;padding:12px 14px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:3px}
+.rhythm .k{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+#strip{display:flex;gap:2px;height:26px;align-items:flex-end;overflow:hidden}
+#strip i{flex:0 0 5px;border-radius:1px;display:block}
+
+/* ---------- controls ---------- */
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:18px 26px;
+  margin-top:18px;padding:17px 18px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:3px}
+.ctl label{display:block;font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.ctl .rdout{float:right;color:var(--signal);font-weight:600;letter-spacing:.02em}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.btns{display:flex;gap:8px;align-items:flex-end}
+button{font-family:"IBM Plex Mono";font-size:11.5px;letter-spacing:.06em;padding:8px 13px;
+  background:var(--paper);color:var(--ink-2);border:1px solid var(--rule);border-radius:2px;
+  cursor:pointer;text-transform:uppercase}
+button:hover{border-color:var(--signal);color:var(--signal)}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,input:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.hint{font-size:12px;color:var(--muted);margin-top:9px;grid-column:1/-1}
+
+/* ---------- prose + tables ---------- */
+h2{font-size:13px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--accent);margin:42px 0 14px;padding-bottom:7px;border-bottom:1px solid var(--rule)}
+.cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:34px;align-items:start}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:7px 11px 7px 0;border-bottom:1px solid var(--rule-soft);
+  vertical-align:top}
+th{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
+  font-weight:500;white-space:nowrap}
+td.n{text-align:right;padding-right:14px;white-space:nowrap}
+.feat{font-weight:600;color:var(--ink);white-space:nowrap}
+.swatch{display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:7px;
+  vertical-align:1px}
+p{max-width:66ch;color:var(--ink-2)}
+p.lead-p{font-size:15.5px}
+.note{border-left:2px solid var(--signal);background:var(--signal-soft);
+  padding:12px 15px;margin:18px 0;font-size:13.5px;color:var(--ink-2);max-width:70ch}
+.note b{color:var(--ink)}
+.eq{background:var(--sunk);border:1px solid var(--rule-soft);border-radius:2px;
+  padding:10px 13px;font-family:"IBM Plex Mono";font-size:12px;color:var(--ink-2);
+  overflow-x:auto;margin:11px 0;white-space:nowrap}
+.chartbox{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:14px}
+.chartbox .k{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:2px}
+.chartbox .cap{font-size:12px;color:var(--muted);margin-top:8px;max-width:46ch}
+svg{display:block;width:100%;height:auto}
+footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:11.5px;color:var(--faint);font-family:"IBM Plex Mono";line-height:1.85}
+@media (max-width:880px){ .cols{grid-template-columns:1fr;gap:26px} h1{font-size:27px}
+  .srcs{margin-left:0;text-align:left} canvas{height:210px} }
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="brand">Boscon Space &middot; HAB-1 &middot; Diagnostic</div>
+    <h1>Link ECG</h1>
+    <p class="sub">The 866 MHz prompt link drawn as a single physiological waveform. One
+      cardiac cycle is one packet transaction &mdash; and every pathology a cardiologist
+      looks for turns out to have a radio meaning.</p>
+  </div>
+  <div class="srcs">
+    protocol &nbsp;<b>firmware/03_prompt_tx &middot; 04_prompt_rx</b><br>
+    physics &nbsp;&nbsp;<b>tools/link_budget.py</b><br>
+    flight &nbsp;&nbsp;&nbsp;<b>tools/flight_profile.py</b><br>
+    beats &nbsp;&nbsp;&nbsp;&nbsp;<b>McSharry&ndash;Clifford ecgsyn, 2003</b>
+  </div>
+</header>
+
+<div class="scope">
+  <div class="scope-top">
+    <span class="lead">LEAD&nbsp;II &middot; RF</span>
+    <span id="mode">GFSK 38.4 kb/s &middot; 866.1 MHz</span>
+    <span id="sweep">sweep 0.17&times; real time</span>
+    <span class="dx" id="dx">&mdash;</span>
+  </div>
+  <canvas id="scope" width="1128" height="258"></canvas>
+  <div class="scope-foot">
+    <div class="vital" id="v-bpm"><div class="k">Rate</div>
+      <div class="vnum"><span id="n-bpm">575</span><small>pkt/min</small></div></div>
+    <div class="vital" id="v-rssi"><div class="k">RSSI</div>
+      <div class="vnum"><span id="n-rssi">&minus;99.9</span><small>dBm</small></div></div>
+    <div class="vital" id="v-snr"><div class="k">SNR</div>
+      <div class="vnum"><span id="n-snr">16.1</span><small>dB</small></div></div>
+    <div class="vital" id="v-mar"><div class="k">Margin</div>
+      <div class="vnum"><span id="n-mar">+8.9</span><small>dB</small></div></div>
+    <div class="vital" id="v-per"><div class="k">Packet loss</div>
+      <div class="vnum"><span id="n-per">0.00</span><small>%</small></div></div>
+    <div class="vital" id="v-rng"><div class="k">Slant range</div>
+      <div class="vnum"><span id="n-rng">75</span><small>km</small></div></div>
+    <div class="vital" id="v-alt"><div class="k">Altitude</div>
+      <div class="vnum"><span id="n-alt">31.3</span><small>km</small></div></div>
+  </div>
+</div>
+
+<div class="rhythm">
+  <div class="k">Rhythm strip &mdash; last 90 transactions, newest at the right</div>
+  <div id="strip"></div>
+</div>
+
+<div class="ctl">
+  <div>
+    <label for="t">Mission time <span class="rdout" id="r-t">T+76 min &middot; burst</span></label>
+    <input type="range" id="t" min="0" max="127" step="0.5" value="76">
+  </div>
+  <div>
+    <label for="d">Chase range override <span class="rdout" id="r-d">off &mdash; following flight</span></label>
+    <input type="range" id="d" min="20" max="340" step="2" value="75">
+  </div>
+  <div class="btns">
+    <button id="chase" aria-pressed="false">Hold range</button>
+    <button id="freeze" aria-pressed="false">Freeze</button>
+  </div>
+  <p class="hint">The nominal flight never leaves normal sinus rhythm &mdash; 31.3 km up and
+    114 km downrange is only about 120 km of slant range, and the link has margin to spare
+    there. Push <b>Hold range</b> past 230 km to watch the rhythm fall apart.</p>
+</div>
+
+<div class="cols">
+<div>
+  <h2>Reading the trace</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>What it is on the radio</th><th>Driven by</th></tr></thead>
+    <tbody>
+      <tr><td class="feat">Baseline</td><td>the receiver&rsquo;s own thermal noise</td>
+          <td class="mono">&minus;174 + 10log&#8321;&#8320;(BW) + NF</td></tr>
+      <tr><td class="feat">P wave</td><td>preamble and sync word <span class="mono">0x2D 0xD4</span>
+          detected, AGC settled</td><td class="mono">SNR above the floor</td></tr>
+      <tr><td class="feat">QRS complex</td><td>the 204-byte payload burst itself</td>
+          <td class="mono">R height = link margin</td></tr>
+      <tr><td class="feat">ST segment</td><td>the CRC-16 window &mdash; level means the frame
+          passed, depressed means it was rejected</td><td class="mono">BER over 213 bytes</td></tr>
+      <tr><td class="feat">T upright</td><td>receiver sent <span class="mono">'A'</span> &mdash;
+          chunk accepted</td><td class="mono">04_prompt_rx sendControl(true)</td></tr>
+      <tr><td class="feat">T inverted</td><td>receiver sent <span class="mono">'N'</span> &mdash;
+          chunks still missing</td><td class="mono">missingList() non-empty</td></tr>
+      <tr><td class="feat">U wave</td><td>a retransmitted chunk landed</td>
+          <td class="mono">round &ge; 2</td></tr>
+      <tr><td class="feat">Dropped beat</td><td>the channel ate the packet &mdash; asystole</td>
+          <td class="mono">PER coin-flip</td></tr>
+      <tr><td class="feat">Ectopic beat</td><td>a retransmit arriving out of sequence: wide,
+          no P wave, discordant T</td><td class="mono">NACK list replay</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Where the numbers come from</h2>
+  <p>Nothing on this page is decorative. Each beat is priced out from the same link budget
+    the mission is planned with, at the slant range the payload actually occupies at that
+    moment of flight.</p>
+  <div class="eq">d_slant = &radic;(r&#8321;&sup2; + r&#8322;&sup2; &minus; 2r&#8321;r&#8322;cos&theta;)  &mdash; earth curvature, not flat-earth</div>
+  <div class="eq">RSSI = 22 + 2 &minus; FSPL &minus; 3<sub>pol</sub> &minus; 1<sub>misc</sub> + 10<sub>yagi</sub> &minus; 1.2<sub>feed</sub></div>
+  <div class="eq">BER = &frac12;&middot;exp(&minus;&gamma;/2)   non-coherent FSK,  &gamma; = Eb/N&#8320;</div>
+  <div class="eq">PER = 1 &minus; (1 &minus; BER)<sup>8&middot;213</sup>   &mdash; CRC-16 rejects any bit error</div>
+  <p>The beat itself is the McSharry&ndash;Clifford sum-of-Gaussians ECG model &mdash; the
+    <span class="mono">ecgsyn</span> generator published on PhysioNet &mdash; using its
+    P-Q-R-S-T wave positions and widths, with amplitudes set to standard limb-lead
+    proportions and then driven by link margin instead of by heart rate.</p>
+  <div class="note"><b>The rhythm axis is literal.</b> Beat-to-beat spacing is the true
+    packet period: 44.4 ms of airtime for 213 bytes at 38.4 kb/s, plus the 60 ms
+    <span class="mono">GAP_MS</span> the transmitter waits so the receiver can keep up.
+    That is 104.4 ms per transaction &mdash; a resting rate of <b>575 beats per minute</b>.
+    Placement <em>inside</em> a complex is schematic, the way a real ECG is drawn at a
+    conventional 25 mm/s.</div>
+</div>
+
+<div>
+  <div class="chartbox">
+    <div class="k">The cliff</div>
+    <div style="font-size:13px;color:var(--ink-2);margin-bottom:6px">Packet loss vs slant range</div>
+    <svg id="cliff" viewBox="0 0 520 250" role="img"
+         aria-label="Packet error rate against slant range, rising from zero below 200 km to total loss past 300 km"></svg>
+    <p class="cap">Digital links do not fade, they fall over. Between 200 and 300 km the
+      link goes from losing six packets in a thousand to losing all of them &mdash; on a
+      signal that only dropped 3.5 dB.</p>
+  </div>
+
+  <h2 style="margin-top:34px">Diagnoses</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Finding</th><th class="n">Loss</th><th class="n">Range</th></tr></thead>
+    <tbody>
+      <tr><td><span class="swatch" style="background:var(--ok)"></span>Normal sinus rhythm</td>
+          <td class="n mono">&lt;7%</td><td class="n mono">&lt;225 km</td></tr>
+      <tr><td><span class="swatch" style="background:var(--warn)"></span>Second-degree block</td>
+          <td class="n mono">7&ndash;30%</td><td class="n mono">~240 km</td></tr>
+      <tr><td><span class="swatch" style="background:var(--accent)"></span>Frequent ectopy</td>
+          <td class="n mono">&mdash;</td><td class="n mono">~245 km</td></tr>
+      <tr><td><span class="swatch" style="background:var(--crit)"></span>Severe bradycardia</td>
+          <td class="n mono">30&ndash;60%</td><td class="n mono">~255 km</td></tr>
+      <tr><td><span class="swatch" style="background:var(--crit)"></span>Fibrillation</td>
+          <td class="n mono">&gt;60%</td><td class="n mono">&gt;268 km</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note" style="border-color:var(--accent);background:var(--accent-soft)">
+    <b>Wide QRS, always.</b> A healthy heart spends about 11% of its cycle in the QRS.
+    HAB-1 spends <b>43%</b> &mdash; 44.4 ms of payload in a 104.4 ms beat. On a real ECG
+    that is a bundle branch block. Here it just means the duty cycle is high, which is
+    exactly what you want from a link you are paying airtime for.</div>
+</div>
+</div>
+
+<footer>
+  Run the same maths in the terminal: <code>python3 tools/link_ecg.py --table</code><br>
+  Config mirrors 03_prompt_tx.ino &mdash; GFSK 38.4 kb/s, 40 kHz deviation, 156.2 kHz RXBW,
+  22 dBm, 200 B chunks, 60 ms gap. Ground station assumed 10 dBi yagi, 1.2 dB feedline.<br>
+  Channel is a memoryless AWGN roll against the computed PER. Real fading is worse and
+  correlated &mdash; treat this as the optimistic case.
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+// ---- config: identical to firmware/03_prompt_tx.ino + tools/link_budget.py ----
+var FREQ=866.1, BITRATE=38400, RXBW=156.2e3, NF=6.0;
+var TX=22.0, GT=2.0, GR=10.0, FEED=1.2, POL=3.0, MISC=1.0;
+var PKT=213, GAP=60, AIRTIME=PKT*8/BITRATE*1000, BEAT=AIRTIME+GAP;
+var BURST_KM=31.3, BURST_MIN=76, DESC_MIN=51, WIND=15, ER=6371000;
+var NOISE=-174+10*Math.log10(RXBW)+NF;
+var EBN0_REQ=10*Math.log10(-2*Math.log(2e-5));          // 13.35 dB at BER 1e-5
+var SNR_REQ=EBN0_REQ-10*Math.log10(RXBW/BITRATE);       // 7.26 dB
+
+function fspl(d){ return 32.44+20*Math.log10(Math.max(d,1e-3))+20*Math.log10(FREQ); }
+function slant(altM,gndKm){
+  var r1=ER+10, r2=ER+altM, th=gndKm*1000/ER;
+  return Math.sqrt(r1*r1+r2*r2-2*r1*r2*Math.cos(th))/1000;
+}
+function link(d){
+  var rssi=TX+GT-fspl(d)-POL-MISC+GR-FEED, snr=rssi-NOISE;
+  var ebn0=snr+10*Math.log10(RXBW/BITRATE);
+  var ber=Math.min(0.5*Math.exp(-Math.pow(10,ebn0/10)/2),0.5);
+  return {d:d,rssi:rssi,snr:snr,ber:ber,per:1-Math.pow(1-ber,PKT*8),margin:snr-SNR_REQ};
+}
+function flight(tMin){
+  if(tMin<=BURST_MIN) return {alt:BURST_KM*1000*(tMin/BURST_MIN),
+    gnd:WIND*tMin*60/1000, ph:"ascent"};
+  if(tMin<=BURST_MIN+DESC_MIN){ var f=(tMin-BURST_MIN)/DESC_MIN;
+    return {alt:BURST_KM*1000*(1-Math.pow(f,1.6)), gnd:WIND*tMin*60/1000, ph:"descent"}; }
+  return {alt:0, gnd:WIND*(BURST_MIN+DESC_MIN)*60/1000, ph:"landed"};
+}
+
+// ---- beat synthesis: McSharry-Clifford sum of Gaussians ----
+var DUTY=AIRTIME/BEAT, W=1+1.4*(DUTY-0.30);
+function makeBeat(st,kind,crcFail,retrans){
+  var m=st.margin, r=Math.pow(Math.max(0,Math.min(1,m/26)),0.75);
+  var p=Math.max(0,Math.min(1,(m-2)/20)), g=[];
+  if(kind==="ectopic"){
+    g=[{t:-0.262,a:-3*r,b:0.10*W*1.9},{t:0,a:30*r*0.85,b:0.10*W*1.9},
+       {t:0.262,a:-6*r*1.6,b:0.10*W*1.9},{t:1.745,a:-8,b:0.40}];
+  } else if(kind!=="dropped"){
+    var ts=(kind==="nack")?-1:1;
+    g=[{t:-1.222,a:4.5*p,b:0.25},{t:-0.262,a:-3*r,b:0.10*W},{t:0,a:30*r,b:0.10*W},
+       {t:0.262,a:-6*r,b:0.10*W},{t:1.745,a:9*ts*Math.max(0.25,r),b:0.40}];
+    if(crcFail) g.push({t:0.80,a:-4.5*r,b:0.26});       // ST depression = CRC reject
+  }
+  if(retrans&&kind!=="dropped") g.push({t:2.50,a:2.4,b:0.22});  // U wave
+  return {g:g,kind:kind,noise:0.006+0.14*Math.exp(-Math.max(st.snr,0)/8),st:st};
+}
+function zAt(b,th){ var z=0,i,d;
+  for(i=0;i<b.g.length;i++){ d=th-b.g[i].t; z+=b.g[i].a*Math.exp(-(d*d)/(2*b.g[i].b*b.g[i].b)); }
+  return z/30 + (Math.random()*2-1)*b.noise*0.8;
+}
+
+// ---- state ----
+var S={tMin:76, chase:false, chaseKm:75, frozen:false,
+       phase:-Math.PI, beat:null, pending:0, hist:[]};
+var cv=document.getElementById("scope"), ctx=cv.getContext("2d");
+var CW=0,CH=0,DPR=1, BW_PX=142, x=0, prevY=null, ERASE=30;
+var COL={ sinus:"#3FD69A", nack:"#F0B849", ectopic:"#FF8A4C", dropped:"#FF6B80" };
+var BG="#050A12", GRID="#13233A", GRIDHI="#1D3550";
+
+function fit(){
+  var r=cv.getBoundingClientRect(); DPR=Math.min(window.devicePixelRatio||1,2);
+  CW=Math.max(320,Math.round(r.width)); CH=Math.round(r.height);
+  cv.width=CW*DPR; cv.height=CH*DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.lineJoin="round"; ctx.lineCap="round";
+  BW_PX=Math.max(88,Math.round(CW/8));
+  x=0; prevY=null; paintGrid(0,CW); prime();
+}
+function paintGrid(x0,w){
+  ctx.fillStyle=BG; ctx.fillRect(x0,0,w,CH);
+  var G=13, i, base=CH*0.62;
+  ctx.lineWidth=1;
+  for(i=Math.floor(x0/G)*G;i<x0+w;i+=G){
+    ctx.strokeStyle=(Math.round(i/G)%5===0)?GRIDHI:GRID;
+    ctx.beginPath(); ctx.moveTo(i+0.5,0); ctx.lineTo(i+0.5,CH); ctx.stroke();
+  }
+  for(i=base%G;i<CH;i+=G){
+    ctx.strokeStyle=(Math.abs(i-base)<0.6)?GRIDHI:GRID;
+    ctx.beginPath(); ctx.moveTo(x0,i+0.5); ctx.lineTo(x0+w,i+0.5); ctx.stroke();
+  }
+}
+function yOf(v){ return CH*0.62 - v*CH*0.46; }
+
+function curLink(){
+  if(S.chase) return {st:link(S.chaseKm), alt:null, ph:"held"};
+  var f=flight(S.tMin);
+  return {st:link(slant(f.alt,f.gnd)), alt:f.alt, ph:f.ph, gnd:f.gnd};
+}
+function rollBeat(){
+  var c=curLink(), st=c.st, kind, crc=false, rt=false;
+  if(Math.random()<st.per){ kind="dropped"; S.pending++; }
+  else {
+    crc = Math.random()<Math.min(0.9,st.per*0.6);
+    if(S.pending>0 && Math.random()<0.5){ kind="ectopic"; rt=true; S.pending--; }
+    else if(S.pending>0||crc) kind="nack";
+    else kind="sinus";
+  }
+  S.hist.push(kind); if(S.hist.length>90) S.hist.shift();
+  S.beat=makeBeat(st,kind,crc,rt); S.cur=c;
+  return S.beat;
+}
+
+// ---- step the sweep by one pixel column ----
+function step(){
+  S.phase += 2*Math.PI/BW_PX;
+  if(S.phase>=Math.PI || !S.beat){ S.phase=-Math.PI; rollBeat(); }
+  var v=zAt(S.beat,S.phase), y=yOf(v);
+  paintGrid(x,ERASE);
+  if(prevY!==null && x>0){
+    ctx.strokeStyle=COL[S.beat.kind]; ctx.lineWidth=1.7;
+    ctx.shadowColor=COL[S.beat.kind]; ctx.shadowBlur=5;
+    ctx.beginPath(); ctx.moveTo(x-1,prevY); ctx.lineTo(x,y); ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+  prevY=y; x++;
+  if(x>=CW){ x=0; prevY=null; }
+}
+function prime(){ var n=CW+2, i; for(i=0;i<n;i++) step(); }
+
+// ---- readouts ----
+function setV(id,cls){ var e=document.getElementById(id);
+  e.className="vital"+(cls?" "+cls:""); }
+function fmt(n,d){ return (n>=0?"":"−")+Math.abs(n).toFixed(d); }
+function refresh(){
+  var c=S.cur||curLink(), st=c.st, h=S.hist, n=h.length||1;
+  var drop=h.filter(function(k){return k==="dropped"}).length/n;
+  var ect=h.filter(function(k){return k==="ectopic"}).length/n;
+  var nak=h.filter(function(k){return k==="nack"}).length/n;
+  var dx, dxc;
+  if(drop>0.60){dx="Ventricular fibrillation: link collapsed";dxc="var(--scope-crit)";}
+  else if(drop>0.30){dx="Severe bradycardia";dxc="var(--scope-crit)";}
+  else if(drop>0.07){dx="Second-degree block";dxc="var(--scope-warn)";}
+  else if(ect>0.10){dx="Frequent ectopy";dxc="var(--scope-ect)";}
+  else if(nak>0.15){dx="T-wave inversion: chasing chunks";dxc="var(--scope-warn)";}
+  else {dx="Normal sinus rhythm";dxc="var(--scope-ok)";}
+  var el=document.getElementById("dx"); el.textContent=dx; el.style.color=dxc;
+
+  document.getElementById("n-bpm").textContent=Math.round(60000/BEAT*(1-drop));
+  document.getElementById("n-rssi").textContent=fmt(st.rssi,1);
+  document.getElementById("n-snr").textContent=st.snr.toFixed(1);
+  document.getElementById("n-mar").textContent=(st.margin>=0?"+":"−")+Math.abs(st.margin).toFixed(1);
+  document.getElementById("n-per").textContent=st.per<0.0001?"0.00":(st.per*100).toFixed(st.per>0.1?0:2);
+  document.getElementById("n-rng").textContent=st.d.toFixed(0);
+  document.getElementById("n-alt").textContent=(c.alt===null)?"none":(c.alt/1000).toFixed(1);
+
+  setV("v-per", st.per>0.30?"v-crit":st.per>0.03?"v-warn":"v-ok");
+  setV("v-mar", st.margin<0?"v-crit":st.margin<3?"v-warn":"v-ok");
+  setV("v-bpm", drop>0.30?"v-crit":drop>0.07?"v-warn":"v-ok");
+  setV("v-snr", st.snr<SNR_REQ?"v-crit":"");
+  setV("v-rssi",""); setV("v-rng",""); setV("v-alt","");
+
+  var strip=document.getElementById("strip"), out="", i, k, ht;
+  for(i=0;i<h.length;i++){ k=h[i];
+    ht = k==="dropped"?4 : k==="ectopic"?26 : k==="nack"?15 : 22;
+    out+='<i style="height:'+ht+'px;background:'+COL[k]+'"></i>';
+  }
+  strip.innerHTML=out;
+}
+
+// ---- the cliff chart ----
+function drawCliff(){
+  var w=520,h=250,L=52,R=16,T=16,B=40, iw=w-L-R, ih=h-T-B;
+  var xk=function(km){ return L+(km-20)/(340-20)*iw; };
+  var yp=function(p){ return T+ih-p*ih; };
+  var s=[], km, i, pts=[];
+  for(km=20;km<=340;km+=2) pts.push([xk(km), yp(link(km).per)]);
+  // grid + axes
+  var yl=[0,0.25,0.5,0.75,1];
+  for(i=0;i<yl.length;i++){ var y=yp(yl[i]);
+    s.push('<line x1="'+L+'" y1="'+y.toFixed(1)+'" x2="'+(w-R)+'" y2="'+y.toFixed(1)+
+      '" stroke="var(--rule-soft)" stroke-width="1"/>');
+    s.push('<text x="'+(L-8)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end" font-size="10.5" '+
+      'font-family="IBM Plex Mono, monospace" fill="var(--faint)">'+(yl[i]*100)+'%</text>');
+  }
+  var xl=[50,100,150,200,250,300];
+  for(i=0;i<xl.length;i++){ var xx=xk(xl[i]);
+    s.push('<text x="'+xx.toFixed(1)+'" y="'+(h-20)+'" text-anchor="middle" font-size="10.5" '+
+      'font-family="IBM Plex Mono, monospace" fill="var(--faint)">'+xl[i]+'</text>');
+  }
+  s.push('<text x="'+(L+iw/2)+'" y="'+(h-5)+'" text-anchor="middle" font-size="10" '+
+    'letter-spacing="1.4" font-family="IBM Plex Mono, monospace" fill="var(--faint)">SLANT RANGE (km)</text>');
+  // nominal flight band
+  var nx=xk(120);
+  s.push('<rect x="'+L+'" y="'+T+'" width="'+(nx-L)+'" height="'+ih+
+    '" fill="var(--ok-bg)" opacity="0.55"/>');
+  s.push('<line x1="'+nx.toFixed(1)+'" y1="'+T+'" x2="'+nx.toFixed(1)+'" y2="'+(T+ih)+
+    '" stroke="var(--ok)" stroke-width="1" stroke-dasharray="3 3"/>');
+  s.push('<text x="'+(nx+6)+'" y="'+(T+13)+'" font-size="10" font-family="IBM Plex Mono, monospace" '+
+    'fill="var(--ok)">nominal flight ends here</text>');
+  // area + curve
+  var d="M"+pts.map(function(p){return p[0].toFixed(1)+" "+p[1].toFixed(1)}).join(" L ");
+  s.push('<path d="'+d+' L '+(w-R)+' '+yp(0)+' L '+L+' '+yp(0)+' Z" fill="var(--crit)" opacity="0.11"/>');
+  s.push('<path d="'+d+'" fill="none" stroke="var(--crit)" stroke-width="2"/>');
+  // live operating point
+  var st=(S.cur||curLink()).st, ox=xk(Math.max(20,Math.min(340,st.d))), oy=yp(st.per);
+  s.push('<circle cx="'+ox.toFixed(1)+'" cy="'+oy.toFixed(1)+'" r="4.5" fill="var(--accent)" '+
+    'stroke="var(--surface)" stroke-width="2"/>');
+  var lx=ox>w-150?ox-10:ox+10, anc=ox>w-150?"end":"start";
+  s.push('<text x="'+lx.toFixed(1)+'" y="'+Math.max(T+11,oy-9).toFixed(1)+'" text-anchor="'+anc+
+    '" font-size="11" font-weight="600" font-family="IBM Plex Mono, monospace" fill="var(--accent)">'+
+    st.d.toFixed(0)+' km &#183; '+(st.per*100).toFixed(st.per>0.1?0:2)+'%</text>');
+  document.getElementById("cliff").innerHTML=s.join("");
+}
+
+// ---- controls ----
+var tEl=document.getElementById("t"), dEl=document.getElementById("d");
+function labels(){
+  var f=flight(S.tMin), lab=S.tMin<=BURST_MIN?(Math.abs(S.tMin-BURST_MIN)<1?"burst":"ascent")
+        :(S.tMin<=BURST_MIN+DESC_MIN?"descent":"landed");
+  document.getElementById("r-t").textContent="T+"+S.tMin.toFixed(0)+" min · "+lab;
+  document.getElementById("r-d").textContent=S.chase?(S.chaseKm+" km held")
+        :"off: following flight";
+}
+tEl.addEventListener("input",function(){ S.tMin=parseFloat(tEl.value); S.cur=curLink();
+  labels(); refresh(); drawCliff(); });
+dEl.addEventListener("input",function(){ S.chaseKm=parseFloat(dEl.value);
+  if(!S.chase){ S.chase=true; var b=document.getElementById("chase");
+    b.setAttribute("aria-pressed","true"); b.textContent="Following flight"; }
+  S.cur=curLink(); labels(); refresh(); drawCliff(); });
+document.getElementById("chase").addEventListener("click",function(){
+  S.chase=!S.chase; this.setAttribute("aria-pressed",String(S.chase));
+  this.textContent=S.chase?"Following flight":"Hold range";
+  S.cur=curLink(); labels(); refresh(); drawCliff(); });
+document.getElementById("freeze").addEventListener("click",function(){
+  S.frozen=!S.frozen; this.setAttribute("aria-pressed",String(S.frozen));
+  this.textContent=S.frozen?"Resume":"Freeze"; });
+
+// ---- run ----
+var reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.getElementById("sweep").textContent =
+  "sweep "+(BEAT/ (BW_PX/ (60)) /1000).toFixed(2)+"× real time";
+fit(); labels(); refresh(); drawCliff();
+document.getElementById("sweep").textContent="sweep ≈ 0.17× real time";
+
+var acc=0, last=0, cliffTick=0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(S.frozen) { last=ts; return; }
+  if(!last) last=ts;
+  var dt=Math.min(ts-last,60); last=ts;
+  acc+=dt*0.22;                       // ~3.7 px per 16 ms frame
+  while(acc>=1){ step(); acc-=1; }
+  if(ts-cliffTick>420){ cliffTick=ts; refresh(); drawCliff(); }
+}
+if(!reduced) requestAnimationFrame(frame);
+
+var rt; window.addEventListener("resize",function(){
+  clearTimeout(rt); rt=setTimeout(function(){ fit(); refresh(); drawCliff(); },160); });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/hab1-sim800l-buck/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIM800L Buck Power</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #d9d7d0;
+    --pcb: #1f6f4a; --pcb-edge: #145236; --buck: #1d4f8f; --pin: #c9a227; --red: #d23b2f; --black: #2b2b2b;
+    --blue: #2a6fdb; --green: #1f9d55; --purple: #8a4fd1; --orange: #e08a1e; --cell: #cfd8dc; --cell-ink: #263238;
+    --cap: #2f4fa8; --stripe: #c9d3ee; --ok: #e7f6ec; --warn: #fff3d6; --bad: #fde8e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151514; --card: #1f1f1d; --ink: #ecebe6; --muted: #a4a39d; --line: #3a3936;
+      --black: #9a9a9a; --ok: #183424; --warn: #3a2f10; --bad: #3a1a1a; --stripe: #9fb0dd;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151514; --card: #1f1f1d; --ink: #ecebe6; --muted: #a4a39d; --line: #3a3936;
+    --black: #9a9a9a; --ok: #183424; --warn: #3a2f10; --bad: #3a1a1a; --stripe: #9fb0dd;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 32px 0 10px; }
+  p.lead { color: var(--muted); margin: 0 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 12px 0; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: inherit; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .ok { background: var(--ok); } .warn { background: var(--warn); } .bad { background: var(--bad); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .callout { border-left: 4px solid var(--orange); background: var(--warn); padding: 10px 12px; border-radius: 6px; margin: 10px 0; }
+  .big { font-size: 22px; font-weight: 700; }
+  ol li { margin: 7px 0; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>SIM800L on two LiPos and a 2 A buck</h1>
+  <p class="lead">Two 3.7 V cells <b>in series</b> make about 7.4 V. A 2 A buck (step-down, such as an LM2596 board)
+  turns that into a steady <b>4.0 V</b> for the SIM800L. The 1000 µF capacitor goes <b>at the SIM800L end</b> of the buck's output wires.
+  This is the setup the common SIM800L tutorial recommends: "a 2A-rated DC-DC buck converter, such as the LM2596, with the output voltage set to 4.0V"
+  (lastminuteengineers). The SIM800L accepts 3.4 to 4.4 V (SIMCom).</p>
+
+  <h2>1. Check how your two cells are joined</h2>
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 320 180" role="img" aria-label="Series: plus of cell 1 to minus of cell 2, about 7.4 V">
+        <rect x="20" y="50" width="110" height="60" rx="8" fill="var(--cell)"/><text x="75" y="85" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--cell-ink)">Cell 1</text>
+        <rect x="190" y="50" width="110" height="60" rx="8" fill="var(--cell)"/><text x="245" y="85" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--cell-ink)">Cell 2</text>
+        <text x="122" y="44" font-size="16" font-weight="700" style="fill:var(--red)">+</text>
+        <text x="190" y="44" font-size="16" font-weight="700">−</text>
+        <path d="M128 50 C150 20, 170 20, 192 50" stroke="var(--orange)" stroke-width="4" fill="none"/>
+        <text x="160" y="16" text-anchor="middle" font-size="12">joined</text>
+        <line x1="25" y1="110" x2="25" y2="150" stroke="var(--black)" stroke-width="4"/><text x="25" y="170" text-anchor="middle" font-size="13" font-weight="700">pack −</text>
+        <line x1="295" y1="110" x2="295" y2="150" stroke="var(--red)" stroke-width="4"/><text x="295" y="170" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--red)">pack +</text>
+      </svg>
+      <p><b>Series</b>: + of cell 1 joined to − of cell 2. The meter across the pack reads <b>about 7.4 to 8.4 V</b>.
+      <span class="tag ok">this is what the buck needs</span></p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 320 180" role="img" aria-label="Parallel: plus to plus and minus to minus, about 3.7 V">
+        <rect x="20" y="40" width="110" height="60" rx="8" fill="var(--cell)"/><text x="75" y="75" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--cell-ink)">Cell 1</text>
+        <rect x="190" y="40" width="110" height="60" rx="8" fill="var(--cell)"/><text x="245" y="75" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--cell-ink)">Cell 2</text>
+        <path d="M120 100 L120 130 L290 130 L290 100" stroke="var(--red)" stroke-width="4" fill="none"/>
+        <path d="M30 100 L30 150 L200 150 L200 100" stroke="var(--black)" stroke-width="4" fill="none"/>
+        <text x="205" y="125" font-size="12" style="fill:var(--red)">+ to +</text>
+        <text x="60" y="170" font-size="12">− to −</text>
+        <line x1="20" y1="20" x2="300" y2="160" stroke="var(--red)" stroke-width="5"/>
+      </svg>
+      <p><b>Parallel</b>: + to + and − to −. The meter reads <b>about 3.7 to 4.2 V</b>. A buck cannot make 4.0 V from that.
+      <span class="tag bad">not for the buck</span> Rejoin them in series.</p>
+    </div>
+  </div>
+  <p class="callout"><b>Before joining two cells, charge both full</b> (each about 4.2 V on the meter, within 0.05 V of each other).
+  Two cells at different charge should not be joined. Each cell should have its own protection board (the small PCB under the wrap).</p>
+
+  <h2>2. The full wiring</h2>
+  <div class="card">
+    <svg viewBox="0 0 960 520" role="img" aria-label="Two cells in series into the buck input; buck output 4.0 V to the SIM800L VCC and GND with the capacitor at the module; signals to the NodeMCU unchanged">
+      <!-- cells in series -->
+      <rect x="20" y="70" width="120" height="70" rx="8" fill="var(--cell)"/><text x="80" y="102" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--cell-ink)">Cell 1</text><text x="80" y="122" text-anchor="middle" font-size="12" style="fill:var(--cell-ink)">3.7 V 2000 mAh</text>
+      <rect x="20" y="220" width="120" height="70" rx="8" fill="var(--cell)"/><text x="80" y="252" text-anchor="middle" font-size="15" font-weight="700" style="fill:var(--cell-ink)">Cell 2</text><text x="80" y="272" text-anchor="middle" font-size="12" style="fill:var(--cell-ink)">3.7 V 2000 mAh</text>
+      <path d="M80 140 L80 220" stroke="var(--orange)" stroke-width="5"/>
+      <text x="92" y="175" font-size="12">cell 1 −</text><text x="92" y="193" font-size="12">to cell 2 +</text>
+      <!-- pack to buck input -->
+      <path d="M80 70 L80 40 L270 40 L270 120" stroke="var(--red)" stroke-width="5" fill="none"/>
+      <text x="150" y="32" font-size="13" font-weight="700" style="fill:var(--red)">cell 1 + = pack + (7.4 to 8.4 V)</text>
+      <path d="M80 290 L80 330 L270 330 L270 200" stroke="var(--black)" stroke-width="5" fill="none"/>
+      <text x="110" y="350" font-size="13" font-weight="700">cell 2 − = pack −</text>
+
+      <!-- buck -->
+      <rect x="250" y="110" width="210" height="100" rx="8" fill="var(--buck)"/>
+      <text x="355" y="150" text-anchor="middle" font-size="16" font-weight="700" style="fill:#fff">2 A buck</text>
+      <text x="355" y="170" text-anchor="middle" font-size="12" style="fill:#cfe0ff">set OUT to 4.0 V first</text>
+      <circle cx="355" cy="190" r="7" fill="var(--pin)"/><text x="370" y="194" font-size="11" style="fill:#fff">screw</text>
+      <g font-size="13" font-weight="700">
+        <circle cx="270" cy="128" r="6" fill="var(--pin)"/><text x="282" y="132" style="fill:#fff">IN+</text>
+        <circle cx="270" cy="195" r="6" fill="var(--pin)"/><text x="282" y="199" style="fill:#fff">IN−</text>
+        <circle cx="440" cy="128" r="6" fill="var(--pin)"/><text x="400" y="132" style="fill:#fff">OUT+</text>
+        <circle cx="440" cy="195" r="6" fill="var(--pin)"/><text x="400" y="199" style="fill:#fff">OUT−</text>
+      </g>
+
+      <!-- buck out to SIM800L: short wires -->
+      <path d="M440 128 L600 128 L600 300" stroke="var(--red)" stroke-width="5" fill="none"/>
+      <text x="470" y="118" font-size="13" font-weight="700" style="fill:var(--red)">4.0 V to VCC</text>
+      <path d="M440 195 L540 195 L540 420 L840 420 L840 360" stroke="var(--black)" stroke-width="5" fill="none"/>
+      <text x="548" y="230" font-size="13" font-weight="700">to GND</text>
+
+      <!-- SIM800L board -->
+      <rect x="560" y="230" width="380" height="80" rx="10" fill="var(--pcb)" stroke="var(--pcb-edge)" stroke-width="3"/>
+      <text x="750" y="262" text-anchor="middle" font-size="16" font-weight="700" style="fill:#fff">SIM800L</text>
+      <g font-size="13" font-weight="700" text-anchor="middle">
+        <circle cx="600" cy="300" r="8" fill="var(--pin)"/><text x="600" y="290" style="fill:#fff">VCC</text>
+        <circle cx="660" cy="300" r="8" fill="var(--pin)"/><text x="660" y="290" style="fill:#fff">RST</text>
+        <circle cx="720" cy="300" r="8" fill="var(--pin)"/><text x="720" y="290" style="fill:#fff">RXD</text>
+        <circle cx="780" cy="300" r="8" fill="var(--pin)"/><text x="780" y="290" style="fill:#fff">TXD</text>
+        <circle cx="840" cy="300" r="8" fill="var(--pin)"/><text x="840" y="290" style="fill:#fff">GND</text>
+      </g>
+      <!-- GND wire into the pin from below -->
+      <path d="M840 360 L840 308" stroke="var(--black)" stroke-width="5"/>
+      <!-- capacitor at the module, VCC to GND -->
+      <path d="M600 308 L600 345 L640 345" stroke="var(--red)" stroke-width="4" fill="none"/>
+      <path d="M840 345 L800 345" stroke="var(--black)" stroke-width="4" fill="none"/>
+      <rect x="640" y="327" width="160" height="36" rx="16" fill="var(--cap)"/>
+      <rect x="770" y="327" width="22" height="36" fill="var(--stripe)"/>
+      <text x="781" y="350" text-anchor="middle" font-size="15" font-weight="700" style="fill:#2f4fa8">−</text>
+      <text x="705" y="350" text-anchor="middle" font-size="13" font-weight="700" style="fill:#fff">1000 µF</text>
+      <rect x="585" y="318" width="270" height="56" rx="12" fill="none" stroke="var(--orange)" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="720" y="392" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--orange)">capacitor here, at the SIM800L (+ to VCC, stripe − to GND)</text>
+
+      <!-- NodeMCU -->
+      <rect x="560" y="440" width="380" height="70" rx="10" fill="#263238"/>
+      <text x="610" y="480" font-size="15" font-weight="700" style="fill:#fff">NodeMCU</text>
+      <g font-size="12" font-weight="700" text-anchor="middle">
+        <circle cx="720" cy="470" r="7" fill="var(--pin)"/><text x="720" y="496" style="fill:#fff">D6</text>
+        <circle cx="770" cy="470" r="7" fill="var(--pin)"/><text x="770" y="496" style="fill:#fff">D2</text>
+        <circle cx="820" cy="470" r="7" fill="var(--pin)"/><text x="820" y="496" style="fill:#fff">D1</text>
+        <circle cx="900" cy="470" r="7" fill="var(--pin)"/><text x="900" y="496" style="fill:#fff">GND</text>
+      </g>
+      <path d="M840 420 L900 420 L900 463" stroke="var(--black)" stroke-width="3" fill="none"/>
+      <text x="850" y="436" font-size="11">shared GND</text>
+      <!-- signals: drawn as short labels to keep it readable -->
+      <text x="660" y="225" text-anchor="middle" font-size="11" style="fill:var(--purple)">RST to D6</text>
+      <text x="720" y="225" text-anchor="middle" font-size="11" style="fill:var(--blue)">RXD to D2</text>
+      <text x="780" y="225" text-anchor="middle" font-size="11" style="fill:var(--green)">TXD to D1</text>
+      <text x="750" y="210" text-anchor="middle" font-size="11" style="fill:var(--muted)">signal wires: as now</text>
+      <text x="20" y="420" font-size="13" style="fill:var(--muted)">NodeMCU power: the power bank on its USB, as now.</text>
+      <text x="20" y="440" font-size="13" style="fill:var(--muted)">Nothing from the 2-cell pack goes to the NodeMCU except GND.</text>
+    </svg>
+  </div>
+
+  <h2>3. Set the buck to 4.0 V before the SIM800L is connected</h2>
+  <div class="card">
+    <ol>
+      <li>Connect only the pack to the buck: <b>pack + to IN+</b>, <b>pack − to IN−</b>. Nothing on OUT yet.</li>
+      <li>Meter on DC volts across <b>OUT+ and OUT−</b>.</li>
+      <li>Turn the small brass screw on the blue trimmer slowly, a few turns at a time, until the meter reads <span class="big">4.0 V</span> (anything from 3.9 to 4.1 V is fine).</li>
+      <li><b>Never above 4.4 V</b> on the SIM800L: that is its limit (SIMCom). Many of these boards come set to a high voltage, so always measure first.</li>
+      <li>Disconnect the pack again before the next step.</li>
+    </ol>
+  </div>
+
+  <h2>4. Connect, in this order</h2>
+  <div class="card">
+    <ol>
+      <li><b>Remove the old single-LiPo wires</b> from the SIM800L's VCC and GND. The pack and buck replace them.</li>
+      <li><b>Buck OUT+ to SIM800L VCC</b>, <b>buck OUT− to SIM800L GND</b>, with <b>short</b> wires (a few cm), soldered.</li>
+      <li><b>Capacitor at the SIM800L end</b>: + leg to VCC, stripe (−) leg to GND, as close to the module as you can. If it is already fitted there, keep it.</li>
+      <li><b>Shared ground</b>: SIM800L GND (or buck OUT−) also to a <b>NodeMCU GND</b> pin, as now.</li>
+      <li>Signal wires unchanged: SIM800L <b>TXD to D1</b>, <b>RXD to D2</b>, <b>RST to D6</b>.</li>
+      <li>Meter on continuity across SIM800L VCC and GND: a short beep that stops is fine (capacitor charging); a <b>beep that does not stop is a short</b>.</li>
+      <li>Power on: <b>pack to buck</b> first, then the NodeMCU (power bank). Press the NodeMCU's RST button once so it starts cleanly.</li>
+    </ol>
+    <p class="callout">The buck's IN− and OUT− are the same ground on these boards, so the pack −, the buck and the NodeMCU all share one ground. That is what the TXD/RXD wires need.</p>
+  </div>
+
+  <h2>5. What you should see</h2>
+  <div class="card">
+    <table>
+      <tr><th>Where</th><th>Good</th></tr>
+      <tr><td>Status page <code>http://172.20.10.6/</code></td><td><b>supply about 4,000 mV</b> (the buck's setting), <b>modem ok</b> every 30 s and never SILENT, <b>restarts 0</b>, net <b>home</b>, csq above 0</td></tr>
+      <tr><td>SIM800L light</td><td>one blink every 3 s (on the network)</td></tr>
+      <tr><td>Your phone, +91 8446012585</td><td>the <b>"HAB1 BKP hello test"</b> text, or tap "Send hello text" on the page</td></tr>
+    </table>
+    <p class="muted">If the supply on the page reads well under 4,000 mV or the modem still goes SILENT, tell me the meter reading at the SIM800L's VCC and GND pins.</p>
+  </div>
+</main>
+</body>
+</html>

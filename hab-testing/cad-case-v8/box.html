@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/cad-case-v8/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 v8 Box</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#2f6f9f;--canvas:#e9ecf0;--chip:#eef1f5}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34}}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:330px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0}.row label{flex:1}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
+.tag{font-size:11px;color:var(--muted)}input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:6px 10px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+ol,ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+main{position:relative;background:var(--canvas)}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+@media (max-width:700px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}main{order:-1;height:55vh}}
+</style></head><body><div class="app"><aside>
+<h1>HAB-1 v8: honeycomb panels</h1>
+<div class="sub">v7 with no flat skin: the hex cells go right through every panel, 14 mm thick (v7: 1.2 mm skin + 8 mm cells). Joints, keys and clips are v7's. All CAD checks pass; nothing printed yet.</div>
+<h2>Show</h2>
+<div class="row"><input type="checkbox" id="g_panels" checked><span class="sw" style="background:#c98a4a"></span><label for="g_panels">Panels (lid, floor, 4 walls)</label></div>
+<div class="row"><input type="checkbox" id="g_keys" checked><span class="sw" style="background:#e0a020"></span><label for="g_keys">Keys</label></div>
+<div class="row"><input type="checkbox" id="g_clips" checked><span class="sw" style="background:#111111"></span><label for="g_clips">Clips (12)</label></div>
+<h2>View</h2>
+<div class="lab"><span>Explode</span><span id="exv">0 mm</span></div><input id="ex" type="range" min="0" max="60" value="0">
+<div class="lab" style="margin-top:8px"><span>Section</span><select id="ax"><option value="off">off</option><option value="z">cut across Z (through lid keys)</option><option value="x">cut across X (through vertical keys)</option><option value="c">cut along lid key K1 (through its clip)</option></select></div>
+<h2>Colours</h2>
+<ul><li>Blue: lid and floor (same part). Brown, green: walls (all the same part).</li><li>Yellow: 4 vertical keys. Red: lid keys. Purple: floor keys. Black: the 12 clips (small, on the outer faces; use Explode to see them).</li></ul>
+<h2>Assembly</h2>
+<ol><li>Floor down; walls in, fingers interleaved.</li><li>Floor keys K4, K3, K2, K1, then the 4 floor clips.</li><li>Vertical keys drop into the 4 corners; the 4 wall clips.</li><li>Contents in; lid on.</li><li>Lid keys K4, K3, K2, K1, then the 4 lid clips.</li></ol>
+<p class="sub" style="margin-top:8px">Open daily: turn the 4 lid clips back and lift them out, pull lid keys K1 to K4, lift the lid.</p>
+<h2>Numbers (CAD)</h2>
+<ul><li>Cap 210 g ×2, wall 187 g ×4, keys 92 g, clips 1.6 g: 1263 g (CAD, PETG 1.25 g/cm³); v7 was 1163 g.</li><li>7 fingers per edge (23 mm), 14 × 14 mm solid edge blocks, 6 × 6 mm keys, 3.85 mm of solid round each key.</li><li>Panels: open hex cells 18 mm across, 1.6 mm walls, 14 mm deep, no skin; 5 M3 insert bosses each.</li><li>Bending stiffness about 1.4× v7's panel, in-plane shear stiffness about 1/16 of v7's (computed, docs/34).</li></ul>
+</aside><main><canvas id="c"></canvas><div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="box_data.js"></script>
+<script>
+(function(){
+const canvas=document.getElementById("c"),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.localClippingEnabled=true;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,1,4000),controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8890a0,0.8));const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(1,2,1.5);scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,0.3);fill.position.set(-1.5,-.5,-1);scene.add(fill);
+scene.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim());
+const clip=new THREE.Plane(new THREE.Vector3(1,0,0),1e6);
+function dec(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Float32Array(u.buffer);}
+const g=new THREE.Group();g.rotation.x=-Math.PI/2;scene.add(g);const items={};
+for(const o of BOX){const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(dec(o.pos),3));geo.computeVertexNormals();
+ const h=new THREE.Group();h.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:o.color,roughness:.6,side:THREE.DoubleSide,clippingPlanes:[clip]})));
+ h.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0x10151c,transparent:true,opacity:.3,clippingPlanes:[clip]})));
+ h.userData=o;g.add(h);items[o.name]=h;
+}
+for(const gname of ["panels","keys","clips"]){document.getElementById("g_"+gname).onchange=e=>{for(const h of Object.values(items)) if(h.userData.group===gname) h.visible=e.target.checked;};}
+function ex(){const v=+document.getElementById("ex").value;document.getElementById("exv").textContent=v+" mm";for(const h of Object.values(items)){const d=h.userData.explode;h.position.set(d[0]*v,d[1]*v,d[2]*v);}}
+function sec(){const a=document.getElementById("ax").value;if(a==="off")clip.set(new THREE.Vector3(1,0,0),1e6);if(a==="z")clip.set(new THREE.Vector3(0,-1,0),88);if(a==="x")clip.set(new THREE.Vector3(-1,0,0),88);if(a==="c")clip.set(new THREE.Vector3(0,0,1),88);}
+document.getElementById("ex").oninput=ex;document.getElementById("ax").onchange=sec;
+controls.target.set(0,0,0);camera.position.set(420,330,-380);controls.update();
+function rs(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();}
+new ResizeObserver(rs).observe(canvas);rs();ex();
+(function L(){controls.update();renderer.render(scene,camera);requestAnimationFrame(L);})();
+})();
+</script></body></html>

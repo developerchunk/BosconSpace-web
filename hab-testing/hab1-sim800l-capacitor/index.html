@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/hab1-sim800l-capacitor/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIM800L Capacitor Fitting</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #d9d7d0;
+    --pcb: #1f6f4a; --pcb-edge: #145236; --pin: #c9a227; --red: #d23b2f; --black: #2b2b2b;
+    --blue: #2a6fdb; --green: #1f9d55; --purple: #8a4fd1; --orange: #e08a1e;
+    --cap: #2f4fa8; --stripe: #c9d3ee; --tant: #e3a21a; --ok: #e7f6ec; --warn: #fff3d6; --bad: #fde8e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151514; --card: #1f1f1d; --ink: #ecebe6; --muted: #a4a39d; --line: #3a3936;
+      --black: #9a9a9a; --ok: #183424; --warn: #3a2f10; --bad: #3a1a1a; --stripe: #9fb0dd;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151514; --card: #1f1f1d; --ink: #ecebe6; --muted: #a4a39d; --line: #3a3936;
+    --black: #9a9a9a; --ok: #183424; --warn: #3a2f10; --bad: #3a1a1a; --stripe: #9fb0dd;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 32px 0 10px; }
+  p.lead { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin: 12px 0; }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { fill: var(--ink); font-family: inherit; }
+  .muted { color: var(--muted); }
+  ol li, ul li { margin: 6px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .ok { background: var(--ok); } .warn { background: var(--warn); } .bad { background: var(--bad); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .callout { border-left: 4px solid var(--orange); background: var(--warn); padding: 10px 12px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fitting the capacitor on the SIM800L</h1>
+  <p class="lead">One capacitor, two solder joints: its <b>+ leg on VCC</b> and its <b>− leg on GND</b>, right at the module.
+  Every other wire stays exactly where it is. Why: the modem restarts when it first transmits (2 A bursts);
+  SIMCom's reference design puts a capacitor across VCC and GND at the module to carry those bursts.</p>
+
+  <h2>1. Which leg is + on your capacitor</h2>
+  <div class="grid">
+    <div class="card">
+      <svg viewBox="0 0 260 230" role="img" aria-label="Electrolytic capacitor: long leg plus, stripe side minus">
+        <rect x="80" y="20" width="100" height="130" rx="10" fill="var(--cap)"/>
+        <rect x="150" y="20" width="22" height="130" fill="var(--stripe)"/>
+        <text x="161" y="60" text-anchor="middle" font-size="18" style="fill:#2f4fa8" font-weight="700">−</text>
+        <text x="161" y="90" text-anchor="middle" font-size="18" style="fill:#2f4fa8" font-weight="700">−</text>
+        <text x="161" y="120" text-anchor="middle" font-size="18" style="fill:#2f4fa8" font-weight="700">−</text>
+        <text x="115" y="80" text-anchor="middle" font-size="13" style="fill:#fff">1000µF</text>
+        <text x="115" y="98" text-anchor="middle" font-size="13" style="fill:#fff">16V</text>
+        <line x1="105" y1="150" x2="105" y2="215" stroke="var(--ink)" stroke-width="3"/>
+        <line x1="160" y1="150" x2="160" y2="195" stroke="var(--ink)" stroke-width="3"/>
+        <text x="105" y="228" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--red)">+ long leg</text>
+        <text x="200" y="200" font-size="14" font-weight="700">− short leg</text>
+      </svg>
+      <p><b>Electrolytic</b> (a can, like "1000µF 16V"): the <b>long leg is +</b>, the side with the <b>stripe of − signs is −</b>.
+      <span class="tag ok">use this</span></p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 260 230" role="img" aria-label="Tantalum capacitor: stripe side is plus">
+        <rect x="70" y="50" width="120" height="80" rx="10" fill="var(--tant)"/>
+        <rect x="70" y="50" width="22" height="80" rx="6" fill="#7a4a00"/>
+        <text x="81" y="96" text-anchor="middle" font-size="18" style="fill:#fff" font-weight="700">+</text>
+        <text x="140" y="96" text-anchor="middle" font-size="16" style="fill:#3a2500">107 10V</text>
+        <line x1="90" y1="130" x2="90" y2="200" stroke="var(--ink)" stroke-width="3"/>
+        <line x1="170" y1="130" x2="170" y2="200" stroke="var(--ink)" stroke-width="3"/>
+        <text x="90" y="220" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--red)">+ (stripe side)</text>
+        <text x="175" y="220" text-anchor="middle" font-size="14" font-weight="700">−</text>
+      </svg>
+      <p><b>Tantalum</b> (small yellow block, "107" = 100 µF): the <b>stripe or bar marks +</b>, the opposite of an electrolytic.
+      <span class="tag ok">also fine</span></p>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 260 230" role="img" aria-label="Small ceramic disc capacitor marked 104: too small">
+        <ellipse cx="130" cy="90" rx="45" ry="40" fill="#c98a3a"/>
+        <text x="130" y="96" text-anchor="middle" font-size="18" style="fill:#3a2500" font-weight="700">104</text>
+        <line x1="110" y1="128" x2="110" y2="200" stroke="var(--ink)" stroke-width="3"/>
+        <line x1="150" y1="128" x2="150" y2="200" stroke="var(--ink)" stroke-width="3"/>
+        <line x1="70" y1="40" x2="190" y2="150" stroke="var(--red)" stroke-width="6"/>
+      </svg>
+      <p><b>Small disc</b> marked "104" or "105": only 0.1 or 1 µF, far too small on its own. If yours looks like this, stop and tell me what is printed on it.
+      <span class="tag bad">not this</span></p>
+    </div>
+  </div>
+
+  <h2>2. Where it goes</h2>
+  <div class="card">
+    <svg viewBox="0 0 900 470" role="img" aria-label="Close-up: capacitor plus leg on the VCC pin, minus leg on the GND pin; the other wires unchanged">
+      <!-- board -->
+      <rect x="150" y="20" width="600" height="170" rx="12" fill="var(--pcb)" stroke="var(--pcb-edge)" stroke-width="3"/>
+      <rect x="390" y="45" width="120" height="85" rx="6" fill="#2a2a2a"/>
+      <text x="450" y="85" text-anchor="middle" font-size="17" style="fill:#ddd" font-weight="700">SIM800L</text>
+      <text x="450" y="107" text-anchor="middle" font-size="12" style="fill:#aaa">pin row along this edge</text>
+
+      <!-- existing wires: straight down from each pin, drawn first so the capacitor sits in front -->
+      <g stroke-width="4">
+        <line x1="200" y1="190" x2="200" y2="370" stroke="var(--orange)"/>
+        <line x1="300" y1="190" x2="300" y2="370" stroke="var(--red)"/>
+        <line x1="400" y1="190" x2="400" y2="370" stroke="var(--purple)"/>
+        <line x1="500" y1="190" x2="500" y2="370" stroke="var(--blue)"/>
+        <line x1="600" y1="190" x2="600" y2="370" stroke="var(--green)"/>
+        <line x1="700" y1="190" x2="700" y2="370" stroke="var(--black)"/>
+      </g>
+
+      <!-- pins with names -->
+      <g font-size="16" font-weight="700" text-anchor="middle">
+        <circle cx="200" cy="185" r="10" fill="var(--pin)"/><text x="200" y="168" style="fill:#fff">NET</text>
+        <circle cx="300" cy="185" r="10" fill="var(--pin)"/><text x="300" y="168" style="fill:#fff">VCC</text>
+        <circle cx="400" cy="185" r="10" fill="var(--pin)"/><text x="400" y="168" style="fill:#fff">RST</text>
+        <circle cx="500" cy="185" r="10" fill="var(--pin)"/><text x="500" y="168" style="fill:#fff">RXD</text>
+        <circle cx="600" cy="185" r="10" fill="var(--pin)"/><text x="600" y="168" style="fill:#fff">TXD</text>
+        <circle cx="700" cy="185" r="10" fill="var(--pin)"/><text x="700" y="168" style="fill:#fff">GND</text>
+      </g>
+
+      <!-- the NEW capacitor: + leg to VCC, - leg to GND -->
+      <rect x="250" y="215" width="500" height="110" rx="14" fill="none" stroke="var(--orange)" stroke-width="2" stroke-dasharray="7 5"/>
+      <text x="760" y="235" font-size="14" style="fill:var(--orange)" font-weight="700">NEW</text>
+      <path d="M306 192 L330 270" stroke="var(--red)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M694 192 L670 270" stroke="var(--black)" stroke-width="5" stroke-linecap="round"/>
+      <rect x="330" y="248" width="340" height="46" rx="20" fill="var(--cap)"/>
+      <rect x="628" y="248" width="30" height="46" fill="var(--stripe)"/>
+      <text x="643" y="278" text-anchor="middle" font-size="18" font-weight="700" style="fill:#2f4fa8">−</text>
+      <text x="480" y="277" text-anchor="middle" font-size="16" font-weight="700" style="fill:#fff">capacitor 1000 µF 16 V</text>
+      <text x="318" y="240" text-anchor="end" font-size="15" font-weight="700" style="fill:var(--red)">+ leg</text>
+      <text x="684" y="240" font-size="15" font-weight="700">− leg</text>
+
+      <!-- what each existing wire is -->
+      <g font-size="13.5" text-anchor="middle">
+        <text x="200" y="392">antenna</text><text x="200" y="410" class="muted" style="fill:var(--muted)">as now</text>
+        <text x="300" y="392" style="fill:var(--red)" font-weight="700">LiPo B +</text><text x="300" y="410" style="fill:var(--muted)">as now</text>
+        <text x="400" y="392" style="fill:var(--purple)" font-weight="700">NodeMCU D6</text><text x="400" y="410" style="fill:var(--muted)">as now</text>
+        <text x="500" y="392" style="fill:var(--blue)" font-weight="700">NodeMCU D2</text><text x="500" y="410" style="fill:var(--muted)">as now</text>
+        <text x="600" y="392" style="fill:var(--green)" font-weight="700">NodeMCU D1</text><text x="600" y="410" style="fill:var(--muted)">as now</text>
+        <text x="700" y="392" font-weight="700">LiPo B −</text><text x="700" y="410" font-weight="700">and NodeMCU GND</text><text x="700" y="428" style="fill:var(--muted)">as now (Y-lead)</text>
+      </g>
+      <text x="450" y="458" text-anchor="middle" font-size="14" style="fill:var(--muted)">The capacitor's legs reach across RST, RXD and TXD: insulate them so they touch only VCC and GND.</text>
+    </svg>
+    <p class="muted">Pin names as on the common SIM800L module: check the labels printed on your board and match VCC and GND by name, not by position.
+    The capacitor's legs pass over RST, RXD and TXD: cover them with heat-shrink or tape so they cannot touch those pins.</p>
+  </div>
+
+  <h2>3. Steps</h2>
+  <div class="card">
+    <ol>
+      <li><b>Power everything off.</b> Unplug LiPo B from the SIM800L, and the power bank or USB from the NodeMCU.</li>
+      <li><b>Find + on the capacitor</b> (section 1).</li>
+      <li><b>Solder the + leg to the VCC pin</b>, next to the LiPo B red wire already there.</li>
+      <li><b>Solder the − leg to the GND pin</b>, next to the LiPo B black wire and the Y-lead already there.</li>
+      <li><b>Keep the capacitor right at the module</b>, legs as short as they can be. A capacitor far away on long wires does little.</li>
+      <li><b>Insulate both legs</b> with heat-shrink or tape.</li>
+      <li><b>Check for a short:</b> meter on continuity across VCC and GND. A short beep that stops is the capacitor charging, fine. A <b>beep that does not stop is a short</b>: find it before powering on.</li>
+      <li><b>Power on:</b> LiPo B to the SIM800L first, then the NodeMCU (USB to the Mac is best for this test). Board at the window.</li>
+    </ol>
+    <p class="callout">An electrolytic fitted the wrong way round can swell or burst. Check + and − twice before you power it.</p>
+  </div>
+
+  <h2>4. What you should see</h2>
+  <div class="card">
+    <table>
+      <tr><th>Where</th><th>Before (no capacitor)</th><th>After, if it worked</th></tr>
+      <tr><td>Status page <code>http://172.20.10.6/</code></td><td>modem SILENT now and then; net searching; csq 0</td><td><b>modem ok</b> every 30 s; net <b>home</b>; csq above 0</td></tr>
+      <tr><td>restarts counter</td><td>the modem restarted when it tried to join Vi</td><td><b>0</b></td></tr>
+      <tr><td>SIM800L light</td><td>fast blink, about once a second (searching)</td><td><b>one blink every 3 s</b> (on the network)</td></tr>
+      <tr><td>Your phone, +91 8446012585</td><td>nothing</td><td><b>"HAB1 BKP hello test"</b> text, or tap "Send hello text" on the page</td></tr>
+    </table>
+  </div>
+</main>
+</body>
+</html>

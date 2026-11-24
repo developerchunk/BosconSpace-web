@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/cad-case-v7/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 v7 Corner</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#2f6f9f;--canvas:#e9ecf0;--chip:#eef1f5}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34}}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:330px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0}.row label{flex:1}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
+.tag{font-size:11px;color:var(--muted)}input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:6px 10px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+ol,ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+main{position:relative;background:var(--canvas)}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+@media (max-width:700px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}main{order:-1;height:55vh}}
+</style></head><body><div class="app"><aside>
+<h1>HAB-1 v7: corner test piece</h1>
+<div class="sub">One full-size corner of the 190 mm box: lid + two walls, 3 keys, a quarter-turn clip on each key (black). All CAD checks pass; not printed yet.</div>
+<h2>Parts</h2><div id="parts"></div>
+<h2>View</h2>
+<div class="lab"><span>Explode</span><span id="exv">0 mm</span></div><input id="ex" type="range" min="0" max="60" value="30">
+<div class="lab" style="margin-top:8px"><span>Section</span><select id="ax"><option value="off">off</option><option value="z">cut across Z (through lid keys at z=88)</option><option value="x">cut across X (through vertical key)</option><option value="c">cut along key B (through its clip)</option></select></div>
+<h2>How it goes together</h2>
+<ol><li>Walls A and B meet: their fingers interleave.</li><li>Vertical key slides down through all three fingers.</li><li>Lid comes down: its fingers interleave with the walls' top fingers.</li><li>Lid key A pushed fully in from the corner face.</li><li>Lid key B slides in and crosses just in front of key A's end, trapping it.</li><li>Each key gets its clip: pushed into the slot above the key, through the round hole in the key, turned 90° until it clicks. Turned, its crossbar sits under the slot's edges and cannot come out.</li></ol>
+<h2>Numbers (CAD)</h2>
+<ul><li>Edge block 14 × 14 mm solid; key 6 × 6 mm; 4 mm solid round each key.</li><li>Fingers 27 mm; lid owns the finger next to its corner block.</li><li>Panel: 1.2 mm skin + 8 mm hex cells, 18 mm across, 1.6 mm walls, open inward.</li><li>Clip: 11 × 7 × 3.3 mm, Ø3 mm stem through a Ø3.3 mm hole in the key, crossbar under 1.2 mm ledges, click 0.39 mm (turning only).</li><li>Test piece mass: 166 g PETG.</li></ul>
+</aside><main><canvas id="c"></canvas><div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="corner_data.js"></script>
+<script>
+(function(){
+const canvas=document.getElementById("c"),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.localClippingEnabled=true;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,1,4000),controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8890a0,0.8));const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(1,2,1.5);scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,0.3);fill.position.set(-1.5,-.5,-1);scene.add(fill);
+scene.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim());
+const clip=new THREE.Plane(new THREE.Vector3(1,0,0),1e6);
+function dec(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Float32Array(u.buffer);}
+const g=new THREE.Group();g.rotation.x=-Math.PI/2;scene.add(g);const items={};
+for(const o of CORNER){const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(dec(o.pos),3));geo.computeVertexNormals();
+ const h=new THREE.Group();h.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:o.color,roughness:.6,side:THREE.DoubleSide,clippingPlanes:[clip]})));
+ h.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0x10151c,transparent:true,opacity:.3,clippingPlanes:[clip]})));
+ h.userData=o;g.add(h);items[o.name]=h;
+ const r=document.createElement("div");r.className="row";r.innerHTML=`<input type="checkbox" checked><span class="sw" style="background:${o.color}"></span><label>${o.label}</label><span class="tag">${o.grams} g</span>`;
+ r.querySelector("input").onchange=e=>{h.visible=e.target.checked};document.getElementById("parts").appendChild(r);}
+function ex(){const v=+document.getElementById("ex").value;document.getElementById("exv").textContent=v+" mm";for(const h of Object.values(items)){const d=h.userData.explode;h.position.set(d[0]*v,d[1]*v,d[2]*v);}}
+function sec(){const a=document.getElementById("ax").value;if(a==="off")clip.set(new THREE.Vector3(1,0,0),1e6);if(a==="z")clip.set(new THREE.Vector3(0,-1,0),88);if(a==="x")clip.set(new THREE.Vector3(-1,0,0),88);if(a==="c")clip.set(new THREE.Vector3(0,0,1),88);}
+document.getElementById("ex").oninput=ex;document.getElementById("ax").onchange=sec;
+controls.target.set(45,55,-45);camera.position.set(370,300,-330);controls.update();
+function rs(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();}
+new ResizeObserver(rs).observe(canvas);rs();ex();
+(function L(){controls.update();renderer.render(scene,camera);requestAnimationFrame(L);})();
+})();
+</script></body></html>

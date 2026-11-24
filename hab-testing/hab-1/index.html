@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/hab-1/">
+<meta name="robots" content="noindex, nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HAB-1 Flight | Boscon Space</title>
+  <meta name="description" content="HAB-1, 31 October 2026: the first Boscon Space stratospheric balloon flight, to 19.6 km above Solapur and back, told from its own logs. Track, telemetry, temperatures, the flight computer, the onboard language model and the footage.">
+  <meta property="og:title" content="HAB-1: flown and recovered">
+  <meta property="og:description" content="To 19,625 m above Solapur and back, 31 October 2026. The flight from its own logs.">
+  <meta property="og:image" content="https://boscon.space/hab-1/img/hero-7163.jpg">
+  <meta property="og:url" content="https://boscon.space/hab-1">
+  <link rel="canonical" href="https://boscon.space/hab-1">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.30/dist/uPlot.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="hab1.css?v=14">
+</head>
+<body>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="https://boscon.space" aria-label="Boscon Space, home"><img class="brand__mark" src="assets/logo-mark.png" alt="" width="574" height="519"><img class="brand__wm" src="assets/wordmark.png" alt="Boscon Space" width="836" height="173"></a>
+    <nav class="nav__links" aria-label="Sections">
+      <a href="/hab-testing/hab-1#flight">Flight</a>
+      <a href="/hab-testing/hab-1#map">Map</a>
+      <a href="/hab-testing/hab-1#telemetry">Telemetry</a>
+      <a href="/hab-testing/hab-1#computer">Computer</a>
+      <a href="/hab-testing/hab-1#ai">AI</a>
+      <a href="/hab-testing/hab-1#footage">Footage</a>
+      <a href="/hab-testing/hab-1#findings">Findings</a>
+    </nav>
+    <button class="nav__toggle" id="navToggle" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <nav class="menu__links" aria-label="Mobile">
+      <a href="/hab-testing/hab-1#flight">Flight</a>
+      <a href="/hab-testing/hab-1#map">Map</a>
+      <a href="/hab-testing/hab-1#telemetry">Telemetry</a>
+      <a href="/hab-testing/hab-1#computer">Computer</a>
+      <a href="/hab-testing/hab-1#ai">AI</a>
+      <a href="/hab-testing/hab-1#footage">Footage</a>
+      <a href="/hab-testing/hab-1#findings">Findings</a>
+    </nav>
+    <a class="menu__foot" href="https://boscon.space">boscon.space</a>
+  </div>
+
+  <main id="top">
+
+    <!-- HERO: a frame from the flight itself -->
+    <section class="hx">
+      <img class="hx__img" src="img/hero-7163.jpg" alt="The sun over a white horizon and a dark blue sky, seen from HAB-1, 31 October 2026" fetchpriority="high">
+      <div class="hx__shade"></div>
+      <div class="hx__text">
+        <span class="label hx__kicker">Mission report &nbsp;/&nbsp; 31 October 2026</span>
+        <h1 class="hx__title">
+          <span class="line"><span>HAB-1.</span></span>
+          <span class="line"><span>Flown and recovered.</span></span>
+        </h1>
+      </div>
+      <dl class="hx__specs rv">
+        <div><dt>Peak altitude</dt><dd>19,625 m</dd></div>
+        <div><dt>Flight time</dt><dd>2 h 04 min</dd></div>
+        <div><dt>Landed</dt><dd>62.7 km NE</dd></div>
+        <div><dt>Coldest outside</dt><dd>&minus;55.0 &deg;C</dd></div>
+      </dl>
+      <p class="hx__cap">From the HAB-1 cameras, 31 October 2026. Edited.</p>
+    </section>
+
+    <!-- THESIS -->
+    <section class="thesis" id="flight">
+      <p class="thesis__lede rv">Our first stratospheric balloon carried the Boscon flight computer, telemetry radio and an onboard language model to 19,625 m above Solapur, and came home 62.7 km away. This is the flight, told from its own logs.</p>
+      <p class="thesis__text">Released at 12:37 IST. Burst at 19.6 km seventy minutes later. Under its parachute for fifty-four minutes. Down 62.7 km north-east of the pad, where our live predictor, re-run from every packet in flight, had said it would come down.</p>
+    </section>
+
+    <!-- AT A GLANCE -->
+    <section class="glance">
+      <header class="sec">
+        <span class="label">The flight in numbers</span>
+        <h2 class="sec__title rv">Every number from the payload's own logs.</h2>
+      </header>
+      <div class="glance__legend">
+        <span><i class="tag tag--m">Measured</i> a sensor value in the logs</span>
+        <span><i class="tag tag--c">Computed</i> arithmetic on measured values</span>
+        <span><i class="tag tag--p">Predicted</i> the pre-flight run</span>
+      </div>
+      <dl class="specs" id="specs">
+        <div class="spec"><dt>Release</dt><dd>12:37:06 IST</dd><p>07:07:06 UTC &plusmn;1 s. Inside the NOTAM window of 05:30 to 11:30 UTC.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Burst</dt><dd>19,624.8 m</dd><p>GPS, 13:47:23 IST, 37.5 km from the pad. Predicted 30.1 km; the 300-flight Monte Carlo's lowest 5% was 26.8 km.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Mean ascent</dt><dd>4.54 m/s</dd><p>4.28 to 4.91 m/s in every 2 km band, no fall with height. Fill target 5.0 m/s.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Touchdown</dt><dd>14:41:45 IST</dd><p>09:11:45 UTC &plusmn;1 s, from the outside pressure going flat.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Flight time</dt><dd>124.7 min</dd><p>70.3 min up, 54.4 min down. NOTAM allowed 130 min; predicted about 123 min.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Landing</dt><dd>62.7 km at 42&deg;</dd><p>18.132536 N, 76.226952 E. Pre-flight prediction 43.2 km at 27&deg; for a 12:00 IST release.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Live prediction after burst</dt><dd>990 m</dd><p>Median miss of its 166 landing estimates after burst; closest 35 m at 14:21:18 IST, last 1.1 km at loss of signal. The team found the payload 200 to 300 m from its predicted path.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Farthest from the pad</dt><dd>65.0 km</dd><p>Of 107.4 km (58 NM) allowed: 42.4 km to spare.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Lowest outside pressure</dt><dd>55.14 hPa</dd><p>About 5.4% of sea level pressure, 8 s after burst.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Coldest outside sensor</dt><dd>&minus;55.02 &deg;C</dd><p>MS5611 chip temperature at 13:53 IST on the way down, below its &minus;40 &deg;C rated range; it kept reading, CRC-good. The air was colder: the day's GFS gives about &minus;79 &deg;C at 16 to 17 km (model).</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Inside the box</dt><dd>6.4 to 48.5 &deg;C</dd><p>BMP280. The hottest was on the pad before release.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Touchdown speed</dt><dd>about 2.7 m/s</dd><p>From the pressure rise over the last 10 s. Predicted 7.0 m/s.</p><i class="tag tag--c">Computed</i></div>
+        <div class="spec"><dt>Records logged</dt><dd>51,622</dd><p>Flight computer log lines, each with a CRC. 0 bad.</p><i class="tag tag--m">Measured</i></div>
+        <div class="spec"><dt>Language model answers</dt><dd>411</dd><p>In flight, above 7 km, on the Pi. Median 10.4 tokens/s.</p><i class="tag tag--m">Measured</i></div>
+      </dl>
+    </section>
+
+    <!-- MAP / 3D FLIGHT -->
+    <section class="mapsec" id="map">
+      <header class="sec">
+        <span class="label">Track</span>
+        <h2 class="sec__title rv">Fly it again.</h2>
+      </header>
+      <p class="sec__note">The beacon's GPS at 1 fix a second, drawn in true scale over the terrain, from release to touchdown. Two predictions ride along: the pre-flight run from the morning, and the live prediction the ground station recomputed from every packet in flight. Play it, drag the timeline, or click any chart further down to jump here.</p>
+      <div class="mapwrap" id="mapwrap">
+        <div class="map" id="mapEl" aria-label="Interactive map of the HAB-1 track"></div>
+        <div class="map__nokey" id="mapFallback" hidden>The map could not load. The track and every chart below still work.</div>
+
+        <div class="hud" id="hud" aria-live="off">
+          <div class="hud__time"><span id="hudT">T+00:00:00</span><span id="hudClock">12:37:06 IST</span></div>
+          <div class="hud__phase" id="hudPhase">On the pad</div>
+          <dl class="hud__grid">
+            <div><dt>Altitude, GPS</dt><dd id="hudAlt">none</dd></div>
+            <div><dt>Vertical</dt><dd id="hudVz">none</dd></div>
+            <div><dt>Ground speed</dt><dd id="hudVh">none</dd></div>
+            <div><dt>From the pad</dt><dd id="hudD">none</dd></div>
+            <div><dt>Outside sensor</dt><dd id="hudTo">none</dd></div>
+            <div><dt>Inside box</dt><dd id="hudTi">none</dd></div>
+            <div><dt>Pressure</dt><dd id="hudP">none</dd></div>
+            <div><dt>Pi SoC</dt><dd id="hudSoc">none</dd></div>
+          </dl>
+          <div class="hud__live"><span>Live prediction</span><b id="hudLive">none yet</b></div>
+        </div>
+
+        <div class="mapctl" role="group" aria-label="View">
+          <button class="chip is-on" data-view="3d">3D</button>
+          <button class="chip" data-view="plan">Plan</button>
+          <button class="chip" data-view="follow">Follow</button>
+          <button class="chip" id="orbitBtn" aria-pressed="false">Orbit</button>
+          <button class="chip" data-turn="-45" aria-label="Turn left 45 degrees">&#8634;</button>
+          <button class="chip" data-turn="45" aria-label="Turn right 45 degrees">&#8635;</button>
+          <button class="chip chip--layers" id="layersBtn" aria-controls="layers" aria-expanded="false">Layers</button>
+        </div>
+
+        <div class="layers" id="layers" role="group" aria-label="Layers">
+          <label><input type="checkbox" data-layer="flown" checked> Flown track</label>
+          <label><input type="checkbox" data-layer="live" checked> Live prediction, in flight</label>
+          <label><input type="checkbox" data-layer="pre"> Pre-flight prediction, 07:10 IST</label>
+          <label><input type="checkbox" data-layer="hind"> Re-run with the real burst</label>
+          <label><input type="checkbox" data-layer="gs"> Packets heard, where they were sent</label>
+          <label><input type="checkbox" data-layer="limit"> 58 NM limit</label>
+        </div>
+      </div>
+
+      <div class="player" id="player">
+        <button class="player__play" id="playBtn" aria-label="Play">
+          <span class="i-play"></span>
+        </button>
+        <div class="player__bar">
+          <input type="range" id="scrub" min="0" max="7479" step="1" value="0" aria-label="Flight time, release to touchdown">
+          <div class="player__ticks" id="ticks"></div>
+        </div>
+        <div class="player__speed" role="group" aria-label="Playback speed">
+          <button class="chip" data-speed="60">60&times;</button>
+          <button class="chip is-on" data-speed="180">180&times;</button>
+          <button class="chip" data-speed="600">600&times;</button>
+        </div>
+      </div>
+      <p class="maphint">In 3D: drag to turn and tilt all the way round, right-drag or Shift-drag to move, &#8984; or Ctrl and scroll to zoom. In Plan: drag to move. On a phone: two fingers. Orbit spins it for you.</p>
+      <ol class="events" id="events"></ol>
+    </section>
+
+    <!-- TELEMETRY -->
+    <section class="tele" id="telemetry">
+      <header class="sec">
+        <span class="label">Telemetry</span>
+        <h2 class="sec__title rv">What the payload felt.</h2>
+      </header>
+      <p class="sec__note">Hover a chart to read it; drag across it to zoom, double-click to reset. Click to put the map at that moment. Times are IST. <button class="chip chip--inline" data-sync aria-pressed="false">Link charts</button> to move every cursor and zoom together.</p>
+      <div class="charts">
+        <figure class="chart chart--wide"><figcaption><span class="label">Altitude</span><p>GPS against the outside barometer on the standard atmosphere. The gap is the real atmosphere: warmer than standard below the tropopause, colder above.</p></figcaption><div class="chart__plot" id="cAlt"></div></figure>
+        <figure class="chart"><figcaption><span class="label">Vertical speed</span><p>GPS, &plusmn;10 s centred difference. Steady climb, a fast fall in thin air, slowing as the air thickens.</p></figcaption><div class="chart__plot" id="cVz"></div></figure>
+        <figure class="chart"><figcaption><span class="label">Ground speed</span><p>How fast the wind carried it, from the same GPS fixes.</p></figcaption><div class="chart__plot" id="cVh"></div></figure>
+        <figure class="chart chart--wide"><figcaption><span class="label">Temperature</span><p>Outside: the MS5611 chip's own temperature, in the air but not a calibrated air temperature. Inside: the BMP280 in the box. The Pi's processor for scale.</p></figcaption><div class="chart__plot" id="cTemp"></div></figure>
+        <figure class="chart"><figcaption><span class="label">Pressure</span><p>Log scale. Outside fell from 959.5 hPa on the pad to 55.14 hPa. The inside sensor is rated only to 300 hPa.</p></figcaption><div class="chart__plot" id="cP"></div></figure>
+        <figure class="chart"><figcaption><span class="label">Radio at the ground station</span><p>Signal strength and signal-to-noise of each packet heard. Gaps are receiver restarts on the ground side.</p></figcaption><div class="chart__plot" id="cRf"></div></figure>
+      </div>
+
+      <div class="profiles">
+        <header class="sec sec--one"><span class="label">Profiles</span><h3 class="sub rv">The atmosphere over Solapur, measured on the way up and down.</h3></header>
+        <div class="charts charts--3">
+          <figure class="chart"><figcaption><span class="label">Temperature by altitude</span><p>Outside sensor on ascent and descent, inside box on ascent.</p></figcaption><canvas class="prof" id="pTemp"></canvas></figure>
+          <figure class="chart"><figcaption><span class="label">Wind speed by altitude</span><p id="pWindNote">Balloon drift in 500 m bins (computed). Band: October climatology, where loaded.</p></figcaption><canvas class="prof" id="pWind"></canvas></figure>
+          <figure class="chart"><figcaption><span class="label">Wind direction by altitude</span><p>Where the wind blew from, degrees. Easterlies low down, westerlies near the top.</p></figcaption><canvas class="prof" id="pDir"></canvas></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIMULATION -->
+    <section class="sim" id="simulation">
+      <header class="sec">
+        <span class="label">Simulation</span>
+        <h2 class="sec__title rv">What we predicted, and what flew.</h2>
+      </header>
+      <div class="sim__grid">
+        <div>
+          <p class="body">The morning of launch, the Boscon HAB predictor flew the balloon 300 times through the GFS forecast and the 50-member ECMWF ensemble. Every one of those flights burst between 26.8 and 32.5 km (5th to 95th percentile). HAB-1 burst at 19.6 km, 18.7 minutes early, and fell more slowly than modelled. After the flight we re-ran the same predictor on the day's winds to see which mattered.</p>
+          <table class="tbl" id="preTable">
+            <caption>Pre-flight prediction, run at 07:10 IST on 31 October (predicted)</caption>
+            <thead><tr><th>Release IST</th><th>Burst</th><th>Landing</th><th>Monte Carlo p95</th></tr></thead>
+            <tbody>
+              <tr><td>11:00</td><td>30.1 km, T+89 min</td><td>41.7 km at 23&deg;</td><td>43.6 km</td></tr>
+              <tr><td>12:00</td><td>30.1 km, T+89 min</td><td>43.2 km at 27&deg;</td><td>44.7 km</td></tr>
+              <tr><td>13:00</td><td>30.1 km, T+89 min</td><td>43.6 km at 31&deg;</td><td>45.2 km</td></tr>
+              <tr><td>14:00</td><td>30.1 km, T+89 min</td><td>42.5 km at 34&deg;</td><td>44.5 km</td></tr>
+              <tr class="tbl__actual"><td>12:37 flown</td><td>19.6 km, T+70 min</td><td>62.7 km at 42&deg;</td><td>none</td></tr>
+            </tbody>
+          </table>
+          <p class="fine">SondeHub's Tawhiri, given the same ascent, burst and descent, landed 1.4 to 2.9 km from these points.</p>
+        </div>
+        <div>
+          <figure class="chart"><figcaption><span class="label">Altitude against time</span><p id="simNote">Flown (white) against the simulations, where loaded.</p></figcaption><div class="chart__plot" id="cSim"></div></figure>
+          <div id="hindcast"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIMATOLOGY -->
+    <section class="clim" id="climatology">
+      <header class="sec">
+        <span class="label">Climatology</span>
+        <h2 class="sec__title rv">How typical was the day?</h2>
+      </header>
+      <div class="clim__body" id="climBody">
+        <p class="body">October winds over the Deccan, from the radiosonde and GFS archives the predictor is built on, against the winds HAB-1 drifted through.</p>
+        <div class="charts charts--2">
+          <figure class="chart"><figcaption><span class="label">Wind speed, October</span><p id="climSpdNote">Median and middle half of October soundings, against HAB-1's ascent.</p></figcaption><canvas class="prof" id="cClimSpd"></canvas></figure>
+          <figure class="chart"><figcaption><span class="label">Temperature, October</span><p id="climTNote">Median October temperature against HAB-1's outside sensor on ascent.</p></figcaption><canvas class="prof" id="cClimT"></canvas></figure>
+        </div>
+        <p class="fine" id="climSrc"></p>
+      </div>
+    </section>
+
+    <!-- COMPUTER -->
+    <section class="comp" id="computer">
+      <header class="sec">
+        <span class="label">Flight computer</span>
+        <h2 class="sec__title rv">A Raspberry Pi 5, sealed in a box, at 19.6 km.</h2>
+      </header>
+      <div class="comp__grid">
+        <dl class="ledger2">
+          <div><dt>Processor temperature</dt><dd>45.2 to 86.45 &deg;C</dd><p>At or above 80 &deg;C for about 65 minutes. Hottest at 16,061 m, where thin air carries little heat away.</p></div>
+          <div><dt>Throttling</dt><dd>Soft limit from 13:09 IST</dd><p>Then clock capping and throttling. Clock between 1,500 and 2,400 MHz.</p></div>
+          <div><dt>Undervoltage</dt><dd>Never</dd><p>5 V rail 4.768 to 5.081 V from a 20,000 mAh power bank.</p></div>
+          <div><dt>Cameras</dt><dd>2 &times; USB, 3-min clips</dd><p>Logitech C270 and Lenovo 300 FHD, 105 clips each, 45 GiB in all.</p></div>
+          <div><dt>Log write errors</dt><dd>0</dd><p>Everything fsynced at least every 2 s. Nothing overwritten.</p></div>
+        </dl>
+        <div>
+          <figure class="chart"><figcaption><span class="label">Processor temperature</span><p>Every 10 s for the whole boot, 11:19 to 16:29 IST. Shaded: the Pi reported a temperature limit or throttling in that sample.</p></figcaption><div class="chart__plot" id="cPi"></div></figure>
+          <figure class="chart"><figcaption><span class="label">5 V rail</span><p>The Pi's undervoltage flag never set, at any point of the flight.</p></figcaption><div class="chart__plot" id="cV"></div></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section class="ai" id="ai">
+      <header class="sec">
+        <span class="label">Onboard AI</span>
+        <h2 class="sec__title rv">A language model, thinking at the edge of space.</h2>
+      </header>
+      <div class="ai__intro">
+        <p class="body">Qwen2.5 1.5B ran on the Pi itself, with no link to the ground. It woke at 7 km and worked through eight prompts in turn, each time reading the live sensors first. Every answer was logged with exactly what it was told.</p>
+        <dl class="mini">
+          <div><dt>Answers</dt><dd>411</dd></div>
+          <div><dt>Median speed</dt><dd>10.4 tok/s</dd></div>
+          <div><dt>Median answer</dt><dd>17.6 s</dd></div>
+          <div><dt>Contradictions caught</dt><dd>40</dd></div>
+          <div><dt>Heat pauses</dt><dd>1</dd></div>
+        </dl>
+      </div>
+      <div class="ai__tools">
+        <div class="ai__chips" id="promptChips" role="group" aria-label="Filter by prompt"></div>
+        <input class="ai__search" id="aiSearch" type="search" placeholder="Search answers" aria-label="Search answers">
+      </div>
+      <ol class="answers" id="answers"></ol>
+      <button class="more" id="aiMore" hidden>Show more</button>
+      <div class="ai__notes">
+        <span class="label">What we read in the answers</span>
+        <ul>
+          <li>It copied numbers from the sensor text well; it was weaker at arithmetic. One answer called 205.1 hPa "78.5% of the air pressure at sea level"; it is 20.2%.</li>
+          <li>Forty times it said "climbing" while the measured phase was "descending". The checker caught all 40 and asked again.</li>
+          <li>Its "highest altitude so far" of 20,017 m was the barometric figure, which the sensor text did not label. The GPS peak was 19,625 m. Our mistake, not the model's.</li>
+          <li>It answered with the processor at up to 85.9 &deg;C, although it should pause above 78 &deg;C. The pause logic needs checking.</li>
+          <li>A full review of all 411 answers against what they were told has not been done.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FOOTAGE -->
+    <section class="foot2" id="footage">
+      <header class="sec">
+        <span class="label">Footage</span>
+        <h2 class="sec__title rv">The view from 19 km.</h2>
+      </header>
+      <div class="vid">
+        <div class="vid__frame">
+          <video id="vid" controls playsinline muted preload="metadata" poster="media/burst-clip-poster.jpg">
+            <source src="media/burst-clip-720p.mp4" type="video/mp4">
+          </video>
+          <div class="vid__read" id="vidRead">08:16:45 UTC</div>
+        </div>
+        <div class="vid__side">
+          <p class="body">Three minutes from the Lenovo camera across the burst, graded. The balloon burst 38 s in, above the camera and out of its view.</p>
+          <p class="fine">The Earth is white because the camera clipped it: 80 to 99% of its pixels are at the sensor's ceiling, so no grading can bring ground detail back. The next flight fixes exposure for sunlit ground. The curve in these frames is mostly the lens: at this height the true curvature is about 29 px across the frame (computed, assuming an 85&deg; field of view).</p>
+          <button class="btn" id="vidMap">Show this moment on the map</button>
+        </div>
+      </div>
+      <ul class="gallery" id="gallery"></ul>
+    </section>
+
+    <!-- FINDINGS -->
+    <section class="find" id="findings">
+      <header class="sec">
+        <span class="label">Findings</span>
+        <h2 class="sec__title rv">What flying taught us.</h2>
+      </header>
+      <ol class="findings">
+        <li><span class="label">01</span><h3>The balloon burst at 19.6 km, not 30.</h3><p>It climbed steadily at 4.3 to 4.9 m/s to the end, so it was not leaking: it failed suddenly. The cause is not known. The cameras were recording at the moment and are the first place to look.</p></li>
+        <li><span class="label">02</span><h3>It landed 20 km from the morning's prediction, and a few hundred metres from the live one.</h3><p>The pre-flight run assumed a 30 km burst. The live prediction, recomputed from every packet, moved about 15 km north-east in the 92 s after the burst, to within 1.3 km of the real landing, and then stayed within about a kilometre of it (median 990 m, closest 35 m); the team found the payload 200 to 300 m from its predicted path. Re-run afterwards with the real ascent, burst and descent, the predictor lands 4.1 km from the touchdown, against 22.7 km with the morning's settings.</p></li>
+        <li><span class="label">03</span><h3>The parachute came down slower than modelled.</h3><p>About 2.7 m/s at touchdown against 7.0 m/s predicted, and 1.6 to 1.9 times slower than the model at every height. That alone moved the landing about 10 km. Balloon remnants or a better parachute coefficient than the 0.75 assumed; not yet separated.</p></li>
+        <li><span class="label">04</span><h3>Something pulled on the payload 35 m above the ground.</h3><p>At 14:41:29 IST the beacon lost power and rebooted, and the inside sensor's wiring came loose, in the same second. The flight computer and the outside sensor carried on. A tree, a wire or a hard swing; the clips from 14:40:46 IST cover it.</p></li>
+        <li><span class="label">05</span><h3>Thin air is a poor heatsink.</h3><p>The Pi spent about 65 minutes at or above 80 &deg;C and throttled, but never browned out, never rebooted, and lost no data. The next box needs a thermal path to the outside.</p></li>
+        <li><span class="label">06</span><h3>The cameras were set for the pad, not for the stratosphere.</h3><p>Auto exposure metered on the dark sky and clipped the sunlit Earth. A fixed exposure set on sunlit ground, a camera tilted 20 to 30&deg; down and a lens hood are the changes; untested.</p></li>
+        <li><span class="label">07</span><h3>The radio link held to 64.8 km.</h3><p>Last packet at 14:34:30 IST, 2,109 m up, at &minus;126 dBm and &minus;14.3 dB SNR. The Pi logged the beacon on a wire the whole way, so the record has no gap.</p></li>
+        <li><span class="label">08</span><h3>The outside sensor measured itself, not the air.</h3><p>It read 4 &deg;C warmer than the day's GFS air near the ground and 45 &deg;C warmer at 19.5 km. The chip is warmed by sunlight and by the box. A shielded air-temperature probe is needed for real temperatures.</p></li>
+        <li><span class="label">09</span><h3>A small model can report from the edge of space.</h3><p>Copying facts from sensors worked. Reasoning about them did not always. A checker that compares each answer with the measurement is worth keeping.</p></li>
+      </ol>
+      <div class="notdone">
+        <span class="label">Not done yet</span>
+        <p>Most of the 210 video clips are not reviewed. The cause of the burst and of the event before touchdown are not known. Recovery details (what it landed on, its condition) are not in any log. The last minutes of data after power-off did not reach the card.</p>
+      </div>
+    </section>
+
+    <!-- CLOSE -->
+    <section class="contact" id="contact">
+      <div class="contact__media" data-parallax>
+        <img src="img/f2330.jpg" alt="The Earth's limb from 18,421 m, HAB-1, 31 October 2026" loading="lazy">
+      </div>
+      <div class="contact__inner">
+        <span class="label rv">Next</span>
+        <h2 class="contact__title">
+          <span class="line"><span>Talk to us.</span></span>
+        </h2>
+        <a class="contact__mail rv" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span>&copy; 2026 Boscon Space</span>
+    <span>Photography: HAB-1 cameras, 31 October 2026. Map: Mapbox, Maxar, OpenStreetMap.</span>
+    <a href="/hab-testing/hab-1#top">Back to top</a>
+  </footer>
+
+  <dialog class="lb" id="lightbox">
+    <button class="lb__close" id="lbClose" aria-label="Close">Close</button>
+    <img id="lbImg" alt="">
+    <div class="lb__cap" id="lbCap"></div>
+  </dialog>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.30/dist/uPlot.iife.min.js"></script>
+  <script src="/hab-testing/config.js"></script>
+  <script src="hab1.js?v=22"></script>
+</body>
+</html>

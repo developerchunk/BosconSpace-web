@@ -1,0 +1,1348 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 Build Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#E7ECF2; --surface:#F6F8FB; --sunk:#DCE3EC;
+  --ink:#0B121D; --ink-2:#31404F; --muted:#5B6B80; --faint:#8A9AAE;
+  --rule:#C4CFDC; --rule-soft:#D6DEE8;
+  --accent:#D9501C; --accent-soft:#FBE6DC;
+  --signal:#16778D; --signal-soft:#DCEDF1;
+  --ok:#1B7A54; --warn:#9A6606; --crit:#B32A40;
+  --ok-bg:#DFF0E7; --warn-bg:#F8ECD5; --crit-bg:#F8E0E4;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#070C16; --surface:#0F1725; --sunk:#0A1020;
+    --ink:#E3EAF4; --ink-2:#BAC7D8; --muted:#8B9BB2; --faint:#5E6E85;
+    --rule:#1F2C3F; --rule-soft:#182334;
+    --accent:#FF7440; --accent-soft:#2A160D;
+    --signal:#4FB9D0; --signal-soft:#0C2530;
+    --ok:#4FC28C; --warn:#DFA53C; --crit:#F0687F;
+    --ok-bg:#0D2419; --warn-bg:#2A1F09; --crit-bg:#2B0F16;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#070C16; --surface:#0F1725; --sunk:#0A1020;
+  --ink:#E3EAF4; --ink-2:#BAC7D8; --muted:#8B9BB2; --faint:#5E6E85;
+  --rule:#1F2C3F; --rule-soft:#182334;
+  --accent:#FF7440; --accent-soft:#2A160D;
+  --signal:#4FB9D0; --signal-soft:#0C2530;
+  --ok:#4FC28C; --warn:#DFA53C; --crit:#F0687F;
+  --ok-bg:#0D2419; --warn-bg:#2A1F09; --crit-bg:#2B0F16;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.62;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Chivo,"Helvetica Neue",Arial,sans-serif;text-wrap:balance;margin:0}
+code,kbd,.mono,table,.tag{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+
+.shell{display:grid;grid-template-columns:212px minmax(0,1fr);max-width:1180px;margin:0 auto}
+.rail{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--rule);padding:26px 18px 40px;background:var(--paper)}
+.rail-brand{font-family:Chivo;font-weight:900;font-size:15px;line-height:1.15}
+.rail-sub{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);margin-top:5px}
+.rail nav{margin-top:24px;display:flex;flex-direction:column}
+.rail a{display:flex;gap:9px;text-decoration:none;color:var(--ink-2);font-size:13px;
+  padding:5px 0 5px 9px;border-left:2px solid transparent;line-height:1.3}
+.rail a:hover{color:var(--accent);border-left-color:var(--accent)}
+.rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rail a b{font-family:"IBM Plex Mono";font-size:11px;color:var(--faint);font-weight:500;min-width:16px}
+.theme-btn{margin-top:26px;font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;background:transparent;border:1px solid var(--rule);color:var(--muted);
+  padding:7px 10px;cursor:pointer;width:100%;text-align:left}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.main{min-width:0;padding:0 44px 120px}
+
+.hero{padding:56px 0 34px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:18px}
+h1{font-size:clamp(34px,5.4vw,54px);font-weight:900;line-height:1;letter-spacing:-.022em}
+.lede{font-size:18px;line-height:1.55;color:var(--ink-2);max-width:62ch;margin-top:20px}
+
+.step{padding:46px 0 6px;border-bottom:1px solid var(--rule-soft)}
+.step-head{display:flex;align-items:baseline;gap:14px;margin-bottom:10px}
+.step-n{font-family:"IBM Plex Mono";font-size:12px;font-weight:600;letter-spacing:.1em;
+  color:var(--accent);white-space:nowrap;padding-top:5px}
+h2{font-size:clamp(23px,3vw,31px);font-weight:700;letter-spacing:-.018em;line-height:1.14}
+h3{font-size:17px;font-weight:700;margin:28px 0 8px}
+h4{font-size:13.5px;font-weight:700;margin:20px 0 6px}
+p{margin:12px 0;max-width:70ch}
+ul,ol{max-width:70ch;padding-left:20px;margin:12px 0}
+li{margin:7px 0}
+strong{font-weight:600;color:var(--ink)}
+a{color:var(--accent)}
+.intro{font-size:17px;color:var(--ink-2);max-width:66ch;margin:4px 0 8px}
+
+.check{border:1px solid var(--ok);background:var(--ok-bg);padding:14px 18px;margin:20px 0;max-width:72ch}
+.check-t{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ok);margin-bottom:7px;font-weight:600}
+.check p{margin:6px 0}
+.check p:first-of-type{margin-top:0}
+.check p:last-child{margin-bottom:0}
+
+.callout{border:1px solid var(--rule);border-left:3px solid var(--accent);background:var(--surface);
+  padding:16px 19px;margin:20px 0;max-width:74ch}
+.callout.crit{border-left-color:var(--crit);background:var(--crit-bg)}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+.callout.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+.callout p{margin:8px 0}
+.callout p:first-of-type{margin-top:0}
+.callout p:last-child{margin-bottom:0}
+.callout-t{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px}
+
+.tw{overflow-x:auto;margin:20px 0;border:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;font-size:13px;background:var(--surface);
+  font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:600;font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);padding:10px 13px;border-bottom:1px solid var(--rule);background:var(--sunk)}
+td{padding:9px 13px;border-bottom:1px solid var(--rule-soft);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+td.num{text-align:right;white-space:nowrap}
+
+.tag{display:inline-block;font-size:10px;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 7px;border:1px solid currentColor;white-space:nowrap;font-weight:500}
+.t-ok{color:var(--ok);background:var(--ok-bg)}
+.t-warn{color:var(--warn);background:var(--warn-bg)}
+.t-crit{color:var(--crit);background:var(--crit-bg)}
+.t-sig{color:var(--signal);background:var(--signal-soft)}
+
+pre{background:var(--sunk);border:1px solid var(--rule);padding:14px 16px;overflow-x:auto;
+  font-size:12.5px;line-height:1.6;margin:18px 0;color:var(--ink-2)}
+p code,li code,td code{background:var(--sunk);padding:1px 5px;font-size:.88em;border:1px solid var(--rule-soft)}
+kbd{background:var(--sunk);border:1px solid var(--rule);border-bottom-width:2px;padding:1px 6px;
+  font-size:.85em}
+
+figure{margin:26px 0}
+figure svg{display:block;width:100%;height:auto;background:var(--surface);border:1px solid var(--rule)}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;max-width:74ch;line-height:1.5}
+.fig-scroll{overflow-x:auto}
+.fig-scroll svg{min-width:620px}
+.svg-l{fill:var(--muted);font-family:"IBM Plex Mono";font-size:11px}
+.svg-l-s{fill:var(--faint);font-family:"IBM Plex Mono";font-size:9.5px}
+.svg-t{fill:var(--ink);font-family:Chivo;font-size:13px;font-weight:700}
+.svg-b{fill:var(--ink-2);font-family:"IBM Plex Sans";font-size:11px}
+.box-o{fill:var(--sunk);stroke:var(--rule);stroke-width:1}
+
+.dolist{list-style:none;padding:0;max-width:72ch;counter-reset:d}
+.dolist li{border-top:1px solid var(--rule-soft);padding:12px 0 12px 40px;position:relative;margin:0}
+.dolist li::before{counter-increment:d;content:counter(d);position:absolute;left:0;top:12px;
+  width:24px;height:24px;border:1px solid var(--accent);color:var(--accent);
+  font-family:"IBM Plex Mono";font-size:11px;display:flex;align-items:center;justify-content:center}
+footer{padding:48px 0 40px;border-top:1px solid var(--rule);margin-top:36px;font-size:13px;color:var(--muted)}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{position:static;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding:16px 20px}
+  .rail nav{flex-direction:row;overflow-x:auto;gap:18px;margin-top:14px}
+  .rail a{white-space:nowrap;border-left:0;padding-left:0}
+  .main{padding:0 20px 90px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell">
+<aside class="rail">
+  <div class="rail-brand">Phase&nbsp;1 Build</div>
+  <div class="rail-sub">Boscon Space &middot; HAB-1</div>
+  <nav>
+    <a href="/hab-testing/phase1-build-guide#parts"><b>0</b> Know your parts</a>
+    <a href="/hab-testing/phase1-build-guide#antenna"><b>1</b> Fit the antennas</a>
+    <a href="/hab-testing/phase1-build-guide#power"><b>2</b> First power-up</a>
+    <a href="/hab-testing/phase1-build-guide#toolchain"><b>3</b> Install the tools</a>
+    <a href="/hab-testing/phase1-build-guide#upload"><b>4</b> First upload</a>
+    <a href="/hab-testing/phase1-build-guide#flash"><b>5</b> Flash TX and RX</a>
+    <a href="/hab-testing/phase1-build-guide#bench"><b>6</b> The 1 m test</a>
+    <a href="/hab-testing/phase1-build-guide#battery"><b>7</b> Battery</a>
+    <a href="/hab-testing/phase1-build-guide#field"><b>8</b> Field tests</a>
+    <a href="/hab-testing/phase1-build-guide#trouble"><b>?</b> Troubleshooting</a>
+    <a href="/hab-testing/phase1-build-guide#safety"><b>!</b> Safety card</a>
+  </nav>
+  <button class="theme-btn" id="tt" type="button">Switch theme</button>
+</aside>
+
+<main class="main">
+<header class="hero">
+<base href="/hab-testing/phase1-build-guide/">
+<meta name="robots" content="noindex, nofollow">
+  <div class="eyebrow">Assembly &amp; setup &middot; from scratch</div>
+  <h1>Two radios,<br>one working link</h1>
+  <p class="lede">Everything from opening the boxes to a packet arriving 20 km away. Written
+  assuming you have never soldered, flashed a microcontroller, or connected an antenna. Follow
+  it in order &mdash; every step ends with a checkpoint that tells you whether it worked.</p>
+</header>
+
+<section class="step" id="parts">
+  <div class="step-head"><div class="step-n">STEP 00</div><h2>Know what you are holding</h2></div>
+  <p class="intro">Six line items arrive in two parcels. Before touching anything, lay them out on a
+  table and match each one to this list. If a bag does not match its description, stop and check the
+  order &mdash; fitting the wrong connector is how boards get damaged.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>What you look for</th><th>Qty</th><th>What it is</th><th>How to recognise it</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Heltec WiFi LoRa 32 V3</strong><br><span style="color:var(--muted)">863&ndash;928&nbsp;MHz</span></td>
+        <td class="num">2</td>
+        <td>The whole radio computer &mdash; ESP32-S3 processor, SX1262 LoRa radio and a small
+        white OLED screen on one board.</td>
+        <td>Roughly 51 &times; 25 mm. USB-C on one short edge. A 0.96&Prime; screen on top.
+        A black plastic 2-pin socket on the underside (that is the battery input). A
+        <strong>tiny gold circle about 2 mm across</strong> near the board edge &mdash; that is the
+        LoRa antenna socket. There is also a small metal spring soldered to the board:
+        <strong>that spring is WiFi/Bluetooth only, it is not the LoRa antenna</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>u.FL &rarr; SMA-female pigtail</strong><br><span style="color:var(--muted)">15 cm</span></td>
+        <td class="num">2</td>
+        <td>The adapter cable that carries the LoRa signal from the board to a real antenna.</td>
+        <td>A thin black coax about 15 cm long. One end is a <em>miniature press-fit cap</em>
+        (u.FL) &mdash; that goes on the board. The other end is a threaded nut with a
+        <strong>hole</strong> in the middle (SMA female) and usually a washer + nut for panel
+        mounting.</td>
+      </tr>
+      <tr>
+        <td><strong>860&ndash;928 MHz antenna, 2.2 dBi</strong></td>
+        <td class="num">2</td>
+        <td>The actual antenna. Without it the radio cannot transmit safely.</td>
+        <td>A stubby black rubber rod, roughly 10 cm, with a hinge so it can fold at 90&deg;.
+        Its base is a threaded barrel with a <strong>pin</strong> in the middle (SMA male) &mdash;
+        it screws into the pigtail's hole end.</td>
+      </tr>
+      <tr>
+        <td><strong>NOVA 604060 LiPo</strong><br><span style="color:var(--muted)">3.7 V, 2000 mAh</span></td>
+        <td class="num">2</td>
+        <td>The battery that makes the transmitter portable for the field tests.</td>
+        <td>A silver foil pouch about 60 &times; 40 &times; 6 mm with a small circuit board
+        (the protection PCB) taped to one end, and two wires &mdash; <strong>red = +</strong>,
+        <strong>black = &minus;</strong> &mdash; ending in a small white plastic plug.</td>
+      </tr>
+      <tr>
+        <td><strong>A1251H-2P lead</strong><br><span style="color:var(--muted)">1.25 mm, 300 mm</span></td>
+        <td class="num">5</td>
+        <td>The mating plug for the Heltec's battery socket, with bare wires on the far end.</td>
+        <td>A very small white 2-hole plug (holes ~1.25 mm apart &mdash; noticeably smaller than
+        the battery's own plug) with about 30 cm of red and black wire, tinned or bare at the
+        other end.</td>
+      </tr>
+      <tr>
+        <td><strong>WAFER-PH2.0-2PZZ</strong><br><span style="color:var(--muted)">SKU R218883</span></td>
+        <td class="num">5</td>
+        <td>Backup: a 2.0 mm male header the battery's own plug can push onto, so its wires never
+        have to be cut.</td>
+        <td>A tiny white plastic block with <strong>two metal pins sticking out</strong> of the
+        bottom. Pins are 2.0 mm apart.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout crit">
+    <div class="callout-t">Read this before you plug anything in</div>
+    <p><strong>Never power a LoRa board without its antenna attached.</strong> A transmitter with
+    nothing to radiate into reflects its own power back into the output stage. At the 22 dBm
+    (160 mW) setting used here that can permanently degrade or kill the SX1262. This is the single
+    most common way beginners destroy a LoRa board &mdash; and it is silent, so you will not know
+    until range is mysteriously terrible.</p>
+    <p>Rule for the rest of your life with these boards: <strong>antenna first, power second,
+    every single time.</strong></p>
+  </div>
+
+  <h3>What you also need, which you already own</h3>
+  <ul>
+    <li><strong>A laptop</strong> with a free USB port and internet access, for installing the
+    software and flashing the boards.</li>
+    <li><strong>Two USB-C cables</strong> that carry <em>data</em>, not just charge. Cables bundled
+    with phone chargers are often charge-only and will make the board appear dead to your laptop.
+    A cable that came with a hard drive, headset or another dev board is a safe bet. If you own
+    exactly one known-good cable, you can do everything one board at a time.</li>
+    <li><strong>Masking tape and a pen</strong>, to label the boards. Do not skip this &mdash; the
+    two boards are identical and you will confuse them.</li>
+    <li><strong>Optional:</strong> a phone with a compass and a GPS app for the field tests.</li>
+  </ul>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 00</div>
+    <p>Every one of the six items is on the table and you can name it without looking at the list.
+    You have located the <strong>gold 2 mm circle</strong> on each Heltec and you understand it is
+    a different thing from the metal spring.</p>
+  </div>
+</section>
+
+<section class="step" id="antenna">
+  <div class="step-head"><div class="step-n">STEP 01</div><h2>Fit the antennas</h2></div>
+  <p class="intro">This is the most delicate operation in the whole build and it comes first,
+  because nothing else may happen until the antennas are on. The u.FL connector is rated for
+  roughly <strong>10 mating cycles</strong> in its whole life &mdash; treat every connection as
+  precious. Do this on a clear table in good light, sitting down, with the board flat.</p>
+
+  <figure class="fig-scroll">
+    <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Antenna chain: Heltec board u.FL socket, to pigtail u.FL plug, coax, SMA female, to antenna SMA male.">
+      <rect x="18" y="52" width="150" height="86" class="box-o"/>
+      <text x="93" y="80" text-anchor="middle" class="svg-t">Heltec V3</text>
+      <circle cx="93" cy="106" r="9" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="93" cy="106" r="3" fill="var(--accent)"/>
+      <text x="93" y="132" text-anchor="middle" class="svg-l-s">u.FL socket (gold, 2mm)</text>
+
+      <path d="M168 95 H 232" stroke="var(--muted)" stroke-width="1.4" fill="none"
+            marker-end="url(#ar1)"/>
+      <defs><marker id="ar1" markerWidth="8" markerHeight="8" refX="7" refY="3.2" orient="auto">
+        <path d="M0,0 L7,3.2 L0,6.4 z" fill="var(--muted)"/></marker></defs>
+      <text x="200" y="86" text-anchor="middle" class="svg-l-s">press</text>
+      <text x="200" y="112" text-anchor="middle" class="svg-l-s">straight down</text>
+
+      <rect x="236" y="52" width="230" height="86" class="box-o"/>
+      <text x="351" y="78" text-anchor="middle" class="svg-t">Pigtail, 15 cm</text>
+      <circle cx="272" cy="106" r="7" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M279 106 q 40 22 72 0 q 32 -22 62 0" stroke="var(--signal)" stroke-width="2.4"
+            fill="none"/>
+      <rect x="415" y="97" width="34" height="18" fill="none" stroke="var(--signal)" stroke-width="2"/>
+      <circle cx="432" cy="106" r="3.5" fill="none" stroke="var(--signal)" stroke-width="1.6"/>
+      <text x="272" y="132" text-anchor="middle" class="svg-l-s">u.FL plug</text>
+      <text x="432" y="132" text-anchor="middle" class="svg-l-s">SMA female (hole)</text>
+
+      <path d="M466 95 H 530" stroke="var(--muted)" stroke-width="1.4" fill="none" marker-end="url(#ar1)"/>
+      <text x="498" y="86" text-anchor="middle" class="svg-l-s">screw</text>
+      <text x="498" y="112" text-anchor="middle" class="svg-l-s">hand-tight</text>
+
+      <rect x="534" y="52" width="208" height="86" class="box-o"/>
+      <text x="638" y="78" text-anchor="middle" class="svg-t">2.2 dBi antenna</text>
+      <rect x="558" y="99" width="26" height="14" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="571" y1="99" x2="571" y2="113" stroke="var(--accent)" stroke-width="2.4"/>
+      <rect x="588" y="100" width="118" height="12" rx="6" fill="var(--signal)" opacity=".55"/>
+      <text x="571" y="132" text-anchor="middle" class="svg-l-s">SMA male (pin)</text>
+      <text x="660" y="132" text-anchor="middle" class="svg-l-s">radiating element</text>
+
+      <text x="18" y="28" class="svg-b">Do this twice &mdash; once per board &mdash; before either board ever sees power.</text>
+    </svg>
+    <figcaption>The three-piece chain. The rule that keeps it straight: the end with a
+    <strong>hole</strong> and the end with a <strong>pin</strong> mate. Two holes or two pins means
+    you are holding the wrong pieces.</figcaption>
+  </figure>
+
+  <h3>1a &middot; Seat the u.FL plug on the board</h3>
+  <ol class="dolist">
+    <li>Put the Heltec on the table, screen up, and find the small gold circle at the board edge.
+    It has a raised gold rim with a pinpoint in the centre. <strong>Do not confuse it with the
+    silver spring</strong> soldered flat to the board.</li>
+    <li>Hold the pigtail's u.FL end between finger and thumb. Look at it from the side: it is a
+    little cup that has to sit down <em>over</em> the rim on the board.</li>
+    <li>Rest the cup on the socket and rock it very slightly until you feel it drop and sit flat.
+    It must be <strong>concentric</strong> &mdash; perfectly centred. If it is even slightly
+    off-centre, pressing will bend the rim and ruin the socket permanently.</li>
+    <li>With it sitting flat and centred, press <strong>straight down</strong> with your fingernail
+    or the flat back of a plastic pen cap. You will feel and usually hear a small
+    <strong>click</strong>. That click is the whole game.</li>
+    <li>Tug the coax gently sideways. It should not lift. If it pops off, it was never seated
+    &mdash; re-centre and try again.</li>
+  </ol>
+
+  <div class="callout warn">
+    <div class="callout-t">If you ever need to take it off again</div>
+    <p><strong>Never pull the cable.</strong> Pulling the coax lifts the socket clean off the
+    circuit board and the board is then finished. Slide a fingernail or a thin flat plastic edge
+    <em>under the metal cup itself</em>, on opposite sides, and lever it straight up. Better still:
+    once it is on, leave it on for the whole test campaign.</p>
+  </div>
+
+  <h3>1b &middot; Screw on the antenna</h3>
+  <ol class="dolist">
+    <li>Take the SMA-female end of the pigtail (the one with a hole) in one hand and the antenna
+    (the one with a pin) in the other.</li>
+    <li>Push them together straight and turn the <strong>outer knurled barrel</strong> clockwise.
+    Never twist the antenna body against the cable &mdash; that twists the coax and can break the
+    inner conductor.</li>
+    <li>Turn until it is firm with fingers only. <strong>Do not use pliers.</strong> Over-torquing
+    an SMA crushes the dielectric and detunes the connection.</li>
+    <li>Fold the antenna up to 90&deg; if the hinge allows, so it stands vertical when the board
+    lies flat. LoRa antennas are vertically polarised &mdash; both ends must be vertical or you
+    throw away roughly 20 dB.</li>
+  </ol>
+
+  <h3>1c &middot; Repeat for board two</h3>
+  <p>Do the identical thing on the second board, then put a strip of masking tape on each and write
+  <strong>TX</strong> on one and <strong>RX</strong> on the other. You will thank yourself in
+  Step 5.</p>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 01</div>
+    <p>Both boards have a coax firmly clicked to the gold socket, an antenna finger-tight on the
+    other end of that coax, and a tape label. A gentle sideways tug on either coax does not
+    dislodge it. <strong>Neither board has been plugged into anything yet.</strong></p>
+  </div>
+</section>
+
+<section class="step" id="power">
+  <div class="step-head"><div class="step-n">STEP 02</div><h2>First power-up &mdash; is the board alive?</h2></div>
+  <p class="intro">Before you install a single piece of software, prove the hardware works. This
+  takes two minutes and saves you from spending an evening debugging a toolchain when the real
+  problem was a charge-only cable.</p>
+
+  <ol class="dolist">
+    <li>Confirm the antenna is on. (Yes, again. Every time.)</li>
+    <li>Plug the USB-C cable into the board, then into your laptop.</li>
+    <li>Look at the board. A small power LED should light. The OLED usually runs the factory demo
+    firmware &mdash; a Heltec logo, a WiFi scan, or scrolling text. <strong>What it shows does not
+    matter; that it shows anything is the point.</strong></li>
+    <li>Check that the laptop can see it. On macOS open Terminal and run the command below; on
+    Windows open Device Manager and look under <em>Ports (COM &amp; LPT)</em>.</li>
+  </ol>
+
+<pre>ls /dev/cu.*</pre>
+
+  <p>You are looking for a new entry that was not there before you plugged in. It will be named
+  something like <code>/dev/cu.usbserial-0001</code>, <code>/dev/cu.SLAB_USBtoUART</code> or
+  <code>/dev/cu.usbmodem&hellip;</code>. On Windows it will be <code>COM3</code>,
+  <code>COM5</code> or similar. <strong>Write down the exact name</strong> &mdash; you need it in
+  Step 4.</p>
+
+  <div class="callout">
+    <div class="callout-t">If no port appears</div>
+    <p>Work through these in order &mdash; the first one is the cause about 80% of the time.</p>
+    <ul>
+      <li><strong>Charge-only cable.</strong> Swap to a different USB-C cable, ideally one that
+      came with a data device. This is by far the most common cause.</li>
+      <li><strong>Missing USB-serial driver.</strong> These boards use a Silicon Labs CP2102
+      bridge. macOS 11 and later has it built in; on Windows or older macOS, install the
+      <em>CP210x USB to UART Bridge VCP Driver</em> from the Silicon Labs site, then re-plug.</li>
+      <li><strong>USB hub.</strong> Plug directly into the laptop, not through a dock or hub.</li>
+      <li><strong>Dead board.</strong> Only conclude this after the other three. Try the second
+      board with the same cable &mdash; if that one enumerates, you have a hardware fault to
+      report to Robocraze.</li>
+    </ul>
+  </div>
+
+  <p>Now repeat for the second board so you know both are healthy before you write any code.
+  Then unplug both.</p>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 02</div>
+    <p>Both boards light up, and each one makes a named serial port appear on your laptop when
+    plugged in and disappear when unplugged. You have both port names written down.</p>
+  </div>
+</section>
+
+<section class="step" id="toolchain">
+  <div class="step-head"><div class="step-n">STEP 03</div><h2>Install the software on your laptop</h2></div>
+  <p class="intro">You need three things: the Arduino IDE (the editor that compiles and uploads),
+  the ESP32 board support package (which teaches it about this chip), and three libraries (radio
+  and screen drivers). Everything here is free and this is a one-time setup.</p>
+
+  <h3>3a &middot; Arduino IDE</h3>
+  <ol class="dolist">
+    <li>Go to <a href="https://www.arduino.cc/en/software">arduino.cc/en/software</a> and download
+    <strong>Arduino IDE 2.x</strong> for your operating system.</li>
+    <li>Install and open it. On macOS you may have to right-click &rarr; Open the first time
+    because it is downloaded from the internet.</li>
+  </ol>
+
+  <h3>3b &middot; Teach it about the ESP32-S3</h3>
+  <ol class="dolist">
+    <li>Open <strong>Settings</strong> &mdash; on macOS <kbd>Arduino IDE</kbd> &rarr;
+    <kbd>Settings&hellip;</kbd>, on Windows <kbd>File</kbd> &rarr; <kbd>Preferences</kbd>.</li>
+    <li>Find the field labelled <strong>Additional boards manager URLs</strong> and paste the URL
+    below into it. If there is already something there, add a comma first.</li>
+    <li>Click OK.</li>
+    <li>Open <kbd>Tools</kbd> &rarr; <kbd>Board</kbd> &rarr; <kbd>Boards Manager&hellip;</kbd>
+    (or the second icon down the left rail). Type <code>esp32</code> in the search box.</li>
+    <li>Find <strong>esp32 by Espressif Systems</strong> and click Install. It is a large download
+    &mdash; expect several minutes on a normal connection. Let it finish completely.</li>
+  </ol>
+
+<pre>https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json</pre>
+
+  <h3>3c &middot; Install the three libraries</h3>
+  <ol class="dolist">
+    <li>Open <kbd>Tools</kbd> &rarr; <kbd>Manage Libraries&hellip;</kbd> (or the books icon in the
+    left rail).</li>
+    <li>Search <code>RadioLib</code> and install <strong>RadioLib by Jan Gromes</strong>. This is
+    the driver for the SX1262 radio and it is the reason we do not have to write register-level
+    code.</li>
+    <li>Search <code>Adafruit SSD1306</code> and install <strong>Adafruit SSD1306</strong>. When it
+    offers to install dependencies, click <strong>Install All</strong>.</li>
+    <li>If it did not come in automatically, search <code>Adafruit GFX</code> and install
+    <strong>Adafruit GFX Library</strong> too.</li>
+  </ol>
+
+  <h3>3d &middot; Select the board</h3>
+  <ol class="dolist">
+    <li>Go to <kbd>Tools</kbd> &rarr; <kbd>Board</kbd> &rarr; <kbd>esp32</kbd> and choose
+    <strong>Heltec WiFi LoRa 32(V3)</strong>. Read it carefully &mdash; there are entries for V1
+    and V2 in the same list and picking the wrong one gives you a board that compiles, uploads,
+    and then does nothing, with no error to tell you why.</li>
+    <li>Leave every other setting at its default. Upload speed 921600 is fine; drop it to 115200
+    later if uploads prove flaky.</li>
+  </ol>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 03</div>
+    <p>The Arduino IDE window shows <strong>Heltec WiFi LoRa 32(V3)</strong> in the board selector
+    at the top, and RadioLib, Adafruit SSD1306 and Adafruit GFX all appear as
+    <em>Installed</em> in the Library Manager.</p>
+  </div>
+</section>
+
+<section class="step" id="upload">
+  <div class="step-head"><div class="step-n">STEP 04</div><h2>First upload &mdash; prove the pipe before you use it</h2></div>
+  <p class="intro">Do not jump straight to radio code. Upload a sketch that only lights the screen.
+  If it works, you know the cable, the driver, the board selection, the compiler and the uploader
+  are all correct &mdash; so when the radio sketch misbehaves later you know the fault is in the
+  radio, not in five other things at once.</p>
+
+  <div class="callout warn">
+    <div class="callout-t">The gotcha that catches everyone</div>
+    <p>On the Heltec V3 the OLED is <strong>not permanently powered</strong>. It is fed through a
+    switch controlled by <code>GPIO36</code>, called <em>Vext</em>, and that switch is
+    <strong>active LOW</strong> &mdash; you must drive the pin LOW to turn the screen on. Leave it
+    out and the screen stays dark forever while your code runs perfectly. Every sketch on this page
+    handles it in the first lines of <code>setup()</code>.</p>
+  </div>
+
+  <ol class="dolist">
+    <li>In the Arduino IDE, <kbd>File</kbd> &rarr; <kbd>New Sketch</kbd>. Delete everything in the
+    window and paste the code below.</li>
+    <li>Save it as <code>00_hello</code>.</li>
+    <li>Plug in <strong>one</strong> board (antenna on). Choose its port under <kbd>Tools</kbd>
+    &rarr; <kbd>Port</kbd> &mdash; the name you wrote down in Step 2.</li>
+    <li>Press the <strong>&rarr;</strong> (Upload) arrow at the top left. First compile takes a
+    minute or two; later ones are quick.</li>
+    <li>Watch the black console at the bottom. You want to see <code>Connecting....</code> then
+    <code>Writing at 0x&hellip;</code> then <code>Hard resetting via RTS pin...</code></li>
+  </ol>
+
+<pre>#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
+
+// ---- Heltec WiFi LoRa 32 V3 display pins ----
+#define OLED_SDA 17
+#define OLED_SCL 18
+#define OLED_RST 21
+#define VEXT     36     // powers the OLED rail. ACTIVE LOW.
+
+Adafruit_SSD1306 display(128, 64, &amp;Wire, OLED_RST);
+
+void setup() {
+  Serial.begin(115200);
+  delay(300);
+  Serial.println("boot ok");
+
+  pinMode(VEXT, OUTPUT);
+  digitalWrite(VEXT, LOW);          // LOW = screen powered
+  delay(50);
+
+  pinMode(OLED_RST, OUTPUT);        // pulse the display reset line
+  digitalWrite(OLED_RST, LOW);  delay(20);
+  digitalWrite(OLED_RST, HIGH); delay(20);
+
+  Wire.begin(OLED_SDA, OLED_SCL);
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("OLED not found at 0x3C");
+    while (true) delay(1000);
+  }
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.println("HAB-1 PHASE 1");
+  display.println("");
+  display.println("board alive");
+  display.display();
+}
+
+void loop() {
+  Serial.println("alive");
+  delay(1000);
+}</pre>
+
+  <p>Now open <kbd>Tools</kbd> &rarr; <kbd>Serial Monitor</kbd> and set the baud rate selector on
+  the right to <strong>115200</strong>. If it is at any other value you will see garbage
+  characters &mdash; that is not a fault, it is the wrong speed.</p>
+
+  <div class="callout">
+    <div class="callout-t">If the upload fails with a connection or timeout error</div>
+    <p>The ESP32 has to be talked into its download mode. Normally the board does this on its own,
+    but if it will not:</p>
+    <ol>
+      <li>Hold down the <strong>BOOT</strong> button (sometimes marked PRG or USER).</li>
+      <li>While holding it, briefly press and release <strong>RST</strong> (RESET).</li>
+      <li>Release BOOT.</li>
+      <li>Press Upload in the IDE immediately.</li>
+    </ol>
+    <p>If it still fails, drop <kbd>Tools</kbd> &rarr; <kbd>Upload Speed</kbd> to
+    <strong>115200</strong> and try again. After a manual-mode upload you must press RST once for
+    the new program to actually start running.</p>
+  </div>
+
+  <p>When it works, do the identical thing on the second board. Both must reach this checkpoint
+  before you move on.</p>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 04</div>
+    <p>Both boards display <strong>HAB-1 PHASE 1 / board alive</strong> on their OLEDs, and the
+    Serial Monitor at 115200 prints <code>alive</code> once a second. You know how to select a
+    port, upload, and open the serial monitor without looking it up.</p>
+  </div>
+</section>
+
+<section class="step" id="flash">
+  <div class="step-head"><div class="step-n">STEP 05</div><h2>Flash the transmitter and the receiver</h2></div>
+  <p class="intro">Two sketches. One board counts and sends; the other listens and shows what
+  arrived, plus how strong it was. The signal-strength numbers are the entire point of Phase 1
+  &mdash; they are what tells you how far you can go before the link dies.</p>
+
+  <div class="callout crit">
+    <div class="callout-t">Frequency &mdash; use 866.1 MHz, not 868.1</div>
+    <p>868.1 MHz is the European channel and it is what most tutorials online use. In India the
+    licence-exempt band is <strong>865&ndash;867 MHz</strong>, so 868.1 MHz is
+    <strong>outside</strong> it. Both sketches below are set to <strong>866.1 MHz</strong>, which
+    sits comfortably inside the Indian allocation. Your 863&ndash;928 MHz boards cover it fine.
+    If you copy code from elsewhere, change the frequency before you transmit.</p>
+  </div>
+
+  <h3>The pin map, once, for reference</h3>
+  <p>These numbers are why a generic LoRa tutorial will not work on this board. They are already
+  filled into both sketches &mdash; you do not need to change anything.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Signal</th><th>GPIO</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>NSS / CS</td><td class="num">8</td><td>Chip select for the radio</td></tr>
+      <tr><td>SCK</td><td class="num">9</td><td>SPI clock</td></tr>
+      <tr><td>MOSI</td><td class="num">10</td><td>Data to the radio</td></tr>
+      <tr><td>MISO</td><td class="num">11</td><td>Data from the radio</td></tr>
+      <tr><td>NRST</td><td class="num">12</td><td>Radio reset</td></tr>
+      <tr><td>BUSY</td><td class="num">13</td><td>Radio says &ldquo;wait, I'm working&rdquo;</td></tr>
+      <tr><td>DIO1</td><td class="num">14</td><td>Radio interrupt &mdash; &ldquo;done&rdquo; / &ldquo;packet arrived&rdquo;</td></tr>
+      <tr><td>OLED SDA / SCL / RST</td><td class="num">17 / 18 / 21</td><td>Display</td></tr>
+      <tr><td>Vext</td><td class="num">36</td><td>Display power switch, <strong>active LOW</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout warn">
+    <div class="callout-t">Ignore the silkscreen here</div>
+    <p>Heltec's own board printing labels the interrupt pin <strong>DIO0</strong>. On an SX1262
+    the pin that matters is <strong>DIO1</strong>, and it is on <strong>GPIO14</strong>. The
+    printing on the board is misleading; the table above is right. If you ever see a sketch using
+    GPIO26 or DIO0 by name, it was written for the V2 board, which used a completely different
+    radio chip.</p>
+  </div>
+
+  <h3>5a &middot; The transmitter</h3>
+  <p>Plug in the board you labelled <strong>TX</strong>, select its port, paste this, save it as
+  <code>01_tx</code>, upload.</p>
+
+<pre>#include &lt;RadioLib.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
+
+// ---------- PICK ONE MODE. Must be the SAME on both boards. ----------
+#define USE_FSK    1         // 1 = GFSK 38.4 kb/s   0 = LoRa SF9
+
+// ---------- radio config: keep IDENTICAL on both boards ----------
+#define FREQ_MHZ   866.1     // India 865-868 MHz band
+#define TX_DBM     22        // 160 mW e.r.p. - inside Table II's 500 mW limit
+
+#if USE_FSK
+  #define BITRATE_K   38.4   // kb/s  -- 7.7x faster than LoRa SF9
+  #define FDEV_K      40.0   // kHz frequency deviation
+  #define RXBW_K     156.2   // kHz receiver filter. Occupied BW stays under
+                             // 200 kHz, which is the G.S.R. 853(E) Table II cap.
+  #define SEND_EVERY_MS 1000 // ~5 ms airtime -> 0.5% duty. Legal limit is 2.5%.
+#else
+  #define BW_KHZ     125.0
+  #define SF         9
+  #define CR         5       // 4/5
+  #define SYNC_WORD  0x12    // private network
+  #define SEND_EVERY_MS 8000 // 185 ms airtime -> 2.3% duty. Legal limit is 2.5%.
+#endif
+
+// ---------- Heltec V3 wiring ----------
+#define OLED_SDA 17
+#define OLED_SCL 18
+#define OLED_RST 21
+#define VEXT     36
+
+SPIClass       spiLoRa(HSPI);
+SPISettings    spiCfg(2000000, MSBFIRST, SPI_MODE0);
+//                    NSS DIO1 NRST BUSY
+SX1262 radio = new Module(8, 14, 12, 13, spiLoRa, spiCfg);
+
+Adafruit_SSD1306 display(128, 64, &amp;Wire, OLED_RST);
+uint32_t counter = 0;
+
+void screen(const String &amp;a, const String &amp;b, const String &amp;c) {
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(a); display.println(b); display.println(c);
+  display.display();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(300);
+
+  pinMode(VEXT, OUTPUT);  digitalWrite(VEXT, LOW);  delay(50);
+  pinMode(OLED_RST, OUTPUT);
+  digitalWrite(OLED_RST, LOW); delay(20); digitalWrite(OLED_RST, HIGH); delay(20);
+  Wire.begin(OLED_SDA, OLED_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+
+  spiLoRa.begin(9, 11, 10, 8);          // SCK, MISO, MOSI, NSS
+
+#if USE_FSK
+  int st = radio.beginFSK(FREQ_MHZ, BITRATE_K, FDEV_K, RXBW_K, TX_DBM);
+  if (st == RADIOLIB_ERR_NONE) {
+    uint8_t sync[] = {0x2D, 0xD4};   // FSK sync word, both boards identical
+    radio.setSyncWord(sync, 2);
+    radio.setCRC(2);                 // 2-byte CRC
+  }
+#else
+  int st = radio.begin(FREQ_MHZ, BW_KHZ, SF, CR, SYNC_WORD, TX_DBM);
+#endif
+  if (st != RADIOLIB_ERR_NONE) {
+    Serial.printf("radio.begin failed: %d\n", st);
+    screen("TX", "RADIO FAIL", String(st));
+    while (true) delay(1000);
+  }
+  Serial.println("TX ready");
+  screen("HAB-1 TX", USE_FSK ? "866.1 FSK38k" : "866.1 SF9", "ready");
+}
+
+void loop() {
+  counter++;
+  String msg = "HAB1 " + String(counter);
+
+  uint32_t t0 = millis();
+  int st = radio.transmit(msg);
+  uint32_t air = millis() - t0;
+
+  if (st == RADIOLIB_ERR_NONE) {
+    Serial.printf("sent #%lu  air=%lums\n", counter, air);
+    screen("HAB-1 TX", "sent #" + String(counter), String(air) + " ms air");
+  } else {
+    Serial.printf("tx error %d\n", st);
+    screen("HAB-1 TX", "TX ERR " + String(st), "");
+  }
+  delay(SEND_EVERY_MS);
+}</pre>
+
+  <h3>5b &middot; The receiver</h3>
+  <p>Unplug TX. Plug in <strong>RX</strong>, re-select the port (it may have a different name),
+  paste this, save as <code>02_rx</code>, upload.</p>
+
+<pre>#include &lt;RadioLib.h&gt;
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_GFX.h&gt;
+#include &lt;Adafruit_SSD1306.h&gt;
+
+// ---------- PICK ONE MODE. Must be the SAME on both boards. ----------
+#define USE_FSK    1         // 1 = GFSK 38.4 kb/s   0 = LoRa SF9
+
+// ---------- radio config: keep IDENTICAL on both boards ----------
+#define FREQ_MHZ   866.1     // India 865-868 MHz band
+#define TX_DBM     22        // 160 mW e.r.p. - inside Table II's 500 mW limit
+
+#if USE_FSK
+  #define BITRATE_K   38.4   // kb/s  -- 7.7x faster than LoRa SF9
+  #define FDEV_K      40.0   // kHz frequency deviation
+  #define RXBW_K     156.2   // kHz receiver filter. Occupied BW stays under
+                             // 200 kHz, which is the G.S.R. 853(E) Table II cap.
+  #define SEND_EVERY_MS 1000 // ~5 ms airtime -> 0.5% duty. Legal limit is 2.5%.
+#else
+  #define BW_KHZ     125.0
+  #define SF         9
+  #define CR         5       // 4/5
+  #define SYNC_WORD  0x12    // private network
+  #define SEND_EVERY_MS 8000 // 185 ms airtime -> 2.3% duty. Legal limit is 2.5%.
+#endif
+
+#define OLED_SDA 17
+#define OLED_SCL 18
+#define OLED_RST 21
+#define VEXT     36
+
+SPIClass    spiLoRa(HSPI);
+SPISettings spiCfg(2000000, MSBFIRST, SPI_MODE0);
+SX1262 radio = new Module(8, 14, 12, 13, spiLoRa, spiCfg);
+
+Adafruit_SSD1306 display(128, 64, &amp;Wire, OLED_RST);
+uint32_t got = 0, missed = 0;
+
+void setup() {
+  Serial.begin(115200);
+  delay(300);
+
+  pinMode(VEXT, OUTPUT);  digitalWrite(VEXT, LOW);  delay(50);
+  pinMode(OLED_RST, OUTPUT);
+  digitalWrite(OLED_RST, LOW); delay(20); digitalWrite(OLED_RST, HIGH); delay(20);
+  Wire.begin(OLED_SDA, OLED_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+
+  spiLoRa.begin(9, 11, 10, 8);
+
+#if USE_FSK
+  int st = radio.beginFSK(FREQ_MHZ, BITRATE_K, FDEV_K, RXBW_K, TX_DBM);
+  if (st == RADIOLIB_ERR_NONE) {
+    uint8_t sync[] = {0x2D, 0xD4};   // FSK sync word, both boards identical
+    radio.setSyncWord(sync, 2);
+    radio.setCRC(2);                 // 2-byte CRC
+  }
+#else
+  int st = radio.begin(FREQ_MHZ, BW_KHZ, SF, CR, SYNC_WORD, TX_DBM);
+#endif
+  if (st != RADIOLIB_ERR_NONE) {
+    Serial.printf("radio.begin failed: %d\n", st);
+    display.clearDisplay(); display.setCursor(0,0);
+    display.println("RX"); display.println("RADIO FAIL");
+    display.println(String(st)); display.display();
+    while (true) delay(1000);
+  }
+  Serial.println("RX listening");
+  display.clearDisplay(); display.setCursor(0,0);
+  display.println("HAB-1 RX");
+  display.println(USE_FSK ? "866.1 FSK38k" : "866.1 SF9");
+  display.println("listening...");
+  display.display();
+}
+
+void loop() {
+  String msg;
+  int st = radio.receive(msg);              // blocks, then times out
+
+  if (st == RADIOLIB_ERR_NONE) {
+    got++;
+    float rssi = radio.getRSSI();           // dBm - less negative is better
+    float snr  = radio.getSNR();            // dB  - above 0 is comfortable
+
+    Serial.printf("%s | RSSI %.1f dBm | SNR %.1f dB | ok=%lu miss=%lu\n",
+                  msg.c_str(), rssi, snr, got, missed);
+
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.setTextSize(2);
+    display.println(msg);                   // big: the packet itself
+    display.setTextSize(1);
+    display.println("");
+    display.printf("RSSI %.0f dBm\n", rssi);
+    display.printf("SNR  %.1f dB\n", snr);
+    display.printf("ok %lu / miss %lu", got, missed);
+    display.display();
+
+  } else if (st == RADIOLIB_ERR_RX_TIMEOUT) {
+    // nothing heard this window - normal between packets
+  } else if (st == RADIOLIB_ERR_CRC_MISMATCH) {
+    missed++;                               // heard something, too corrupt to use
+    Serial.println("CRC fail - edge of range");
+  }
+}</pre>
+
+  <div class="callout">
+    <div class="callout-t">The duty cycle, and why it is no longer the problem it was</div>
+    <p>India's rule is <strong>G.S.R. 853(E) of 2021</strong>. A balloon telemetry beacon is a
+    <strong>Table II</strong> device (Tracking, Tracing and Data Acquisition &mdash; the table's
+    own note lists <em>&ldquo;Sensors (&hellip; meteorology &hellip;)&rdquo;</em> and
+    <em>&ldquo;Data acquisition&rdquo;</em>). That gives you <strong>500 mW e.r.p., a 2.5% duty
+    cycle, and 200 kHz of bandwidth</strong> &mdash; not the 1% that applies to non-specific
+    short-range devices.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Mode</th><th>Airtime</th><th>Interval</th><th>Duty</th><th>Headroom</th></tr></thead>
+      <tbody>
+        <tr><td>LoRa SF9 @ 125 kHz</td><td class="num">185 ms</td><td class="num">8 s</td><td class="num">2.3%</td><td>tight</td></tr>
+        <tr><td><strong>GFSK 38.4 kb/s</strong></td><td class="num">~5 ms</td><td class="num">1 s</td><td class="num">0.5%</td><td><strong>5&times; spare</strong></td></tr>
+      </tbody>
+    </table></div>
+    <p>At 38.4 kb/s the packet is so short that <strong>duty cycle stops being a design
+    constraint</strong>. One update per second is legal and makes walking or driving tests far
+    more useful than the 8-second LoRa interval.</p>
+    <p>Your 22 dBm into a 2.2 dBi antenna is <strong>160 mW e.r.p.</strong>, comfortably inside
+    Table II's 500 mW. &#9888; If you ever <em>transmit</em> from the ground through the 12 dBi
+    Yagi that becomes <strong>1.5 W e.r.p. &mdash; over the limit</strong>. Receiving through it
+    is unrestricted; e.r.p. applies only to transmission.</p>
+  </div>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 05</div>
+    <p>Both uploads completed without error. TX shows <code>HAB-1 TX / ready</code> and RX shows
+    <code>HAB-1 RX / listening...</code>. Neither shows <strong>RADIO FAIL</strong> &mdash; if
+    either does, see Troubleshooting; a non-zero error code there almost always means SPI wiring,
+    which on this board means you picked the wrong board type in Step 3d.</p>
+  </div>
+</section>
+
+<section class="step" id="bench">
+  <div class="step-head"><div class="step-n">STEP 06</div><h2>The bench test &mdash; your first link</h2></div>
+  <p class="intro">Two boards, one table, five minutes. This is the moment the project stops being
+  a shopping list. It also teaches you to read RSSI and SNR, which is the only skill Phase 1
+  actually exists to build.</p>
+
+  <div class="callout warn">
+    <div class="callout-t">Turn the power down for this test</div>
+    <p>22 dBm into an antenna two metres away is a very loud shout into a very close ear. The
+    receiver will not be damaged, but its RSSI reading saturates and becomes meaningless, and you
+    learn nothing. <strong>For the bench test only</strong>, change <code>TX_DBM</code> to
+    <code>2</code> in the TX sketch and re-upload. Set it back to <code>22</code> before you take
+    the boards outdoors.</p>
+  </div>
+
+  <ol class="dolist">
+    <li>Set <code>TX_DBM</code> to <code>2</code> in <code>01_tx</code> and upload. Leave
+    <code>SEND_EVERY_MS</code> alone &mdash; at FSK it is already 1 s.</li>
+    <li>Leave the RX board on <code>22</code> &mdash; the receiver's power setting is irrelevant
+    when it is only listening.</li>
+    <li>Power both boards over USB, roughly <strong>two metres apart</strong>, with both antennas
+    standing <strong>vertical</strong> and nothing metal between them.</li>
+    <li>Watch the RX screen.</li>
+  </ol>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 06 &mdash; the one that matters</div>
+    <p>Within a few seconds the RX screen shows a large <strong>HAB1 1</strong>, then
+    <strong>HAB1 2</strong>, then <strong>HAB1 3</strong>&hellip; counting up in step with the TX
+    board, with an RSSI figure somewhere around <strong>&minus;30 to &minus;45 dBm</strong> and an
+    SNR comfortably above <strong>+8 dB</strong>. The <code>miss</code> counter stays at zero.</p>
+    <p>That is a working LoRa link. Everything after this is the same link, further away.</p>
+  </div>
+
+  <h3>How to read the two numbers</h3>
+  <p>These are the instruments you will fly the rest of the campaign on. Learn them here where
+  everything is easy.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>RSSI</th><th>Meaning</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">&minus;30 to &minus;60 dBm</td><td>Very strong. Close range or excellent line of sight.</td><td>Move further apart &mdash; you are learning nothing here.</td></tr>
+      <tr><td class="mono">&minus;60 to &minus;95 dBm</td><td>Comfortable working link.</td><td>Note the distance. This is what a good flight link looks like.</td></tr>
+      <tr><td class="mono">&minus;95 to &minus;115 dBm</td><td>Working, but margin is shrinking.</td><td>Record it. This is where obstruction starts to bite.</td></tr>
+      <tr><td class="mono">&minus;115 to &minus;129 dBm</td><td>The ragged edge. Occasional CRC failures.</td><td>You have found your range limit for this geometry.</td></tr>
+      <tr><td class="mono">below &minus;129 dBm</td><td>Below the theoretical sensitivity of SF9 at 125 kHz. Nothing decodes.</td><td>Raise the antenna, or raise the spreading factor.</td></tr>
+    </tbody>
+  </table></div>
+
+  <p><strong>SNR</strong> is the more interesting number. LoRa can decode signals
+  <em>buried underneath</em> the noise &mdash; at SF9 it works down to about
+  <strong>&minus;12.5 dB</strong>, meaning the signal can be 12.5 dB weaker than the noise around
+  it and still come through. When you see SNR going negative in the field, you are not failing;
+  you are watching LoRa do the thing it was invented for. When SNR drops below about
+  &minus;10 dB, expect losses and switch to a higher spreading factor.</p>
+
+  <div class="callout">
+    <div class="callout-t">Prove it to yourself before you go outside</div>
+    <p>Two experiments, two minutes, and they will save you hours of confusion in the field:</p>
+    <ul>
+      <li><strong>Lay one antenna flat</strong> while the other stays vertical. Watch RSSI collapse
+      by 15&ndash;20 dB. That is polarisation mismatch, and it is the single most common reason a
+      field test underperforms &mdash; someone put the transmitter in a bag on its side.</li>
+      <li><strong>Put your body between them.</strong> Watch RSSI drop several dB. You are mostly
+      water; so is a hill, a wall, and a crowd. This is why Step 8 is about height, not distance.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="step" id="battery">
+  <div class="step-head"><div class="step-n">STEP 07</div><h2>Battery &mdash; making the transmitter portable</h2></div>
+  <p class="intro">The receiver stays with you and your laptop, so it lives on USB. The transmitter
+  goes up a building or across a valley, so it needs the LiPo. This is the only step with any
+  physical risk in it, so it gets the most warnings &mdash; but the actual work is small.</p>
+
+  <div class="callout crit">
+    <div class="callout-t">Three rules, no exceptions</div>
+    <ol>
+      <li><strong>Never cut the battery's own wires.</strong> Not one at a time, not carefully.
+      If your cutters bridge red and black for even an instant you have shorted a 2000 mAh lithium
+      cell through a pair of pliers. That is a fire on your table. Everything below is designed so
+      the battery's wires are never touched.</li>
+      <li><strong>Never plug it in without checking polarity first.</strong> Reversed polarity into
+      the Heltec's battery input destroys the board instantly and silently.</li>
+      <li><strong>Never leave a LiPo charging unattended</strong>, and never charge a pouch that is
+      swollen, punctured, or has been dropped hard. Charge on a hard, non-flammable surface.</li>
+    </ol>
+  </div>
+
+  <h3>7a &middot; Which case are you in?</h3>
+  <p>Take one NOVA battery and one A1251H lead and hold their two white plugs side by side. You
+  are comparing the spacing between the two metal contacts.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>What you see</th><th>Case</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>The battery's plug is <strong>the same size</strong> as the A1251H plug &mdash; both
+        small, contacts ~1.25 mm apart.</td>
+        <td><span class="tag t-ok">A</span></td>
+        <td>The battery plugs straight into the board. Skip to 7c and check polarity.
+        <strong>No soldering at all.</strong></td>
+      </tr>
+      <tr>
+        <td>The battery's plug is <strong>visibly bigger</strong> &mdash; contacts roughly 2.0 mm
+        apart, plug noticeably wider.</td>
+        <td><span class="tag t-warn">B</span></td>
+        <td>This is what the five WAFER-PH2.0 headers are for. Go to 7b. Four solder joints,
+        which the repair shop does in ten minutes.</td>
+      </tr>
+      <tr>
+        <td>You genuinely cannot tell.</td>
+        <td><span class="tag t-sig">?</span></td>
+        <td>Take a photo with your phone's macro mode and zoom in, or just hand both parts to the
+        repair shop in 7b &mdash; they identify connectors all day.</td>
+      </tr>
+    </tbody>
+  </table></div>
+
+  <h3>7b &middot; Case B: the adapter</h3>
+  <p>The whole trick is that the battery's plug is a <em>female housing</em>. A male header of the
+  same pitch pushes into it &mdash; so you build a short adapter that ends in a male header, and
+  the battery simply plugs onto it. Its own wires are never modified.</p>
+
+  <figure class="fig-scroll">
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Battery adapter chain: LiPo cell with its own female plug, pushing onto a 2.0mm male header, soldered to the A1251H lead, whose 1.25mm plug enters the Heltec socket.">
+      <rect x="14" y="58" width="146" height="80" class="box-o"/>
+      <text x="87" y="84" text-anchor="middle" class="svg-t">NOVA LiPo</text>
+      <text x="87" y="102" text-anchor="middle" class="svg-l-s">2000 mAh, 3.7 V</text>
+      <line x1="160" y1="90" x2="196" y2="90" stroke="#C0392B" stroke-width="2.6"/>
+      <line x1="160" y1="106" x2="196" y2="106" stroke="var(--ink)" stroke-width="2.6"/>
+      <rect x="196" y="80" width="18" height="36" fill="none" stroke="var(--muted)" stroke-width="1.6"/>
+      <text x="205" y="136" text-anchor="middle" class="svg-l-s">its own plug</text>
+      <text x="205" y="150" text-anchor="middle" class="svg-l-s">(female) &mdash; DO NOT CUT</text>
+
+      <rect x="240" y="80" width="16" height="36" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+      <line x1="234" y1="90" x2="240" y2="90" stroke="var(--accent)" stroke-width="2.4"/>
+      <line x1="234" y1="106" x2="240" y2="106" stroke="var(--accent)" stroke-width="2.4"/>
+      <text x="248" y="136" text-anchor="middle" class="svg-l-s">WAFER-PH2.0</text>
+      <text x="248" y="150" text-anchor="middle" class="svg-l-s">male header</text>
+      <text x="248" y="66" text-anchor="middle" class="svg-l-s">push fit</text>
+
+      <line x1="256" y1="90" x2="330" y2="90" stroke="#C0392B" stroke-width="2.6"/>
+      <line x1="256" y1="106" x2="330" y2="106" stroke="var(--ink)" stroke-width="2.6"/>
+      <circle cx="300" cy="90" r="5" fill="var(--warn)" opacity=".85"/>
+      <circle cx="300" cy="106" r="5" fill="var(--warn)" opacity=".85"/>
+      <text x="300" y="66" text-anchor="middle" class="svg-l-s">2 solder joints</text>
+
+      <rect x="330" y="58" width="176" height="80" class="box-o"/>
+      <text x="418" y="84" text-anchor="middle" class="svg-t">A1251H-2P lead</text>
+      <text x="418" y="102" text-anchor="middle" class="svg-l-s">1.25 mm, 300 mm wire</text>
+      <line x1="506" y1="90" x2="560" y2="90" stroke="#C0392B" stroke-width="2.6"/>
+      <line x1="506" y1="106" x2="560" y2="106" stroke="var(--ink)" stroke-width="2.6"/>
+      <rect x="560" y="82" width="14" height="32" fill="none" stroke="var(--muted)" stroke-width="1.6"/>
+
+      <rect x="586" y="58" width="160" height="80" class="box-o"/>
+      <text x="666" y="84" text-anchor="middle" class="svg-t">Heltec V3</text>
+      <text x="666" y="102" text-anchor="middle" class="svg-l-s">battery socket</text>
+      <text x="666" y="120" text-anchor="middle" class="svg-l-s" style="fill:var(--crit)">check + / &minus; here</text>
+
+      <text x="14" y="32" class="svg-b">Red stays with red, black stays with black, all the way across. Verify before power.</text>
+    </svg>
+    <figcaption>The adapter exists purely so the battery's factory-terminated wires never have to be
+    touched. You bought five headers and five leads because they cost ₹61 in total and a spare
+    removes a whole class of Saturday-afternoon problem.</figcaption>
+  </figure>
+
+  <h4>What to tell the repair shop</h4>
+  <p>Go to a <strong>mobile or TV repair shop</strong> &mdash; not a house electrician. A house
+  electrician's iron is a 100 W broad tip meant for mains wiring; it will melt these connector
+  housings into slag before the solder flows. A phone repair shop has a fine-tip temperature-
+  controlled iron and does joints this size every day. Hand them the parts and say:</p>
+
+  <div class="callout">
+    <p><em>&ldquo;Please solder the red wire of this small lead to one pin of this 2-pin header,
+    and the black wire to the other pin. Keep red and black on the same sides throughout. Please
+    put heat-shrink or tape over each joint so they cannot touch each other. Do not cut or touch
+    the battery &mdash; it is only here so you can check the plug fits.&rdquo;</em></p>
+  </div>
+
+  <p>Ask them to do <strong>two</strong> adapters while you are there &mdash; one per board, plus
+  you still have three spare headers and three spare leads. It should cost very little; four
+  joints is not meaningfully more work than two.</p>
+
+  <h3>7c &middot; The polarity check &mdash; do not skip this</h3>
+  <ol class="dolist">
+    <li>Look at the Heltec board next to its battery socket. There is printing on the board
+    &mdash; either <strong>+</strong> and <strong>&minus;</strong>, or <strong>VBAT</strong> and
+    <strong>GND</strong>. It is small; photograph it with your phone's macro mode and zoom in
+    rather than squinting.</li>
+    <li>Hold the A1251H plug next to the socket in the orientation it would go in, and trace which
+    wire lands on which marking.</li>
+    <li><strong>Red must land on + (VBAT). Black must land on &minus; (GND).</strong></li>
+    <li>If they come out the other way round, the plug is keyed backwards for this board. Do
+    <strong>not</strong> force it and do not plug it in. Take it back to the repair shop and have
+    the two wires swapped in the header &mdash; a two-minute job. This is exactly why you have four
+    spare leads.</li>
+    <li>Only when red&nbsp;&rarr;&nbsp;+ and black&nbsp;&rarr;&nbsp;&minus; are confirmed, plug it
+    in.</li>
+  </ol>
+
+  <h3>7d &middot; Charging and expected runtime</h3>
+  <p>The Heltec V3 has a lithium charger built in. With the battery connected, plug in USB and it
+  charges; a charge LED on the board indicates progress. There is nothing to configure.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Role</th><th>Typical draw</th><th>On one 2000 mAh cell</th></tr></thead>
+    <tbody>
+      <tr><td>RX, listening continuously</td><td class="num">~105 mA</td><td class="num">~19 hours</td></tr>
+      <tr><td>TX, one packet every 20 s</td><td class="num">~75 mA avg</td><td class="num">~26 hours</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>Both numbers are far beyond any single field test, which is the point &mdash; battery life is
+  not something you will need to think about in Phase 1. Charge both cells the night before and
+  forget them.</p>
+
+  <div class="callout warn">
+    <div class="callout-t">Cold weather note for later</div>
+    <p>These runtimes are for a warm room. Lithium cells lose a large fraction of their usable
+    capacity below 0 °C, which is why the Phase 2 cold-chamber test exists and why the flight
+    battery is a different chemistry. For Phase 1, ambient Pune conditions, this is a non-issue.</p>
+  </div>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 07</div>
+    <p>The TX board runs from the LiPo alone with no USB attached, screen lit, still counting and
+    still being received. You have confirmed red&nbsp;&rarr;&nbsp;+ before it was ever powered.
+    Both cells charge from USB.</p>
+  </div>
+</section>
+
+<section class="step" id="field">
+  <div class="step-head"><div class="step-n">STEP 08</div><h2>Taking it outside</h2></div>
+  <p class="intro">Everything up to here was rehearsal. Restore <code>TX_DBM</code> to
+  <strong>22</strong>, re-upload the TX sketch, charge both cells, and go and find out what these radios actually do.</p>
+
+  <h3>What the physics says you should get</h3>
+  <p>This is the number that reframes the whole exercise. With clear line of sight, 22 dBm, and
+  these small antennas:</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Distance</th><th>Free-space loss</th><th>Predicted RSSI</th><th>Margin over SF9 sensitivity</th></tr></thead>
+    <tbody>
+      <tr><td class="num">3 km</td><td class="num">100.7 dB</td><td class="num">&minus;74 dBm</td><td class="num">55 dB</td></tr>
+      <tr><td class="num">5 km</td><td class="num">105.2 dB</td><td class="num">&minus;79 dBm</td><td class="num">51 dB</td></tr>
+      <tr><td class="num">10 km</td><td class="num">111.2 dB</td><td class="num">&minus;85 dBm</td><td class="num">45 dB</td></tr>
+      <tr><td class="num">20 km</td><td class="num">117.2 dB</td><td class="num">&minus;91 dBm</td><td class="num">39 dB</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout ok">
+    <div class="callout-t">The lesson hiding in that table</div>
+    <p>Even at 20 km you have <strong>39 dB of margin</strong> in free space. Distance is not your
+    enemy. If a test fails, it will not be because 20 km is too far &mdash; it will be because
+    something was <em>in the way</em>. Every decision in the field is therefore about
+    <strong>height and sight-lines</strong>, never about turning the power up.</p>
+  </div>
+
+  <h3>How high you have to be</h3>
+  <p>Radio does not travel in a pencil-thin line. It needs an elongated ellipse of clear space
+  around the straight line &mdash; the <strong>Fresnel zone</strong>. Clip the middle of it with a
+  rooftop or a ridge and you can lose 6&ndash;20 dB even though you can see the other end
+  perfectly. On top of that, the earth itself bulges up between you.</p>
+
+  <div class="tw"><table>
+    <thead><tr><th>Link</th><th>Fresnel radius</th><th>60% of it (the working rule)</th><th>Earth bulge</th><th>Total clearance the path needs at midpoint</th></tr></thead>
+    <tbody>
+      <tr><td class="num">10 km</td><td class="num">29.4 m</td><td class="num">17.6 m</td><td class="num">1.5 m</td><td class="num"><strong>19.1 m</strong></td></tr>
+      <tr><td class="num">20 km</td><td class="num">41.6 m</td><td class="num">24.9 m</td><td class="num">5.9 m</td><td class="num"><strong>30.8 m</strong></td></tr>
+    </tbody>
+  </table></div>
+
+  <p>In practical terms: for the 10 km city test, both ends want to be on roofs at least
+  <strong>six or seven floors up</strong>, and nothing taller may sit near the midpoint. For the
+  20 km test, use terrain &mdash; put one end on high ground so the geometry is given to you for
+  free rather than bought with building height.</p>
+
+  <h3>The procedure, same every time</h3>
+  <ol class="dolist">
+    <li><strong>Plan on a map first.</strong> Draw the straight line between the two points and
+    look at what it crosses. If a taller building or a ridge sits near the middle, pick different
+    points before you leave the house.</li>
+    <li><strong>Set up RX first</strong>, at the fixed end, with your laptop. Confirm it says
+    <code>listening...</code>. Antenna vertical, not lying on a parapet, ideally taped to
+    something that holds it upright and clear of the wall.</li>
+    <li><strong>Take TX to the far point.</strong> Battery only. Antenna vertical. Hold it up and
+    out, or tape it to a pole &mdash; do not hold it flat against your chest, you are a bag of
+    saltwater and you will absorb several dB.</li>
+    <li><strong>Wait two minutes.</strong> At 20 s intervals that is six packets. Do not conclude
+    anything from one packet.</li>
+    <li><strong>Record</strong> the log line below before moving. The serial monitor on the RX
+    laptop is already printing RSSI, SNR and the ok/miss counters &mdash; select and copy it.</li>
+    <li><strong>Sweep the antenna</strong> if the link is marginal: tilt it a few degrees, move two
+    metres sideways, raise it half a metre. Watch RSSI change. This teaches you more about radio
+    in five minutes than any amount of reading.</li>
+  </ol>
+
+  <h4>What to write down at every point</h4>
+<pre>date/time      2026-__-__ __:__
+TX position    lat, lon, height above ground (floors x 3 m)
+RX position    lat, lon, height above ground
+map distance   ___ km
+obstructions   what the line crosses, and roughly how tall
+packets sent   ___     received ___     CRC fails ___
+RSSI           best ___  worst ___  typical ___ dBm
+SNR            best ___  worst ___  typical ___ dB
+weather        clear / haze / rain
+notes          anything that changed the numbers</pre>
+
+  <p>Compare your <em>typical RSSI</em> against the predicted value in the table above. The gap
+  between them is your real-world excess loss &mdash; buildings, trees, humidity, cable losses,
+  antenna imperfection. That single number, measured at 3, 5, 10 and 20 km, is the entire
+  deliverable of Phase 1. It is what turns the flight link budget from an estimate into a
+  measurement.</p>
+
+  <div class="callout">
+    <div class="callout-t">Practical notes for the day</div>
+    <ul>
+      <li><strong>Two phones on a call</strong> between the two ends beats trying to coordinate by
+      message. You want to be able to say &ldquo;tilt it now&rdquo; and hear the result.</li>
+      <li><strong>Rooftop access takes longer than the test.</strong> Ask permission the day
+      before. Carry the printed page rather than explaining a balloon project from memory.</li>
+      <li><strong>Do the easy one first.</strong> 3 km, then 5, then 10. If 3 km fails you have a
+      setup problem, not a range problem, and you want to discover that close to home.</li>
+      <li><strong>Bring the USB cable and a power bank</strong> even though the LiPo will last all
+      day &mdash; being able to re-flash a board in the field once saved a trip is worth the
+      weight.</li>
+    </ul>
+  </div>
+
+  <div class="callout ok">
+    <div class="callout-t">Optional, and worth the extra hour: the Yagi A/B</div>
+    <p>If the <strong>TX900-BM-9 Yagi</strong> (12 dBi, ground station only) has arrived, run the
+    20 km test <strong>twice from the same two points</strong> &mdash; once with the 2.2 dBi omni
+    on the receiver, once with the Yagi aimed. You should measure roughly
+    <strong>+10 dB</strong> of improvement in RSSI.</p>
+    <p>That single comparison validates three things at once: the antenna is what it claims to be,
+    your measurement method is sound, and the link-budget model that the whole flight plan rests on
+    actually predicts reality. It is the cheapest calibration you will ever run.</p>
+    <p>The Yagi needs an <strong>N-male to SMA-male</strong> adapter to meet your pigtail &mdash;
+    it will not connect without one. Keep the coax run under a metre and put the Heltec at the
+    antenna, running USB down to the laptop.</p>
+  </div>
+
+  <div class="check">
+    <div class="check-t">Checkpoint 08 &mdash; Phase 1 complete</div>
+    <p>You have four log sheets: 3 km, 5 km, 10 km in the city, and 20 km open-country or
+    mountain. Each records measured RSSI and SNR against predicted. You know your real excess loss
+    and you know what breaks the link. Phase 2 &mdash; the cold chamber &mdash; can begin.</p>
+  </div>
+</section>
+
+<section class="step" id="trouble">
+  <div class="step-head"><div class="step-n">REF</div><h2>When it does not work</h2></div>
+  <p class="intro">Ordered roughly by how often each one is the actual cause. Work down the list;
+  do not skip to the exotic explanations.</p>
+
+  <h3>Nothing at all</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Symptom</th><th>Most likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>No serial port appears when plugged in</td><td>Charge-only USB cable</td><td>Try a different cable first, always. Then the CP210x driver, then a direct port instead of a hub.</td></tr>
+      <tr><td>Upload fails: <code>Failed to connect</code> / timeout</td><td>Board not in download mode</td><td>Hold BOOT, tap RST, release BOOT, upload immediately. Then lower Upload Speed to 115200.</td></tr>
+      <tr><td>Upload succeeds but nothing happens</td><td>Manual download mode leaves the chip halted</td><td>Press RST once after the upload finishes.</td></tr>
+      <tr><td>Serial monitor shows garbage characters</td><td>Wrong baud rate</td><td>Set the selector to 115200.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Screen problems</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Symptom</th><th>Most likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Code uploads and serial prints fine, but the OLED is dark</td><td><strong>Vext</strong> not driven low</td><td>Confirm <code>pinMode(36, OUTPUT); digitalWrite(36, LOW);</code> is present <em>before</em> <code>display.begin()</code>. This is the single most common Heltec V3 mistake.</td></tr>
+      <tr><td>Serial prints <code>OLED not found at 0x3C</code></td><td>Wrong board selected, or Vext missing</td><td>Check <kbd>Tools</kbd> &rarr; <kbd>Board</kbd> really says <strong>V3</strong>, not V2. Then check Vext.</td></tr>
+      <tr><td>Screen shows random pixels</td><td>Reset line not pulsed</td><td>Keep the OLED_RST low/high pulse in <code>setup()</code>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Radio problems</h3>
+  <div class="tw"><table>
+    <thead><tr><th>What you see</th><th>What it means</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>RADIO FAIL</code> with code <strong>&minus;2</strong></td><td>Chip not found &mdash; the ESP32 cannot talk to the SX1262 over SPI at all</td><td>Almost always the wrong board type in <kbd>Tools</kbd> &rarr; <kbd>Board</kbd>. Select <strong>Heltec WiFi LoRa 32(V3)</strong> and re-upload.</td></tr>
+      <tr><td><code>RADIO FAIL</code> with <strong>&minus;705 / &minus;706 / &minus;707</strong></td><td>SPI command failed or timed out</td><td>Same cause as above nine times out of ten. Otherwise confirm the <code>spiLoRa.begin(9, 11, 10, 8)</code> line is present and the Module pins are <code>(8, 14, 12, 13)</code>.</td></tr>
+      <tr><td><code>RADIO FAIL</code> with <strong>&minus;12</strong></td><td>Frequency outside the module's range</td><td>You have a 433 MHz board, not the 863&ndash;928 MHz one. Check what was actually shipped.</td></tr>
+      <tr><td><code>RADIO FAIL</code> with <strong>&minus;13</strong></td><td>Output power out of range</td><td><code>TX_DBM</code> must be 22 or less.</td></tr>
+      <tr><td>Both boards run cleanly but RX never receives</td><td>Config mismatch</td><td>Frequency, bandwidth, SF, coding rate and sync word must be <strong>byte-identical</strong> on both. A single digit different and they are on different planets. Re-upload both from the same numbers.</td></tr>
+      <tr><td>Receives on the bench, dies immediately outdoors</td><td>Polarisation or obstruction</td><td>Stand both antennas vertical. Then get height &mdash; see the Fresnel table in Step 8.</td></tr>
+      <tr><td>RSSI far worse than the predicted table</td><td>u.FL not properly clicked, or antenna loose</td><td>Re-seat the u.FL (carefully &mdash; limited mating cycles) and finger-tighten the SMA. A partially seated u.FL costs 10&ndash;20 dB and looks fine.</td></tr>
+      <tr><td>Lots of <code>CRC fail</code> lines</td><td>You are at the edge of range</td><td>This is information, not a fault. Record it. Raise the antenna, or raise SF from 9 to 10 or 11 on <em>both</em> boards &mdash; each step buys about 2.5 dB and doubles the airtime.</td></tr>
+      <tr><td>Works for a while, then stops</td><td>Battery, or a wedged receive loop</td><td>Check the LiPo charge first. Press RST on both boards; if it returns, note how long it ran.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="step" id="safety">
+  <div class="step-head"><div class="step-n">CARD</div><h2>The rules, on one card</h2></div>
+  <p class="intro">Print this or photograph it. Everything here is something that costs money,
+  time, or skin when ignored.</p>
+
+  <div class="callout crit">
+    <div class="callout-t">Never</div>
+    <ul>
+      <li>Power a LoRa board with no antenna attached.</li>
+      <li>Cut, strip or shorten the battery's own wires.</li>
+      <li>Plug a battery in without confirming red&nbsp;&rarr;&nbsp;+ against the board printing.</li>
+      <li>Pull a u.FL connector off by its cable.</li>
+      <li>Tighten an SMA with pliers.</li>
+      <li>Charge a swollen, punctured or dropped LiPo, or leave any LiPo charging unattended.</li>
+      <li>Use 868.1 MHz &mdash; that is the European channel, outside India's 865&ndash;867 band.</li>
+    </ul>
+  </div>
+
+  <div class="callout ok">
+    <div class="callout-t">Always</div>
+    <ul>
+      <li>Antenna on, <em>then</em> power. In that order, every time.</li>
+      <li>Both antennas vertical.</li>
+      <li>Identical radio settings on both boards.</li>
+      <li>Label the boards TX and RX.</li>
+      <li>Change one thing at a time when something breaks.</li>
+      <li>Write down RSSI, SNR and position before you move.</li>
+      <li>Restore <code>TX_DBM 22</code> before going outdoors.</li>
+    </ul>
+  </div>
+
+  <h3>Where this sits in the campaign</h3>
+  <p>Phase 1 has one job, and it is not &ldquo;test the radio&rdquo;. It is to make sure that
+  <strong>your first working radio link contains no unknowns</strong> &mdash; so that when the
+  Raspberry Pi, the sensors, the cold and the altitude arrive in Phases 2 and 3, every failure you
+  see is caused by the thing you just added, and not by something you never actually verified. Six
+  parts, ₹5,995, no soldering iron of your own, no Pi required.</p>
+  <p>When your four log sheets are filled in, come back to the main dossier and start Phase 2.</p>
+</section>
+
+<footer>
+  <p><strong>HAB-1 Phase 1 build guide</strong> &middot; Boscon Space &middot; companion to the
+  main mission dossier. Pin assignments, frequency and duty-cycle figures on this page are specific
+  to the Heltec WiFi LoRa 32 V3 (863&ndash;928 MHz) and to Indian licence-exempt operation in the
+  865&ndash;867 MHz band.</p>
+</footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var b = document.getElementById('tt');
+  var r = document.documentElement;
+  function current() {
+    if (r.getAttribute('data-theme')) return r.getAttribute('data-theme');
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  b.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    r.setAttribute('data-theme', next);
+    try { localStorage.setItem('hab1-theme', next); } catch (e) {}
+  });
+  try {
+    var saved = localStorage.getItem('hab1-theme');
+    if (saved) r.setAttribute('data-theme', saved);
+  } catch (e) {}
+})();
+</script>

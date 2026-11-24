@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/ground-station/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Yagi Mount 3D</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#2f6f9f;--canvas:#e9ecf0;--chip:#eef1f5;--bad:#c62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34;--bad:#f85149}}
+:root[data-theme="dark"]{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34;--bad:#f85149}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:340px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0}.row label{flex:1}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:6px 10px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+select{width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}td,th{padding:3px 4px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}th{color:var(--muted);font-weight:500}
+main{position:relative;background:var(--canvas);overflow:hidden}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+.read{position:absolute;left:12px;top:10px;font-size:12.5px;color:var(--ink);background:color-mix(in srgb,var(--panel) 85%,transparent);border:1px solid var(--rule);border-radius:6px;padding:6px 9px;font-variant-numeric:tabular-nums;max-width:calc(100% - 24px)}
+.tag{position:absolute;transform:translate(-50%,-50%);font-size:11.5px;white-space:nowrap;color:var(--ink);background:color-mix(in srgb,var(--panel) 80%,transparent);border-radius:4px;padding:1px 5px;pointer-events:none}
+.tag.dim{color:var(--accent)}.tag.red{color:var(--bad)}.tag.compass{font-weight:600;background:none}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto}main{order:-1;height:60vh}}
+</style></head><body><div class="app"><aside>
+<h1>HAB-1 Yagi mount, 3D</h1>
+<div class="sub">TX900-BM-9 as delivered (9 elements, rear mounting plate), on a proposed tripod mast with a horizontal tilt axle. Boom aim follows the balloon on a real wind day. Antenna dimensions are estimated from your photos and the listing's 760 mm: measure and replace them in the table below.</div>
+
+<h2>Flight and time</h2>
+<select id="track"></select>
+<div class="lab" style="margin-top:8px"><span>Time</span><span id="tv"></span></div>
+<input id="t" type="range" min="0" max="100" value="100">
+<div class="btns" style="margin-top:6px"><button id="play">Play</button><button id="launch">Launch</button><button id="burst">Burst</button><button id="land">Last packets</button></div>
+
+<h2>Aim</h2>
+<div class="row"><input type="radio" name="aim" id="aimTrack" checked><label for="aimTrack">Follow the balloon (re-aim when more than 20 deg off)</label></div>
+<div class="row"><input type="radio" name="aim" id="aimMan"><label for="aimMan">Manual</label></div>
+<div class="lab"><span>Azimuth</span><span id="azv"></span></div><input id="az" type="range" min="0" max="359" value="300">
+<div class="lab"><span>Tilt</span><span id="tlv"></span></div><input id="tl" type="range" min="0" max="90" value="30">
+
+<h2>Mount</h2>
+<div class="lab"><span>Axle height (Yagi height)</span><span id="hv"></span></div><input id="h" type="range" min="1.5" max="6" step="0.01" value="1.83">
+
+<h2>Show</h2>
+<div class="row"><input type="checkbox" id="sBeam" checked><label for="sBeam">Beam cone (54 x 48 deg half-power)</label></div>
+<div class="row"><input type="checkbox" id="sSector" checked><label for="sSector">Coverage sector on the ground</label></div>
+<div class="row"><input type="checkbox" id="sBall" checked><label for="sBall">Line to the balloon</label></div>
+<div class="row"><input type="checkbox" id="sGuys" checked><label for="sGuys">Guy ropes</label></div>
+<div class="row"><input type="checkbox" id="sDims" checked><label for="sDims">Dimensions and labels</label></div>
+
+<h2>Camera</h2>
+<div class="btns"><button data-v="iso">Iso</button><button data-v="head">Head close-up</button><button data-v="side">Side</button><button data-v="top">Top</button><button data-v="op">Operator</button></div>
+
+<h2>Antenna, as delivered (estimates: measure)</h2>
+<table id="dims"></table>
+
+<h2>Mount parts (proposal)</h2>
+<ul>
+<li><b>Tilt axle:</b> 20 NB GI pipe (26.9 mm OD), 400 mm, horizontal, through a tee at the mast top. The antenna's own plate clamps to it with its two U-bolts. Turning the axle tilts the boom; elements stay vertical. Lock with a bolt through the tee.</li>
+<li><b>Antenna 250 mm along the axle from the mast</b>, so the vertical metal mast is not next to the vertical elements, and the boom can tilt to 90 deg without hitting it.</li>
+<li><b>Pan:</b> the whole mast turns in the tripod collar. Azimuth ring on the collar (fixed, 10 deg marks, zero to true north), pointer and handle on the mast at 1.2 m.</li>
+<li><b>Guys:</b> 3 at 120 deg on a loose guy ring at 2/3 of the height, so the mast can turn inside it. Needed above 2.5 m.</li>
+<li><b>Radio:</b> Heltec in a printed case on a universal V-clamp, hanging under the axle 125 mm from the mast (cad/heltec_mount). It tilts with the antenna, so the coax never bends. OLED faces down to the operator. SMA bulkhead toward the antenna, N(M)-SMA(M) adapter onto the antenna's white coax; USB end toward the mast.</li>
+<li><b>Clamp range:</b> round pipe 13 to 46.6 mm, square tube 10 to 40 mm, 2 printed M10 bolts + thumb-nuts (55 mm on this axle, 75 mm for the full range); all PETG, no metal.</li>
+<li><b>Balance:</b> the antenna's centre of mass sits roughly 0.3 m in front of the axle (estimate): about 1.2 N m at 400 g. Tighten the tee bolt, or add about 0.4 kg on a 0.3 m rod behind the axle.</li>
+</ul>
+</aside>
+<main><canvas id="c"></canvas><div class="read" id="read"></div><div class="hud">drag to orbit, right-drag to pan, scroll to zoom</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="tracks.js"></script><script src="heltec_mount_data.js"></script>
+<script>
+(function () {
+"use strict";
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const $ = id => document.getElementById(id);
+
+// ------------------------------------------------------------ antenna as delivered (metres)
+// Estimates from the two photos and the listing's 760 mm overall length. Measure and replace.
+const ANT = {
+  boomLen: 0.76, boomSec: 0.016,          // boom 16 mm square: measured
+  rearStub: 0.04,               // boom behind the plate
+  plate: { w: 0.075, l: 0.075, t: 0.003, slotGap: 0.05 },   // 75 x 75 measured; slot gap estimated
+  uRod: 0.0065,                 // U-bolt rod 6.5 mm: measured
+  // element positions measured from the rear end of the boom, and lengths
+  els: [
+    { name: "Reflector", d: 0.205, len: 0.18 },
+    { name: "Driven (folded dipole)", d: 0.29, len: 0.16, loop: 0.03 },
+    ...Array.from({ length: 7 }, (_, k) => ({ name: `Director ${k + 1}`, d: 0.335 + k * 0.069, len: 0.13 })),
+  ],
+  rod: 0.003, cap: 0.012,
+};
+// build design (build-sheets.html): 20 NB GI pipe mast and axle (OD 26.9 mm) in 25 NB light GI sleeves (OD 33.7 mm)
+const MOUNT = { axleLen: 0.40, axleR: 0.01345, antOff: 0.25, mastR: 0.01345, sleeveR: 0.01685, legR: 0.6, collarH: 1.0, footH: 0.15 };
+
+$("dims").innerHTML = "<tr><th>Item</th><th>Value</th><th>From</th></tr>" + [
+  ["Boom", `${ANT.boomLen * 1000} mm, ${ANT.boomSec * 1000} mm square`, "length: listing; section: measured"],
+  ["Mounting plate", `${ANT.plate.l * 1000} x ${ANT.plate.w * 1000} mm, 2 U-bolt slots`, "measured"],
+  ["U-bolt rod", `${ANT.uRod * 1000} mm`, "measured (leg gap not yet)"],
+  ["Rear stub behind plate", `${ANT.rearStub * 1000} mm`, "photo, estimated"],
+  ...ANT.els.map(e => [e.name, `${Math.round(e.len * 1000)} mm long, ${Math.round(e.d * 1000)} mm from rear`, "photo, estimated"]),
+  ["Half wavelength at 866.1 MHz", "173 mm", "computed"],
+].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+
+// ------------------------------------------------------------ flight data and aiming
+const D = window.HAB_TRACKS, PAD = D.pad.elev_m, R_E = 6371000;
+D.tracks.forEach((t, i) => { const o = document.createElement("option"); o.value = i; o.textContent = `${t.label}: ${t.date}, lands ${t.range_km} km at ${t.bearing} deg`; $("track").appendChild(o); });
+let TR, G, AIM;
+function geom(p, h) {
+  const de = p[1], dn = p[2], d = Math.hypot(de, dn), hs = PAD + h, hp = p[3], th = d / R_E;
+  const r1 = R_E + hs, r2 = R_E + hp;
+  const slant = Math.sqrt(Math.max(1, r1 * r1 + r2 * r2 - 2 * r1 * r2 * Math.cos(th)));
+  return { az: (deg(Math.atan2(de, dn)) + 360) % 360, el: deg(Math.atan2(r2 * Math.cos(th) - r1, r2 * Math.sin(th))), slant, d };
+}
+const losV = (az, el) => [Math.cos(rad(el)) * Math.sin(rad(az)), Math.cos(rad(el)) * Math.cos(rad(az)), Math.sin(rad(el))];
+const fwd = (A, T) => [Math.sin(rad(A)) * Math.cos(rad(T)), Math.cos(rad(A)) * Math.cos(rad(T)), Math.sin(rad(T))];
+const angBetween = (a, b) => deg(Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))));
+function computeTrack() {
+  TR = D.tracks[+$("track").value];
+  const h = +$("h").value;
+  G = TR.p.map(p => geom(p, h));
+  AIM = []; let A = 0, T = 0, started = false, n = 0;
+  for (let i = 0; i < G.length; i++) {
+    const g = G[i];
+    if (!started && g.slant > 200) { A = g.az; T = Math.max(0, g.el); started = true; n = 1; }
+    else if (started && g.el > -1 && angBetween(losV(g.az, g.el), fwd(A, T)) > 20) { A = g.az; T = Math.max(0, Math.min(90, g.el)); n++; }
+    AIM.push({ A, T, n });
+  }
+  $("t").max = TR.p.length - 1;
+}
+
+// ------------------------------------------------------------ scene
+const canvas = $("c"), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, 1, 0.01, 200);
+const controls = new THREE.OrbitControls(camera, canvas); controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(3, 6, 2); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-3, 2, -4); scene.add(fill);
+function themeBg() { scene.background = new THREE.Color(css("--canvas")); }
+themeBg();
+
+const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.45, metalness: 0.35 }, o));
+const ALU = M(0xc9ced6), DARK = M(0x22262c, { metalness: 0.1 }), BLACK = M(0x111111, { metalness: 0.1 });
+const STEEL = M(0x8a9099), PLATE = M(0xd7dbe0), GREEN = M(0x2f9e5b, { metalness: 0.1 }), AMBER = M(0xd9a21b, { metalness: 0.1 });
+const WHITE = M(0xf2f2f2, { metalness: 0 }), ROPE = new THREE.LineBasicMaterial({ color: 0xd0a060 });
+const cyl = (r, l, mat, seg = 20) => new THREE.Mesh(new THREE.CylinderGeometry(r, r, l, seg), mat);
+const box = (x, y, z, mat) => new THREE.Mesh(new THREE.BoxGeometry(x, y, z), mat);
+
+// ground: 1 m grid, 10 m across
+const grid = new THREE.GridHelper(12, 12, 0x7a8494, 0x7a8494); grid.material.transparent = true; grid.material.opacity = 0.35; scene.add(grid);
+
+// world frame: x = east, y = up, z = south (north is -z)
+// ---- tripod and fixed azimuth ring
+const tripod = new THREE.Group(); scene.add(tripod);
+for (const a of [0, 120, 240]) {
+  const foot = new THREE.Vector3(MOUNT.legR * Math.sin(rad(a)), 0, -MOUNT.legR * Math.cos(rad(a)));
+  const top = new THREE.Vector3(0, MOUNT.collarH, 0), mid = foot.clone().add(top).multiplyScalar(0.5);
+  const len = foot.distanceTo(top), leg = cyl(0.012, len, DARK);
+  leg.position.copy(mid); leg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(foot).normalize()); tripod.add(leg);
+}
+const collar = cyl(MOUNT.sleeveR, 0.15, DARK, 24); collar.position.y = MOUNT.collarH; tripod.add(collar);
+// foot plates, spreader bars and the foot socket the mast stands in
+for (const a of [0, 120, 240]) {
+  const fp = box(0.1, 0.005, 0.1, DARK); fp.position.set(MOUNT.legR * Math.sin(rad(a)), 0.0025, -MOUNT.legR * Math.cos(rad(a))); fp.rotation.y = -rad(a); tripod.add(fp);
+  const rl = MOUNT.legR * (1 - MOUNT.footH / MOUNT.collarH);
+  const bar = box(0.005, 0.025, rl - 0.05, DARK); bar.position.set((rl / 2 + 0.025) * Math.sin(rad(a)), MOUNT.footH, -(rl / 2 + 0.025) * Math.cos(rad(a))); bar.rotation.y = -rad(a); tripod.add(bar);
+}
+const sockPlate = box(0.1, 0.005, 0.1, DARK); sockPlate.position.y = MOUNT.footH - 0.0025; tripod.add(sockPlate);
+const socket = cyl(MOUNT.sleeveR, 0.08, DARK, 24); socket.position.y = MOUNT.footH + 0.04; tripod.add(socket);
+const ring = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.004, 8, 72), STEEL); ring.rotation.x = Math.PI / 2; ring.position.y = MOUNT.collarH + 0.03; tripod.add(ring);
+for (let a = 0; a < 360; a += 10) {
+  const tk = box(0.004, 0.004, a % 30 ? 0.02 : 0.035, a === 0 ? M(0xc62828) : STEEL);
+  tk.position.set(0.11 * Math.sin(rad(a)), MOUNT.collarH + 0.03, -0.11 * Math.cos(rad(a))); tk.rotation.y = -rad(a); tripod.add(tk);
+}
+
+// ---- rotating mast group (pan)
+const pan = new THREE.Group(); scene.add(pan);
+const mast = cyl(MOUNT.mastR, 1, ALU); pan.add(mast);
+const pointer = box(0.006, 0.006, 0.09, M(0xc62828)); pan.add(pointer);
+const handle = cyl(0.008, 0.3, BLACK); handle.rotation.z = Math.PI / 2; pan.add(handle);
+const tee = cyl(MOUNT.sleeveR, 0.12, DARK, 24); tee.rotation.z = Math.PI / 2; pan.add(tee);
+const axle = cyl(MOUNT.axleR, MOUNT.axleLen, ALU); axle.rotation.z = Math.PI / 2; pan.add(axle);
+
+// ---- tilt group: origin on the axle axis, under the plate centre
+const tilt = new THREE.Group(); pan.add(tilt);
+const ant = new THREE.Group(); tilt.add(ant);
+const yPlate = MOUNT.axleR + ANT.plate.t / 2, yBoom = MOUNT.axleR + ANT.plate.t + ANT.boomSec / 2;
+const zRear = ANT.plate.l / 2 + ANT.rearStub;                 // boom rear end (+z is backwards)
+const zAt = d => zRear - d;
+const plate = box(ANT.plate.w, ANT.plate.t, ANT.plate.l, PLATE); plate.position.y = yPlate; ant.add(plate);
+for (const zs of [-ANT.plate.slotGap / 2, ANT.plate.slotGap / 2]) {
+  const slot = box(0.05, 0.001, 0.008, DARK); slot.position.set(0, yPlate + ANT.plate.t / 2 + 0.0005, zs); ant.add(slot);
+  // U-bolt around the axle
+  const u = new THREE.Mesh(new THREE.TorusGeometry(MOUNT.axleR + ANT.uRod / 2, ANT.uRod / 2, 8, 24, Math.PI), STEEL);
+  u.rotation.y = Math.PI / 2; u.rotation.x = Math.PI; u.position.set(0, 0, zs); ant.add(u);
+}
+const boom = box(ANT.boomSec, ANT.boomSec, ANT.boomLen, ALU); boom.position.set(0, yBoom, zRear - ANT.boomLen / 2); ant.add(boom);
+ANT.els.forEach((e, k) => {
+  const z = zAt(e.d);
+  if (e.loop) {      // folded dipole: a stadium loop in the element plane
+    const pts = [], hl = e.len / 2 - e.loop / 2, r = e.loop / 2;
+    for (let i = 0; i <= 24; i++) { const a = Math.PI * i / 24; pts.push(new THREE.Vector3(0, hl + r * Math.sin(a), z + r * Math.cos(a))); }
+    for (let i = 0; i <= 24; i++) { const a = Math.PI + Math.PI * i / 24; pts.push(new THREE.Vector3(0, -hl + r * Math.sin(a), z + r * Math.cos(a))); }
+    const loop = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 120, 0.004, 8, true), ALU);
+    loop.position.y = yBoom; ant.add(loop);
+    const ins = cyl(0.006, 0.03, BLACK); ins.position.set(0, yBoom, z - r); ant.add(ins);
+    const puck = cyl(0.013, 0.012, PLATE, 24); puck.rotation.z = Math.PI / 2; puck.position.set(ANT.boomSec / 2 + 0.006, yBoom, z + r); ant.add(puck);
+    return;
+  }
+  const rodM = cyl(ANT.rod, e.len, ALU, 12); rodM.position.set(0, yBoom, z); ant.add(rodM);
+  for (const s of [-1, 1]) { const c = cyl(ANT.rod + 0.0015, ANT.cap, BLACK, 12); c.position.set(0, yBoom + s * (e.len / 2 - ANT.cap / 2 + 0.002), z); ant.add(c); }
+});
+// white coax from the puck along the boom to the rear, then to the Heltec under the plate
+const drv = ANT.els[1], zPuck = zAt(drv.d) + drv.loop / 2;
+// Heltec mount (cad/heltec_mount): clamp centred 125 mm from the mast along the axle, hanging under it.
+// CAD frame: X along the pipe, Z away from it on the case side. Here: x = X0 + X, y = -Z, z = Y (180 deg about the axle).
+const HM = window.HELTEC_MOUNT, HM_X0 = (0.125 - MOUNT.antOff) - (HM ? HM.meta.clamp_width / 2000 : 0.02);
+const hm2local = (X, Y, Z) => new THREE.Vector3(HM_X0 + X / 1000, -Z / 1000, Y / 1000);
+let smaLocal = new THREE.Vector3(-0.077, -0.045, 0);
+if (HM) {
+  const dec = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Float32Array(u.buffer); };
+  for (const o of HM.objects) {
+    const a = dec(o.pos), out = new Float32Array(a.length);
+    for (let i = 0; i < a.length; i += 3) { const v = hm2local(a[i], a[i + 1], a[i + 2]); out[i] = v.x; out[i + 1] = v.y; out[i + 2] = v.z; }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(out, 3)); g.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.6, metalness: 0.05, transparent: o.opacity < 1, opacity: o.opacity, side: THREE.DoubleSide, depthWrite: o.opacity >= 1 });
+    tilt.add(new THREE.Mesh(g, mat));
+  }
+  smaLocal = hm2local(...HM.meta.sma);
+}
+const adapter = cyl(0.008, 0.04, STEEL); adapter.rotation.z = Math.PI / 2; adapter.position.copy(smaLocal).add(new THREE.Vector3(0.02, 0, 0)); tilt.add(adapter);
+const adEnd = smaLocal.clone().add(new THREE.Vector3(0.042, 0, 0));
+const coaxPts = [[ANT.boomSec / 2 + 0.012, yBoom, zPuck], [ANT.boomSec / 2 + 0.004, yBoom - 0.004, zPuck + 0.05], [ANT.boomSec / 2 + 0.003, yBoom - 0.004, ANT.plate.l / 2 - 0.01],
+  [0.02, -0.03, 0.02], [adEnd.x + 0.03, adEnd.y - 0.01, 0.01], [adEnd.x, adEnd.y, adEnd.z]].map(p => new THREE.Vector3(...p));
+ant.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(coaxPts), 60, 0.0018, 6), WHITE));
+
+// beam cone in the antenna frame: forward = -z, elements along y
+const coneGeo = new THREE.ConeGeometry(1, 1, 64, 1, true); coneGeo.translate(0, -0.5, 0); coneGeo.rotateX(Math.PI / 2);
+const beamMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.13, side: THREE.DoubleSide, depthWrite: false });
+const beam = new THREE.Mesh(coneGeo, beamMat);
+const LC = 7; beam.scale.set(Math.tan(rad(27)) * LC, Math.tan(rad(24)) * LC, LC);
+beam.position.set(0, yBoom, zRear - ANT.boomLen / 2); ant.add(beam);
+const boresight = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, yBoom, zRear - ANT.boomLen), new THREE.Vector3(0, yBoom, -LC)]),
+  new THREE.LineDashedMaterial({ color: 0x3b82f6, dashSize: 0.1, gapSize: 0.06 }));
+boresight.computeLineDistances(); ant.add(boresight);
+
+// coverage sector on the ground (rotated with the pan group's azimuth)
+const sectorGeo = new THREE.CircleGeometry(5.5, 48, rad(90 - 27), rad(54)); sectorGeo.rotateX(-Math.PI / 2);
+const sector = new THREE.Mesh(sectorGeo, new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+sector.position.y = 0.005; scene.add(sector);
+
+// guys, guy ring, stakes
+const guyGroup = new THREE.Group(); scene.add(guyGroup);
+// line to the balloon
+const ballMat = new THREE.LineDashedMaterial({ color: 0xe5484d, dashSize: 0.15, gapSize: 0.08 });
+let ballLine = null; const ballDot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 20, 14), new THREE.MeshStandardMaterial({ color: 0xe5484d })); scene.add(ballDot);
+// USB cable (rebuilt on every update, world coordinates)
+let usb = null;
+
+// ------------------------------------------------------------ labels and dimension lines
+const main = canvas.parentElement, tags = [];
+function tag(text, cls, getPos) { const el = document.createElement("div"); el.className = "tag " + (cls || ""); el.textContent = text; main.appendChild(el); const t = { el, getPos, dim: cls !== "compass" }; tags.push(t); return t; }
+const dimMat = new THREE.LineBasicMaterial({ color: 0x2f6fd0 });
+const dimGroup = new THREE.Group(); scene.add(dimGroup);
+function dimLine(parent, a, b, tick) {
+  const pts = [a, b];
+  if (tick) for (const p of [a, b]) { pts.push(p.clone().add(tick), p.clone().sub(tick)); }
+  const g = new THREE.BufferGeometry().setFromPoints(tick ? [a, b, a.clone().add(tick), a.clone().sub(tick), b.clone().add(tick), b.clone().sub(tick)] : pts);
+  const l = new THREE.LineSegments(g, dimMat); l.userData.dim = true; parent.add(l); return l;
+}
+const wp = (obj, v) => obj.localToWorld(v.clone());
+// compass
+for (const [t, x, z] of [["N", 0, -6], ["E", 6, 0], ["S", 0, 6], ["W", -6, 0]]) tag(t, "compass", () => new THREE.Vector3(x, 0.02, z));
+// antenna dims, in the antenna frame
+const xD = 0.12;
+dimLine(ant, new THREE.Vector3(xD, yBoom, zRear), new THREE.Vector3(xD, yBoom, zRear - ANT.boomLen), new THREE.Vector3(0.012, 0, 0));
+tag(`boom ${ANT.boomLen * 1000} mm`, "dim", () => wp(ant, new THREE.Vector3(xD + 0.03, yBoom, zRear - ANT.boomLen / 2))).near = true;
+const eR = ANT.els[0], eD = ANT.els[ANT.els.length - 1];
+dimLine(ant, new THREE.Vector3(-0.04, yBoom - eR.len / 2, zAt(eR.d)), new THREE.Vector3(-0.04, yBoom + eR.len / 2, zAt(eR.d)), new THREE.Vector3(0, 0, 0.01));
+tag(`reflector ~${eR.len * 1000} mm`, "dim", () => wp(ant, new THREE.Vector3(-0.06, yBoom + eR.len / 2 + 0.03, zAt(eR.d)))).near = true;
+tag(`directors ~${eD.len * 1000} mm`, "dim", () => wp(ant, new THREE.Vector3(0, yBoom + eD.len / 2 + 0.03, zAt(eD.d)))).near = true;
+tag("driven (folded dipole) + feed puck", "", () => wp(ant, new THREE.Vector3(0.05, yBoom - drv.len / 2 - 0.03, zAt(drv.d)))).near = true;
+tag("Heltec case on V-clamp (printed)", "", () => wp(tilt, hm2local(20, 0, -40))).near = true;
+tag("N(M)-SMA(M) adapter", "", () => wp(tilt, adEnd.clone().add(new THREE.Vector3(0, -0.03, 0)))).near = true;
+tag("plate + 2 U-bolts", "", () => wp(ant, new THREE.Vector3(0.07, -0.03, 0.06))).near = true;
+// axle and offset
+const axleDim = dimLine(pan, new THREE.Vector3(0, 0, 0.06), new THREE.Vector3(MOUNT.antOff, 0, 0.06), new THREE.Vector3(0, 0, 0.012));
+const tAxle = tag(`axle 400 mm; antenna ${MOUNT.antOff * 1000} mm from mast; tilt axis`, "dim", () => wp(pan, new THREE.Vector3(MOUNT.antOff / 2, +$("h").value - 0.07, 0.1))); tAxle.near = true;
+let dynDims = [];      // rebuilt with height
+const tMast = tag("", "dim", () => new THREE.Vector3(-0.3, +$("h").value / 2, 0));
+const tGuy = tag("", "dim", () => new THREE.Vector3(0, 0.05, 0));
+tag("collar sleeve at 1.0 m, azimuth disk", "dim", () => new THREE.Vector3(0.45, MOUNT.collarH + 0.05, 0.3));
+tag("foot socket + spreader at 150 mm", "dim", () => new THREE.Vector3(0.45, MOUNT.footH, 0.3));
+tag("handle + pointer", "", () => wp(pan, new THREE.Vector3(0.2, 1.2, 0)));
+const tBall = tag("", "red", () => ballDot.position);
+const tBeam = tag("half-power beam 54 x 48 deg", "dim", () => wp(ant, new THREE.Vector3(0, yBoom + 0.9, -3.2)));
+
+// ------------------------------------------------------------ build per height and per time
+function buildHeight() {
+  const H = +$("h").value; $("hv").textContent = `${H.toFixed(2)} m (${(H / 0.3048).toFixed(1)} ft)`;
+  mast.scale.y = H - 0.15; mast.position.y = 0.15 + (H - 0.15) / 2;
+  tee.position.set(0, H, 0); axle.position.set(MOUNT.axleLen / 2 - 0.03, H, 0);
+  tilt.position.set(MOUNT.antOff, H, 0); axleDim.position.y = H;
+  pointer.position.set(0, MOUNT.collarH + 0.04, -0.06); handle.position.set(0, 1.2, 0);
+  guyGroup.clear(); dynDims.forEach(d => d.parent && d.parent.remove(d)); dynDims = [];
+  const at = H * 2 / 3, R = Math.max(1.5, 0.8 * at), need = H > 2.5;
+  if (need) {
+    const gr = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.004, 8, 32), STEEL); gr.rotation.x = Math.PI / 2; gr.position.y = at; guyGroup.add(gr);
+    for (const a of [60, 180, 300]) {
+      const s = new THREE.Vector3(R * Math.sin(rad(a)), 0, -R * Math.cos(rad(a)));
+      guyGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0.03 * Math.sin(rad(a)), at, -0.03 * Math.cos(rad(a))), s]), ROPE));
+      const st = cyl(0.008, 0.25, DARK, 8); st.position.copy(s); st.position.y = 0.05; guyGroup.add(st);
+    }
+    const g = new THREE.Vector3(R * Math.sin(rad(180)), 0.01, -R * Math.cos(rad(180)));
+    dynDims.push(dimLine(scene, new THREE.Vector3(0, 0.01, 0), g, new THREE.Vector3(0.05, 0, 0)));
+    tGuy.getPos = () => new THREE.Vector3(0.25, 0.05, R / 2); tGuy.el.textContent = `guys at ${at.toFixed(1)} m, stakes ${R.toFixed(1)} m out at 60 / 180 / 300 deg`;
+  } else { tGuy.el.textContent = "no guys needed at 2.5 m or less"; tGuy.getPos = () => new THREE.Vector3(0.6, 0.05, 0.6); }
+  dynDims.push(dimLine(scene, new THREE.Vector3(-0.15, 0, 0), new THREE.Vector3(-0.15, H, 0), new THREE.Vector3(0.04, 0, 0)));
+  tMast.el.textContent = `axle height ${H.toFixed(2)} m`; tMast.getPos = () => new THREE.Vector3(-0.25, H / 2, 0);
+  computeTrack(); update();
+}
+
+let curI = 100;
+function update() {
+  const i = Math.min(curI, TR.p.length - 1), p = TR.p[i], g = G[i];
+  let A, T;
+  if ($("aimTrack").checked) { A = AIM[i].A; T = AIM[i].T; $("az").value = Math.round(A); $("tl").value = Math.round(T); }
+  else { A = +$("az").value; T = +$("tl").value; }
+  $("azv").textContent = `${A.toFixed(0)} deg`; $("tlv").textContent = `${T.toFixed(0)} deg`;
+  pan.rotation.y = -rad(A); tilt.rotation.x = rad(T); sector.rotation.y = -rad(A);
+  $("tv").textContent = `T+${(p[0] / 60).toFixed(1)} min`;
+  // balloon direction
+  scene.updateMatrixWorld(true);
+  const origin = wp(ant, new THREE.Vector3(0, yBoom, zRear - ANT.boomLen / 2));
+  if (ballLine) scene.remove(ballLine);
+  const onPad = g.slant < 200;
+  if (!onPad) {
+    const dv = new THREE.Vector3(Math.cos(rad(g.el)) * Math.sin(rad(g.az)), Math.sin(rad(g.el)), -Math.cos(rad(g.el)) * Math.cos(rad(g.az)));
+    const end = origin.clone().add(dv.multiplyScalar(7.5));
+    ballLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, end]), ballMat); ballLine.computeLineDistances(); scene.add(ballLine);
+    ballDot.position.copy(end);
+    tBall.el.textContent = `balloon: az ${g.az.toFixed(0)} deg, el ${g.el.toFixed(1)} deg, ${(g.slant / 1000).toFixed(1)} km away, ${(p[3] / 1000).toFixed(1)} km up`;
+  }
+  ballLine && (ballLine.visible = $("sBall").checked && !onPad); ballDot.visible = $("sBall").checked && !onPad; tBall.hidden = !$("sBall").checked || onPad;
+  const off = onPad ? null : angBetween(losV(g.az, g.el), fwd(A, T));
+  $("read").textContent = `T+${(p[0] / 60).toFixed(1)} min | boom az ${A.toFixed(0)} deg, tilt ${T.toFixed(0)} deg` +
+    (onPad ? " | balloon on the pad" : ` | balloon az ${g.az.toFixed(0)}, el ${g.el.toFixed(1)} deg | ${off.toFixed(0)} deg off boresight (half-power edge 24 to 27 deg)`) +
+    ($("aimTrack").checked ? ` | re-aims so far ${AIM[i].n}` : "");
+  // USB cable: Heltec -> along the axle -> down the mast -> to the laptop
+  if (usb) scene.remove(usb);
+  const H = +$("h").value, hpos = wp(tilt, hm2local(-20, 0, 38));
+  const pts = [hpos, wp(pan, new THREE.Vector3(MOUNT.antOff - 0.13, H - 0.05, 0.03)), wp(pan, new THREE.Vector3(0.04, H - 0.12, 0.02)),
+    wp(pan, new THREE.Vector3(0.018, H - 0.4, 0.0)), wp(pan, new THREE.Vector3(0.018, MOUNT.collarH + 0.3, 0.0)), new THREE.Vector3(0.05, 0.05, 0.3), new THREE.Vector3(0.2, 0.01, 1.4)];
+  usb = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.003, 6), M(0x333333, { metalness: 0 })); scene.add(usb);
+  applyShow();
+}
+function applyShow() {
+  beam.visible = $("sBeam").checked; boresight.visible = $("sBeam").checked; tBeam.hidden = !$("sBeam").checked;
+  sector.visible = $("sSector").checked; guyGroup.visible = $("sGuys").checked;
+  const dims = $("sDims").checked;
+  scene.traverse(o => { if (o.userData.dim) o.visible = dims; });
+  for (const t of tags) if (t !== tBall && t !== tBeam && t.dim) t.hidden = !dims;
+}
+
+// ------------------------------------------------------------ cameras
+function view(v) {
+  const H = +$("h").value; scene.updateMatrixWorld(true);
+  const head = wp(tilt, new THREE.Vector3(0, 0, -0.25));
+  const A = rad(+$("az").value), f = new THREE.Vector3(Math.sin(A), 0, -Math.cos(A)), r = new THREE.Vector3(Math.cos(A), 0, Math.sin(A));
+  if (v === "iso") { controls.target.set(0, H * 0.5, -0.3); camera.position.set(6.2, H * 0.5 + 2.2, 6.8); }
+  if (v === "head") { controls.target.copy(head); camera.position.copy(head.clone().add(r.clone().multiplyScalar(0.9)).add(f.clone().multiplyScalar(-0.5)).add(new THREE.Vector3(0, 0.45, 0))); }
+  if (v === "side") { controls.target.set(0, H * 0.55, 0); camera.position.copy(new THREE.Vector3(0, H * 0.55, 0).add(r.clone().multiplyScalar(7))); }
+  if (v === "top") { controls.target.set(0, 0, 0); camera.position.set(0.001, 13, 0.001); }
+  if (v === "op") { controls.target.copy(head.clone().add(f.clone().multiplyScalar(2))); camera.position.copy(new THREE.Vector3(0, 1.6, 0).add(f.clone().multiplyScalar(-2.2)).add(r.clone().multiplyScalar(0.6))); }
+  controls.update();
+}
+document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => view(b.dataset.v));
+
+// ------------------------------------------------------------ controls
+$("track").onchange = () => { computeTrack(); update(); };
+$("t").oninput = e => { curI = +e.target.value; update(); };
+$("h").oninput = buildHeight;
+for (const id of ["az", "tl"]) $(id).oninput = () => { $("aimMan").checked = true; update(); };
+for (const id of ["aimTrack", "aimMan"]) $(id).onchange = update;
+for (const id of ["sBeam", "sSector", "sBall", "sGuys", "sDims"]) $(id).onchange = applyShow;
+const jump = f => { curI = f(); $("t").value = curI; update(); };
+$("launch").onclick = () => jump(() => 5);
+$("burst").onclick = () => jump(() => TR.p.findIndex(p => p[0] >= 92.2 * 60));
+$("land").onclick = () => jump(() => TR.p.length - 12);
+let timer = null;
+$("play").onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; $("play").textContent = "Play"; return; }
+  $("play").textContent = "Pause"; $("aimTrack").checked = true;
+  timer = setInterval(() => { curI = (curI + 2) % TR.p.length; $("t").value = curI; update(); }, 50);
+};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeBg);
+
+function rs() { const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix(); }
+new ResizeObserver(rs).observe(canvas); rs();
+const v3 = new THREE.Vector3();
+(function loop() {
+  controls.update(); renderer.render(scene, camera);
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  for (const t of tags) {
+    if (t.hidden) { t.el.style.display = "none"; continue; }
+    const wpos = t.getPos();
+    if (t.near && camera.position.distanceTo(wpos) > 3) { t.el.style.display = "none"; continue; }
+    v3.copy(wpos).project(camera);
+    if (v3.z > 1 || v3.z < -1) { t.el.style.display = "none"; continue; }
+    t.el.style.display = ""; t.el.style.left = ((v3.x + 1) / 2 * w) + "px"; t.el.style.top = ((1 - v3.y) / 2 * h) + "px";
+  }
+  requestAnimationFrame(loop);
+})();
+$("t").value = curI;
+// export mode for build drawings: yagi3d.html?export=1&view=iso&az=315&tilt=20&beam=0&sector=0&ball=0
+const Q = new URLSearchParams(location.search);
+if (Q.get("export")) {
+  document.querySelector("aside").style.display = "none";
+  document.querySelector(".app").style.gridTemplateColumns = "1fr";
+  document.querySelector(".read").style.display = "none"; document.querySelector(".hud").style.display = "none";
+  if (Q.get("theme")) { document.documentElement.dataset.theme = Q.get("theme"); themeBg(); }
+  if (Q.get("font")) { const st = document.createElement("style"); st.textContent = `.tag{font-size:${Q.get("font")}px;padding:2px 8px}`; document.head.appendChild(st); }
+  if (Q.get("grid") === "0") grid.visible = false;
+  for (const [k, id] of [["beam", "sBeam"], ["sector", "sSector"], ["ball", "sBall"], ["guys", "sGuys"], ["dims", "sDims"]]) if (Q.has(k)) $(id).checked = Q.get(k) === "1";
+  if (Q.has("h")) $("h").value = Q.get("h");
+  if (Q.has("az") || Q.has("tilt")) { $("aimMan").checked = true; $("az").value = Q.get("az") || 0; $("tl").value = Q.get("tilt") || 0; }
+}
+buildHeight(); view(Q.get("view") || "iso");
+if (Q.has("cam")) { const c = Q.get("cam").split(",").map(Number); camera.position.set(c[0], c[1], c[2]); if (c.length > 3) controls.target.set(c[3], c[4], c[5]); controls.update(); }
+})();
+</script></body></html>

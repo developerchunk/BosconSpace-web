@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/cad-canister-v6/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Canister v6</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1d2330; --muted: #5d6675; --rule: #dde1e7;
+    --accent: #2f6f9f; --warn: #a2560c; --ok: #2d7a46; --bad: #b3261e; --canvas: #e9ecf0; --chip: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+      --accent: #6fa8d6; --warn: #e0a15a; --ok: #6cc28a; --bad: #ef8a80; --canvas: #0f1217; --chip: #232a34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+    --accent: #6fa8d6; --warn: #e0a15a; --ok: #6cc28a; --bad: #ef8a80; --canvas: #0f1217; --chip: #232a34;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  .app { display: grid; grid-template-columns: 360px 1fr; height: 100vh; }
+  aside { background: var(--panel); border-right: 1px solid var(--rule); overflow-y: auto; padding: 18px 18px 32px; }
+  h1 { font-size: 18px; margin: 0 0 2px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .status { border: 1px solid var(--rule); border-left: 3px solid var(--warn); border-radius: 6px;
+    padding: 8px 10px; font-size: 12.5px; margin-bottom: 14px; background: var(--chip); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .tabs button { padding: 9px 8px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 20px 0 8px; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .row label { flex: 1; cursor: pointer; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.2); }
+  .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 0 5px;
+    font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .ctl { margin: 6px 0 10px; }
+  .ctl .lab { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--muted); }
+  .views { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .views button, select { padding: 6px 10px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+  .views button.hl { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11.5px; padding: 4px 0;
+    border-bottom: 1px solid var(--rule); }
+  th.v, td.v { text-align: right; white-space: nowrap; padding-left: 8px; font-variant-numeric: tabular-nums; }
+  td { padding: 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .src { color: var(--muted); font-size: 11px; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--ok); font-weight: 600; }
+  .warn { color: var(--warn); }
+  .pt { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .pt b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .pt .was { color: var(--muted); font-size: 12px; }
+  .pt .now { font-size: 12.5px; margin-top: 3px; }
+  .pt button { margin-top: 6px; padding: 3px 8px; font-size: 11.5px; border: 1px solid var(--rule);
+    background: var(--chip); color: var(--ink); border-radius: 5px; cursor: pointer; }
+  ul, ol { padding-left: 18px; margin: 0; }
+  li { margin-bottom: 6px; font-size: 13px; }
+  code { font-size: 12px; background: var(--chip); padding: 1px 4px; border-radius: 4px; }
+  main { position: relative; background: var(--canvas); min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .hud { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted);
+    background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 6px 10px; border-radius: 6px; }
+  .cap { position: absolute; left: 14px; top: 12px; right: 14px; font-size: 13px; pointer-events: none;
+    color: var(--ink); background: color-mix(in srgb, var(--panel) 88%, transparent); padding: 8px 11px;
+    border-radius: 7px; border: 1px solid var(--rule); }
+  .cap:empty { display: none; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+  .theme { float: right; font-size: 11.5px; padding: 3px 8px; border: 1px solid var(--rule); background: var(--chip);
+    color: var(--ink); border-radius: 5px; cursor: pointer; }
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; }
+    main { order: -1; height: 55vh; }
+    aside { border-right: 0; border-top: 1px solid var(--rule); padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <button class="theme" id="theme">◐ theme</button>
+    <h1>HAB-1 canister v6</h1>
+    <div class="sub">Screw-capped tube · X-spine sled · ratchet lock · vents · 7 Oct 2026</div>
+    <div class="status"><b>Designed and checked in CAD only. Nothing printed.</b> All checks pass, and each
+      fails when broken on purpose (12 geometric + 9 sizing). Print the test pieces first.</div>
+
+    <div class="tabs">
+      <button id="tab-box" class="on">Canister (5 parts)</button>
+      <button id="tab-coupons">Test pieces</button>
+    </div>
+
+    <h2>Parts</h2>
+    <div id="parts"></div>
+
+    <h2>View</h2>
+    <div class="ctl" id="ex-ctl">
+      <div class="lab"><span>Explode</span><span id="ex-v">0 mm</span></div>
+      <input id="explode" type="range" min="0" max="90" value="0">
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>Section (shows the honeycomb)</span>
+        <select id="sec-axis"><option value="off">off</option><option value="x">cut across X</option>
+          <option value="y">cut across Y</option><option value="z">cut across Z</option></select></div>
+      <input id="section" type="range" min="0" max="1000" value="500" disabled>
+    </div>
+    <div class="views">
+      <button data-view="iso">Iso</button><button data-view="top">Top</button><button data-view="front">Front</button>
+      <button data-preset="thread" class="hl">Thread &amp; stop</button>
+      <button data-preset="ratchet" class="hl">Ratchet</button>
+      <button data-preset="spine" class="hl">X-spine &amp; rails</button>
+    </div>
+
+    <h2>Your v5 review, and what v6 does</h2>
+    <div id="points"></div>
+
+    <h2>Numbers: v4 against v6</h2>
+    <table id="nums"></table>
+
+    <h2>Load paths</h2>
+    <table id="opts"></table>
+
+    <h2>Tests on the test pieces (print first, ~190 g)</h2>
+    <table id="tests"></table>
+    <div class="src" style="margin-top:6px">Numbers: <code>cad/canister_loads.py</code>. A result far from a prediction,
+      either way, means the model is wrong.</div>
+
+    <h2>Not done / to confirm</h2>
+    <ul id="open"></ul>
+
+    <h2>Files</h2>
+    <ul style="font-size:12.5px">
+      <li><code>docs/32-canister-v6.md</code>: design, sources, checks</li>
+      <li><code>cad/print/v6/hab1_v6_print_pack.zip</code>: K2 Plus plates, centred; <code>PRINT.md</code> inside</li>
+      <li><code>cad/canister.py</code>, <code>check_canister.py</code>, <code>canister_loads.py</code>, <code>export_canister.py</code></li>
+      <li>This page: <code>cad/export_viewer_v6.py</code> → <code>cad/viewer_v6/</code></li>
+    </ul>
+  </aside>
+  <main>
+    <canvas id="c"></canvas>
+    <div class="cap" id="caption"></div>
+    <div class="loading" id="loading">Loading meshes…</div>
+    <div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div>
+  </main>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="canister_data.js"></script>
+<script>
+const POINTS = [
+  { n: 1, t: "“One side flat, one side interlocking” corners",
+    was: "v5: half-dovetail corners: only one side truly locked.",
+    now: "No corners at all. A tube has no vertical joints; the only joints are two screw threads, which engage all the way round.",
+    preset: "spine" },
+  { n: 2, t: "Cord straps would fail; no wire, ever",
+    was: "v5: four Dyneema straps held the lid on.",
+    now: "Each cap screws on (two-start 45° thread, 1.5 turns) and a jerrican-style ratchet stops it turning back. In an end landing the tube's end faces press on the caps, so the thread carries no landing load.",
+    preset: "thread" },
+  { n: 3, t: "Walls felt hollow",
+    was: "v5: sealed honeycomb cells with 0.86 mm walls.",
+    now: "Solid PETG everywhere: a 1.6 mm tube wall (4 perimeters), caps of 2 mm skin with 8 mm ribs, 3 mm spine plates. No hidden cavities.",
+    preset: "ratchet" },
+  { n: 4, t: "Honeycomb walls stopped all flexibility",
+    was: "v5: a 10 mm sandwich, 34× stiffer than v4's panel.",
+    now: "The tube is a flexible sleeve: printed upright, a side hit squashes the ring along its layers and it springs back (ring formulas: ~100 mm of elastic squash). The caps and X-spine are the stiff core.",
+    preset: "spine" },
+];
+const NUMS = [
+  ["Structure (parts)", "443 g + 167 g mounts", "742 g + ~120 g brackets", "CAD; brackets assumed", "bad"],
+  ["Moving on the foam", "2.34 kg", "2.59 kg", "contents 1.70 kg", ""],
+  ["Package (EPS 240–740 g)", "2.81–3.31 kg", "3.06–3.56 kg", "heavy balloon at ≥ 3 kg (CAR 9C)", "bad"],
+  ["Design hit (7 m/s, LD24 57 mm)", "~186 g", "177 g end · 179 g side", "first hit ×1.1", ""],
+  ["Corners / joints", "snaps, butt corners", "2 threads + ratchets", "no snaps, no bands, no metal", "good"],
+  ["Cap plate worst SF", "none", "2.0", "need 1.5", "good"],
+  ["Thread jump-out", "none", "3.15 kN (2.6× demand)", "thread unloaded in end landings", "good"],
+  ["Tube across layers", "none", "1.9 of 18 MPa", "side landing as a beam", "good"],
+  ["Vents (sealed: 2.4 kN/cap at 30 km)", "gaps", "4 × Ø3 mm", "lag 0.014 Pa", "good"],
+  ["Interior", "171 × 171 × 180", "Ø180 × 170 (4 quadrants)", "CAD", ""],
+  ["PETG", "< 1 spool", "~0.93 kg incl. test pieces", "1 spool, just", ""],
+];
+const OPTS = [
+  ["End landing (most likely)", "spine → cap", "contents → X-spine → struck cap (two diameters) → foam; tube presses on its end-face stops; thread unloaded"],
+  ["Side landing", "rails → tube → caps", "spine plates → 4 rails → tube as a beam → threads → caps; cap rims 3.5 mm proud strike first"],
+  ["Edge / corner (bare drop)", "chamfered rim", "the 3 mm 45° rim chamfer takes it; thread prying is the one case not yet proven (test 5)"],
+];
+const TESTS = [
+  ["1 · Thread fit", "1.5 turns, clicks", "tight or sloppy → CLR ±0.05 mm, reprint the ring pair"],
+  ["2 · Ratchet", "won't turn back", "until both arm tips are lifted"],
+  ["3 · Jump-out", "no skip", "hang weight in 2 kg steps (computed 3.1 kN)"],
+  ["4 · Squash ring", "springs back", "no whitening, no layer crack"],
+  ["5 · Rim drop, 9 m", "no crack", "cap ring rim-first, 3×"],
+];
+const OPEN = [
+  "<b>Brackets</b> for the electronics are not designed (120 g assumed). Rule: items over ~50 g in a quadrant corner, fixed to <b>both</b> spine plates.",
+  "<b>Edge-first bare drops</b>: thread prying is estimated, not computed; test 5 and the full drops decide.",
+  "<b>Mass</b>: package 3.06–3.56 kg is heavy-balloon class; DGCA docs 21–24 assume less. A Ø180 canister saves ~8 % and adds foam.",
+  "<b>Foam</b> must be cut for a cylinder (round end pads, cradle side pads).",
+  "Thread at −50 °C, ratchet-arm fatigue over daily opening, back-off over 30 days (ratchet limits it to 6°).",
+  "Ports: SMA and switch holes not drilled: solid Ø14 bosses mark them on each cap.",
+];
+
+(function () {
+  // ---------- sidebar text
+  document.getElementById("points").innerHTML = POINTS.map(p => `<div class="pt"><b>${p.n}. ${p.t}</b>
+    <div class="was">${p.was}</div><div class="now">→ ${p.now}</div>
+    <button data-preset="${p.preset}">show in 3D</button></div>`).join("");
+  document.getElementById("nums").innerHTML = `<tr><th></th><th class="v">v4</th><th class="v">v5</th></tr>` +
+    NUMS.map(([k, a, b, s, c]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${a}</td>
+      <td class="v ${c}">${b}</td></tr>`).join("");
+  document.getElementById("opts").innerHTML = `<tr><th>Case</th><th class="v">Path</th></tr>` +
+    OPTS.map(([k, m, s]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${m}</td></tr>`).join("");
+  document.getElementById("tests").innerHTML = `<tr><th>Test</th><th class="v">Pass</th></tr>` +
+    TESTS.map(([k, p, s]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${p}</td></tr>`).join("");
+  document.getElementById("open").innerHTML = OPEN.map(t => `<li>${t}</li>`).join("");
+
+  // ---------- three.js
+  const canvas = document.getElementById("c");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.localClippingEnabled = true;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 1, 5000);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(1, 2, 1.5); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-1.5, -0.5, -1); scene.add(fill);
+  const bgColor = () => getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
+  const clip = new THREE.Plane(new THREE.Vector3(1, 0, 0), 1e6);
+  const H = CAN.meta.H / 2;
+
+  function decode(b64) {
+    const bin = atob(b64), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Float32Array(buf.buffer);
+  }
+  function meshOf(o) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(decode(o.pos), 3));
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.6, metalness: 0,
+      side: THREE.DoubleSide, clippingPlanes: [clip] });
+    const holder = new THREE.Group();
+    holder.add(new THREE.Mesh(geo, mat));
+    holder.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30),
+      new THREE.LineBasicMaterial({ color: 0x10151c, transparent: true, opacity: 0.28, clippingPlanes: [clip] })));
+    holder.userData = o;
+    return holder;
+  }
+
+  // model frame: z up  ->  three.js: y up (rotate -90 deg about x)
+  function frame(g) { const f = new THREE.Group(); f.rotation.x = -Math.PI / 2; f.add(g); return f; }
+
+  const box = new THREE.Group(), boxItems = {};
+  for (const o of CAN.box) { const h = meshOf(o); box.add(h); boxItems[o.name] = h; }
+  const straps = new THREE.Group();
+  const boxF = frame(box); scene.add(boxF);
+
+  const coup = new THREE.Group(), coupItems = {};
+  // layout: small pieces on the first row, beams below
+  let x = 0, y = 0, rowD = 0;
+  for (const o of CAN.coupons) {
+    const h = meshOf(o);
+    const bb = new THREE.Box3().setFromObject(h);
+    const w = bb.max.x - bb.min.x, d = bb.max.y - bb.min.y;
+    if (o.name.includes("beam")) {                  // each beam on its own row
+      if (x > 0) { y -= rowD + 14; x = 0; }
+      h.position.set(-bb.min.x, y - d - bb.min.y, -bb.min.z);
+      y -= d + 14; rowD = 0;
+    } else {                                        // small pieces side by side
+      h.position.set(x - bb.min.x, y - d - bb.min.y, -bb.min.z);
+      x += w + 14; rowD = Math.max(rowD, d);
+    }
+    coup.add(h); coupItems[o.name] = h;
+  }
+  const cb = new THREE.Box3().setFromObject(coup), cc = cb.getCenter(new THREE.Vector3());
+  coup.position.sub(cc);
+  const coupF = frame(coup); scene.add(coupF); coupF.visible = false;
+
+  let cur = "box";
+  const caption = document.getElementById("caption");
+  function partsList() {
+    const list = cur === "box" ? CAN.box : CAN.coupons, items = cur === "box" ? boxItems : coupItems;
+    document.getElementById("parts").innerHTML = "";
+    for (const o of list) {
+      const h = items[o.name], id = "cb-" + o.name;
+      const row = document.createElement("div"); row.className = "row";
+      row.innerHTML = `<input type="checkbox" id="${id}" ${h.visible ? "checked" : ""}>
+        <span class="sw" style="background:${o.color}"></span><label for="${id}">${o.label}</label>
+        <span class="tag">${o.grams} g</span>`;
+      row.querySelector("input").onchange = ev => { h.visible = ev.target.checked; };
+      document.getElementById("parts").appendChild(row);
+    }
+  }
+  function show(k) {
+    cur = k;
+    boxF.visible = k === "box"; coupF.visible = k === "coupons";
+    document.getElementById("tab-box").classList.toggle("on", k === "box");
+    document.getElementById("tab-coupons").classList.toggle("on", k === "coupons");
+    document.getElementById("ex-ctl").style.display = k === "box" ? "" : "none";
+    caption.textContent = k === "box" ? "Ø190 × 190 mm · X-spine slides into the tube's rails · caps screw on (1.5 turns) and ratchet-lock · drag Explode to open it"
+      : "Print first (~190 g): thread ring pair (tube end + cap) and a squash ring of the tube body";
+    partsList(); setSection("off"); setView("iso");
+  }
+  function applyExplode() {
+    const v = +document.getElementById("explode").value;
+    document.getElementById("ex-v").textContent = v + " mm";
+    for (const h of Object.values(boxItems)) { const d = h.userData.explode; h.position.set(d[0] * v, d[1] * v, d[2] * v); }
+
+  }
+  // section in MODEL axes; keep the part of the model below the cut value
+  function applySection() {
+    const ax = document.getElementById("sec-axis").value, sl = document.getElementById("section");
+    sl.disabled = ax === "off";
+    applyExplode();
+    if (ax === "off") { clip.set(new THREE.Vector3(1, 0, 0), 1e6); return; }
+    const half = cur === "box" ? H + 60 : 120;
+    cutAt(ax, (+sl.value / 1000) * 2 * half - half);
+  }
+  function cutAt(ax, v) {
+    if (ax === "x") clip.set(new THREE.Vector3(-1, 0, 0), v);       // keep model x <= v
+    if (ax === "y") clip.set(new THREE.Vector3(0, 0, 1), v);        // model y = -world z: keep y <= v
+    if (ax === "z") clip.set(new THREE.Vector3(0, -1, 0), v);       // model z = world y: keep z <= v
+  }
+  function setSection(ax, v) {
+    document.getElementById("sec-axis").value = ax;
+    const half = cur === "box" ? H + 60 : 120;
+    if (v !== undefined) document.getElementById("section").value = Math.round((v + half) / (2 * half) * 1000);
+    applySection();
+  }
+  const w3 = (mx, my, mz) => new THREE.Vector3(mx, mz, -my);   // model -> world
+  function look(target, dir, dist) {
+    controls.target.copy(target);
+    camera.position.copy(target.clone().add(dir.clone().normalize().multiplyScalar(dist)));
+    controls.update();
+  }
+  function setView(v) {
+    const dist = cur === "box" ? 720 : 620;
+    const dirs = { iso: [0.9, 0.75, 1.1], top: [0, 1, 0.001], front: [0, 0.08, 1] };
+    look(new THREE.Vector3(0, 0, 0), new THREE.Vector3(...dirs[v]), dist);
+  }
+  function preset(p) {
+    if (cur !== "box") show("box");
+    document.getElementById("explode").value = 0; applyExplode();
+    if (p === "thread") {
+      setSection("y", 0);
+      look(w3(86, 0, 82), new THREE.Vector3(0.1, 0.05, -1), 70);
+      caption.textContent = "Top end, cut through the axis: the tube's end face seats on the cap skin (the stop that carries end landings), two-start 45° thread with 0.3 mm clearance, the cap's ribs, and the ratchet band over the tube's ribs.";
+    } else if (p === "ratchet") {
+      setSection("z", 74);
+      look(w3(82, 30, 74), new THREE.Vector3(0.3, 1, 0.2), 90);
+      caption.textContent = "Cut through the ratchet band: the cap's arm (bends in the layer plane) carries a pawl that rides up the tube's sawtooth ribs when tightening and stops on their steep faces when turned back. Lift the arm tip to open.";
+    } else if (p === "spine") {
+      setSection("z", 0);
+      look(w3(0, 0, 0), new THREE.Vector3(0.2, 1.3, 0.6), 380);
+      caption.textContent = "Cut at mid-height: 1.6 mm tube wall, four rails holding the edges of the two spine plates (egg-crate X). Electronics mount in the four quadrants, heavy items bracketed to both plates.";
+    }
+  }
+
+  document.getElementById("tab-box").onclick = () => show("box");
+  document.getElementById("tab-coupons").onclick = () => show("coupons");
+  document.getElementById("explode").oninput = applyExplode;
+  document.getElementById("sec-axis").onchange = applySection;
+  document.getElementById("section").oninput = applySection;
+  document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view));
+  document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => preset(b.dataset.preset));
+  const root = document.documentElement;
+  document.getElementById("theme").onclick = () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("hab1-theme", root.dataset.theme); } catch (e) {}
+    scene.background = new THREE.Color(bgColor());
+  };
+  try { const t = localStorage.getItem("hab1-theme"); if (t) root.dataset.theme = t; } catch (e) {}
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => scene.background = new THREE.Color(bgColor()));
+  scene.background = new THREE.Color(bgColor());
+  resize();
+  show("box"); applyExplode();
+  document.getElementById("loading").remove();
+  (function loopR() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loopR); })();
+})();
+</script>
+</body>
+</html>

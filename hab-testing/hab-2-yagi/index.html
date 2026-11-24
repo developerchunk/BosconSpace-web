@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/hab-2-yagi/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-2 433 MHz Yagi</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#c8743a;--canvas:#e6e9ee;--chip:#eef1f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#e08a4e;--canvas:#0f1217;--chip:#232a34}}
+:root[data-theme="dark"]{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#e08a4e;--canvas:#0f1217;--chip:#232a34}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:330px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 4px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px}.row label{flex:1;cursor:pointer}.row .g{color:var(--muted);font-size:12px}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.25);flex:none}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:7px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{border:1px solid var(--rule);border-radius:8px;padding:10px;background:var(--chip);font-size:13px;min-height:54px}
+.card b{display:block;margin-bottom:2px}.card .m{color:var(--muted);font-size:12px}
+ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+main{position:relative;background:var(--canvas);min-height:0}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:60vh auto;height:auto}main{order:-1;height:60vh}}
+</style></head><body><div class="app"><aside>
+<h1>433 MHz ground Yagi</h1>
+<div class="sub">For the HAB-2 433.35 MHz image and data downlink. Elements and spacing from the NEC2 design (<code>hab-2/tools/yagi_433.py</code>); fabrication files in <code>hab-2/cad/yagi/out</code>. Not yet built or measured.</div>
+<h2>Antenna</h2>
+<div class="seg"><button id="n6">6 elements<br><small>12.1 dBi, chase car</small></button><button id="n10" class="on">10 elements<br><small>14.4 dBi, fixed station</small></button></div>
+<h2>View</h2>
+<div class="lab"><span>Elevation</span><span id="elv">0°</span></div><input id="el" type="range" min="0" max="90" value="0">
+<h2>Part (click one)</h2>
+<div class="card" id="pick"><b>Nothing selected</b><span class="m">Click a part for its material and size.</span></div>
+<h2>Show</h2><div id="groups"></div>
+<h2>Key numbers</h2>
+<ul id="nums"></ul>
+<h2>Files for fabrication</h2>
+<ul>
+<li><b>yagi_*el_fabrication.pdf</b>: drilling plan, cut list, bill of materials, plates, wiring, tests (4 A3 sheets)</li>
+<li><b>yagi_*el_assembly.step</b>: whole antenna, every part named</li>
+<li><b>print/feed_box_*.stl</b>: PETG, in print orientation</li>
+<li><b>laser/*.dxf</b>: the two 5 mm aluminium plates, 1:1</li>
+</ul>
+</aside><main><canvas id="c"></canvas><div class="hud">drag to orbit · right-drag to pan · scroll to zoom · click a part</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="yagi_data.js"></script>
+<script>
+(function(){
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const canvas=document.getElementById("c"),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,1,20000),controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8890a0,.8));const sun=new THREE.DirectionalLight(0xffffff,.7);sun.position.set(1,2,1.5);scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,.3);fill.position.set(-1.5,-.5,-1);scene.add(fill);
+scene.background=new THREE.Color(css("--canvas"));
+function dec(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new Float32Array(u.buffer);}
+const GROUPS={elements:"Reflector and directors (6 mm Al rod)",feed:"Driven element and feed box",boom:"Boom (FRP or wood)",mount:"Bracket, mast plate, bolts",mast:"Mast"};
+const NUMS={"6":["Boom 1,232 mm; reflector to last director 922 mm","12.1 dBi, F/B 17 dB, SWR 1.44 at 433.35 MHz (computed)","Beam 52° across, 46° in the plane of the elements","Range about 180 km with 6 dB spare (docs/12)"],
+"10":["Boom 1,970 mm; reflector to last director 1,660 mm","14.4 dBi, F/B 16 dB, SWR 1.37 at 433.35 MHz (computed)","Beam 38° across, 36° in the plane of the elements","Range about 234 km with 6 dB spare (docs/12)"]};
+const root=new THREE.Group();root.rotation.x=-Math.PI/2;scene.add(root);
+let cur=null,items=[],picked=null;
+const tiltG=new THREE.Group(),fixG=new THREE.Group();root.add(tiltG);root.add(fixG);
+function load(n){
+ for(const g of [tiltG,fixG])while(g.children.length)g.remove(g.children[0]);items=[];
+ const D=YAGI[n];const px=D.pivot;
+ for(const o of D.parts){const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(dec(o.pos),3));geo.computeVertexNormals();
+  const mat=new THREE.MeshStandardMaterial({color:o.color,roughness:.55,metalness:/^(reflector|director|driven|bracket|mast)/.test(o.name)?.35:0,side:THREE.DoubleSide});
+  const m=new THREE.Mesh(geo,mat);m.userData=o;const h=new THREE.Group();h.add(m);
+  h.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0x10151c,transparent:true,opacity:.25})));
+  if(o.tilts){h.position.set(-px,0,0);}(o.tilts?tiltG:fixG).add(h);items.push({h,m,mat,o});}
+ tiltG.position.set(px,0,0);
+ document.getElementById("nums").innerHTML=NUMS[n].map(s=>`<li>${s}</li>`).join("")+`<li>Mass ${D.grams.toLocaleString()} g without the mast (CAD; FRP, Al, PETG densities assumed)</li>`;
+ const gd=document.getElementById("groups");gd.innerHTML="";
+ for(const [g,lab] of Object.entries(GROUPS)){const its=items.filter(i=>i.o.group===g);if(!its.length)continue;
+  const r=document.createElement("div");r.className="row";r.innerHTML=`<input type="checkbox" checked id="g_${g}"><span class="sw" style="background:${its[0].o.color}"></span><label for="g_${g}">${lab}</label>`;
+  gd.appendChild(r);r.querySelector("input").onchange=e=>{for(const i of its)i.h.visible=e.target.checked;};}
+ cur=n;doEl();home();
+}
+function doEl(){const v=+document.getElementById("el").value;document.getElementById("elv").textContent=v+"°";tiltG.rotation.y=-v*Math.PI/180;}
+document.getElementById("el").oninput=doEl;
+for(const n of ["6","10"])document.getElementById("n"+n).onclick=()=>{document.querySelectorAll(".seg button").forEach(b=>b.classList.remove("on"));document.getElementById("n"+n).classList.add("on");load(n);};
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let down=null;
+canvas.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY];});
+canvas.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>4)return;
+ const r=canvas.getBoundingClientRect();mouse.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(mouse,camera);
+ const hit=ray.intersectObjects(items.filter(i=>i.h.visible).map(i=>i.m),false)[0];
+ if(picked)picked.mat.emissive.setHex(0);const card=document.getElementById("pick");
+ if(!hit){picked=null;card.innerHTML='<b>Nothing selected</b><span class="m">Click a part for its material and size.</span>';return;}
+ picked=items.find(i=>i.m===hit.object);picked.mat.emissive.setHex(0x553311);
+ card.innerHTML=`<b>${picked.o.label}</b><span class="m">${picked.o.grams} g · <code>${picked.o.name}</code></span>`;});
+function home(){const D=YAGI[cur],mid=(D.boom[0]+D.boom[1])/2,len=D.boom[1]-D.boom[0];controls.target.set(mid,-60,0);camera.position.set(mid+len*.55,len*.55,len*1.35);controls.update();}
+function rs(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();}
+new ResizeObserver(rs).observe(canvas);rs();load("10");
+(function L(){controls.update();renderer.render(scene,camera);requestAnimationFrame(L);})();
+})();
+</script></body></html>

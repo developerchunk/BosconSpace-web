@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/cad-cradle-v5/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Cradle v5</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1d2330; --muted: #5d6675; --rule: #dde1e7;
+    --accent: #2f6f9f; --warn: #a2560c; --ok: #2d7a46; --bad: #b3261e; --canvas: #e9ecf0; --chip: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+      --accent: #6fa8d6; --warn: #e0a15a; --ok: #6cc28a; --bad: #ef8a80; --canvas: #0f1217; --chip: #232a34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+    --accent: #6fa8d6; --warn: #e0a15a; --ok: #6cc28a; --bad: #ef8a80; --canvas: #0f1217; --chip: #232a34;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  .app { display: grid; grid-template-columns: 360px 1fr; height: 100vh; }
+  aside { background: var(--panel); border-right: 1px solid var(--rule); overflow-y: auto; padding: 18px 18px 32px; }
+  h1 { font-size: 18px; margin: 0 0 2px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .status { border: 1px solid var(--rule); border-left: 3px solid var(--warn); border-radius: 6px;
+    padding: 8px 10px; font-size: 12.5px; margin-bottom: 14px; background: var(--chip); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+  .tabs button { padding: 9px 8px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 20px 0 8px; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .row label { flex: 1; cursor: pointer; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.2); }
+  .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 0 5px;
+    font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .ctl { margin: 6px 0 10px; }
+  .ctl .lab { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--muted); }
+  .views { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .views button, select { padding: 6px 10px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+  .views button.hl { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11.5px; padding: 4px 0;
+    border-bottom: 1px solid var(--rule); }
+  th.v, td.v { text-align: right; white-space: nowrap; padding-left: 8px; font-variant-numeric: tabular-nums; }
+  td { padding: 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .src { color: var(--muted); font-size: 11px; }
+  .bad { color: var(--bad); font-weight: 600; }
+  .good { color: var(--ok); font-weight: 600; }
+  .warn { color: var(--warn); }
+  .pt { border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .pt b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .pt .was { color: var(--muted); font-size: 12px; }
+  .pt .now { font-size: 12.5px; margin-top: 3px; }
+  .pt button { margin-top: 6px; padding: 3px 8px; font-size: 11.5px; border: 1px solid var(--rule);
+    background: var(--chip); color: var(--ink); border-radius: 5px; cursor: pointer; }
+  ul, ol { padding-left: 18px; margin: 0; }
+  li { margin-bottom: 6px; font-size: 13px; }
+  code { font-size: 12px; background: var(--chip); padding: 1px 4px; border-radius: 4px; }
+  main { position: relative; background: var(--canvas); min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .hud { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted);
+    background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 6px 10px; border-radius: 6px; }
+  .cap { position: absolute; left: 14px; top: 12px; right: 14px; font-size: 13px; pointer-events: none;
+    color: var(--ink); background: color-mix(in srgb, var(--panel) 88%, transparent); padding: 8px 11px;
+    border-radius: 7px; border: 1px solid var(--rule); }
+  .cap:empty { display: none; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+  .theme { float: right; font-size: 11.5px; padding: 3px 8px; border: 1px solid var(--rule); background: var(--chip);
+    color: var(--ink); border-radius: 5px; cursor: pointer; }
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; }
+    main { order: -1; height: 55vh; }
+    aside { border-right: 0; border-top: 1px solid var(--rule); padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <button class="theme" id="theme">◐ theme</button>
+    <h1>HAB-1 cradle v5</h1>
+    <div class="sub">Honeycomb sandwich · housed edges · dovetail corners · cord straps · 6 Oct 2026</div>
+    <div class="status"><b>Designed and checked in CAD only. Nothing printed.</b> All 12 checks pass, and each
+      fails when broken on purpose. Print the test plate first: it decides how heavy the box needs to be.</div>
+
+    <div class="tabs">
+      <button id="tab-box" class="on">Box (6 parts)</button>
+      <button id="tab-coupons">Test plate</button>
+    </div>
+
+    <h2>Parts</h2>
+    <div id="parts"></div>
+
+    <h2>View</h2>
+    <div class="ctl" id="ex-ctl">
+      <div class="lab"><span>Explode</span><span id="ex-v">0 mm</span></div>
+      <input id="explode" type="range" min="0" max="90" value="0">
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>Section (shows the honeycomb)</span>
+        <select id="sec-axis"><option value="off">off</option><option value="x">cut across X</option>
+          <option value="y">cut across Y</option><option value="z">cut across Z</option></select></div>
+      <input id="section" type="range" min="0" max="1000" value="500" disabled>
+    </div>
+    <div class="row" id="strap-row"><input type="checkbox" id="straps" checked>
+      <label for="straps">Cord straps (shown when assembled)</label></div>
+    <div class="views">
+      <button data-view="iso">Iso</button><button data-view="top">Top</button><button data-view="front">Front</button>
+      <button data-preset="corner" class="hl">Dovetail corner</button>
+      <button data-preset="edge" class="hl">Lid edge</button>
+      <button data-preset="core" class="hl">Honeycomb</button>
+    </div>
+
+    <h2>Your five points, and what v5 does</h2>
+    <div id="points"></div>
+
+    <h2>Numbers: v4 against v5</h2>
+    <table id="nums"></table>
+
+    <h2>The decision: what the honeycomb costs</h2>
+    <div style="font-size:13px;margin-bottom:8px">The cracking, snaps and corners were all fixed by the <b>edges and
+      joints</b>, which add little mass. The mass comes from the honeycomb panels. The test plate prints three panel
+      types side by side.</div>
+    <table id="opts"></table>
+
+    <h2>Tests on the test plate (record load and where it broke)</h2>
+    <table id="tests"></table>
+    <div class="src" style="margin-top:6px">Predictions: <code>cad/beam_predict.py</code>. A result far from a prediction,
+      either way, means the model is wrong.</div>
+
+    <h2>Not done / to confirm</h2>
+    <ul id="open"></ul>
+
+    <h2>Files</h2>
+    <ul style="font-size:12.5px">
+      <li><code>docs/31-cradle-v5-honeycomb-strapped.md</code>: design, sources, checks</li>
+      <li><code>cad/print/v5/hab1_v5_print_pack.zip</code>: K2 Plus plates, centred; <code>PRINT.md</code> inside</li>
+      <li><code>cad/cradle.py</code>, <code>check_cradle.py</code>, <code>panel_sizing.py</code>, <code>beam_predict.py</code>,
+        <code>cradle_loads.py</code></li>
+      <li>This page: <code>cad/export_viewer.py</code> → <code>cad/viewer_v5/</code></li>
+    </ul>
+  </aside>
+  <main>
+    <canvas id="c"></canvas>
+    <div class="cap" id="caption"></div>
+    <div class="loading" id="loading">Loading meshes…</div>
+    <div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div>
+  </main>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="cradle_data.js"></script>
+<script>
+const POINTS = [
+  { n: 1, t: "Base edges cracked",
+    was: "v4: slots sat 4.35 mm from the cap edge and cut 38 % of every edge. That left a notched strip right where the ground hits first (ligament rule: ≥ 2 × thickness, GE/SABIC).",
+    now: "Walls sit in a continuous 3.5 mm groove inside each cap. Nothing passes through a cap within 20 mm of an edge. Solid 5.8 mm rim, R3 rounded edge, R6 corners.",
+    preset: "edge" },
+  { n: 2, t: "Every clip opened on touchdown",
+    was: "v4: snap barbs stood 1.7 mm proud with 0.85 mm of hook. Snaps carry no shear and come apart in drops (EPFL; Ju & Hsiao 2004).",
+    now: "No snaps. Each part slides in one direction only and the parts block each other. The lid goes on last and is held by 4 Dyneema cord straps over the wall lines (PPP-B-601H strapped closure). Your string, run around the box so it only pulls." },
+  { n: 3, t: "Honeycomb on every side",
+    was: "v4: 5 mm open triangle grid with a windowed skin.",
+    now: "10 mm sandwich: 0.8 mm skins, sealed 7 mm hex cells, 0.86 mm cell walls. 34× stiffer than v4 (Hexcel AGU 075b method). As a two-skin core, honeycomb is lighter than a triangle grid of the same strength.",
+    preset: "core" },
+  { n: 4, t: "Edges as strong as possible",
+    was: "v4: edge band notched by slots, sharp slot corners (Kt ≈ 5–8).",
+    now: "Every panel edge is a solid closeout (Hexcel p.23, ECSS). Under each cap groove sit sealed box-section tunnels. Every edge load path runs in the plane of the printed layers.",
+    preset: "edge" },
+  { n: 5, t: "Vertical joints had no interlock",
+    was: "v4: butt joint with a stop rib; nothing resisted a wall bending outward.",
+    now: "Sliding half-dovetail, 15°, on every vertical corner (EPFL: 15–25° dovetails 26–38 % stiffer than finger joints). Pulled outward either way, it locks after 0.75 mm of play; it only slides vertically.",
+    preset: "corner" },
+];
+const NUMS = [
+  ["Box (6 parts + straps)", "443 g", "1,154 g", "CAD; straps assumed ~9 g", "bad"],
+  ["Moving on the foam", "2.34 kg", "3.05 kg", "contents 1.70 kg + box + mounts", ""],
+  ["Whole package (EPS 240–740 g)", "2.81–3.31 kg", "3.51–4.01 kg", "cradle_loads.py", "bad"],
+  ["Heavy balloon, CAR 9C 3 kg line", "above ~425 g EPS", "always heavy", "DGCA docs assume < 3 kg", "bad"],
+  ["Touchdown, 1.2 m chute", "8.1–8.7 m/s", "9.0–9.5 m/s", "√mass from 6.5 m/s at 2.0 kg", "bad"],
+  ["Foam strain at 7 m/s", "55 %", "62 %", "LD24, 57 mm pad: bottoming risk", "bad"],
+  ["Inside space", "171 × 171 × 180", "158 × 158 × 170 mm", "CAD", ""],
+  ["Panel stiffness D", "1.7 N·m", "57.9 N·m (34×)", "panel_sizing.py", "good"],
+  ["Panel worst SF, frame pad", "0.05 (linear)", "1.57 (core shear)", "need 1.5; face-block pad: 1.07", "good"],
+  ["Cap pull-off held by straps", "snaps", "12.9 kN vs 2.17 kN (5.9×)", "2 mm Dyneema 4.02 kN, knot 40 %", "good"],
+  ["Lid lift at that load", "barb off", "1.28 of 3.5 mm groove", "walls stay captured", "good"],
+  ["Corner lock", "none", "after 0.75 mm play", "CAD probe", "good"],
+  ["PETG", "< 1 spool", "1.35–1.38 kg (2 spools)", "incl. test plate", ""],
+];
+const OPTS = [
+  ["A · v5 as built", "1.15 kg", "Every panel check passes at SF 1.5 with frame-shaped foam pads"],
+  ["B · light sandwich (8 mm, 0.6 mm skins, 1-line core)", "≈ 0.85 kg", "Fails core shear on paper; test 5 measures the real core strength"],
+  ["C · v4-style isogrid panels on the v5 joints", "≈ 0.55 kg", "Predicted to break at 8.6 kg in test 4; needs that test to confirm or overturn"],
+];
+const TESTS = [
+  ["1 · Corner fit", "slides in by hand", "change CLR by 0.05 mm if tight or loose"],
+  ["2 · Corner pull", "holds 25 kg", "then to failure: the plastic should break before the joint lets go"],
+  ["3 · Cap edge, 9 m drops", "no crack", "3 × corner-first, 3 × edge-first (v4 cracked here)"],
+  ["4 · Beams, 168 mm span", "≥ 17 kg", "predicted: v5 54 kg · light 29 kg · v4 8.6 kg"],
+  ["5 · Beams, 60 mm span", "≥ 92 kg", "predicted: v5 96 kg · light 35 kg (core shear)"],
+  ["6 · Strap knot", "no slip", "30 kg for 1 h on the loop as you will tie it"],
+];
+const OPEN = [
+  "<b>Foam:</b> recut as picture frames (190 mm outside, 85 mm hole, same area as the 170 mm block). They press over the walls and cut lid bending 2.5× (MIL-HDBK-304C). With today's solid blocks the margin drops to about 1.1. Also re-size for 3.05 kg.",
+  "<b>Mounts:</b> the battery tray, straps and Pi plate still fit v4's inserts. v5 has 5 inserts per panel, at (0, 0) and (±45, ±45) mm.",
+  "<b>Core shear allowable</b> (interlayer 18 MPa ÷ √3) is an assumption, and it governs the panel. Test 5 measures it.",
+  "<b>No PETG test exists</b> for the dovetail, the housed groove or the strapped lid. The coupons are the first evidence.",
+  "<b>DGCA documents</b> (docs 21–24) assume a package under 3 kg. Option A makes it heavy.",
+  "Strap knot slip and Dyneema creep over the 30-day test (test 6). Cold is fine: no brittle point down to −150 °C (DSM).",
+];
+
+(function () {
+  // ---------- sidebar text
+  document.getElementById("points").innerHTML = POINTS.map(p => `<div class="pt"><b>${p.n}. ${p.t}</b>
+    <div class="was">${p.was}</div><div class="now">→ ${p.now}</div>
+    ${p.preset ? `<button data-preset="${p.preset}">show in 3D</button>` : `<button data-straps="1">show straps</button>`}</div>`).join("");
+  document.getElementById("nums").innerHTML = `<tr><th></th><th class="v">v4</th><th class="v">v5</th></tr>` +
+    NUMS.map(([k, a, b, s, c]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${a}</td>
+      <td class="v ${c}">${b}</td></tr>`).join("");
+  document.getElementById("opts").innerHTML = `<tr><th>Option</th><th class="v">Box</th></tr>` +
+    OPTS.map(([k, m, s]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${m}</td></tr>`).join("");
+  document.getElementById("tests").innerHTML = `<tr><th>Test</th><th class="v">Pass</th></tr>` +
+    TESTS.map(([k, p, s]) => `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${p}</td></tr>`).join("");
+  document.getElementById("open").innerHTML = OPEN.map(t => `<li>${t}</li>`).join("");
+
+  // ---------- three.js
+  const canvas = document.getElementById("c");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.localClippingEnabled = true;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 1, 5000);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(1, 2, 1.5); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-1.5, -0.5, -1); scene.add(fill);
+  const bgColor = () => getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim();
+  const clip = new THREE.Plane(new THREE.Vector3(1, 0, 0), 1e6);
+  const H = CRADLE.meta.H;
+
+  function decode(b64) {
+    const bin = atob(b64), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Float32Array(buf.buffer);
+  }
+  function meshOf(o) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(decode(o.pos), 3));
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.6, metalness: 0,
+      side: THREE.DoubleSide, clippingPlanes: [clip] });
+    const holder = new THREE.Group();
+    holder.add(new THREE.Mesh(geo, mat));
+    holder.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30),
+      new THREE.LineBasicMaterial({ color: 0x10151c, transparent: true, opacity: 0.28, clippingPlanes: [clip] })));
+    holder.userData = o;
+    return holder;
+  }
+
+  // model frame: z up  ->  three.js: y up (rotate -90 deg about x)
+  function frame(g) { const f = new THREE.Group(); f.rotation.x = -Math.PI / 2; f.add(g); return f; }
+
+  const box = new THREE.Group(), boxItems = {};
+  for (const o of CRADLE.box) { const h = meshOf(o); box.add(h); boxItems[o.name] = h; }
+  // straps: 2 lengthwise (x-z plane, y = +-a) and 2 girthwise (y-z plane, x = +-a), riding on the rims
+  const straps = new THREE.Group();
+  const a = CRADLE.meta.strap_at, r = 1.0, e = H + r, R = 3.0;
+  const loop = (pt) => {
+    const pts = [];
+    const corner = (cx, cz, a0) => { for (let k = 0; k <= 6; k++) { const t = a0 + k * Math.PI / 12;
+      pts.push(pt((cx) + (R + r) * Math.cos(t), (cz) + (R + r) * Math.sin(t))); } };
+    const c = H - R;
+    corner(c, c, 0); corner(-c, c, Math.PI / 2); corner(-c, -c, Math.PI); corner(c, -c, 3 * Math.PI / 2);
+    return new THREE.CatmullRomCurve3(pts, true, "catmullrom", 0.05);
+  };
+  const smat = new THREE.MeshStandardMaterial({ color: 0xf2d25c, roughness: 0.5, emissive: 0x2a2100, clippingPlanes: [clip] });
+  for (const s of [1, -1]) {
+    straps.add(new THREE.Mesh(new THREE.TubeGeometry(loop((u, v) => new THREE.Vector3(u, s * a, v)), 160, r, 8, true), smat));
+    straps.add(new THREE.Mesh(new THREE.TubeGeometry(loop((u, v) => new THREE.Vector3(s * a, u, v)), 160, r, 8, true), smat));
+  }
+  box.add(straps);
+  const boxF = frame(box); scene.add(boxF);
+
+  const coup = new THREE.Group(), coupItems = {};
+  // layout: small pieces on the first row, beams below
+  let x = 0, y = 0, rowD = 0;
+  for (const o of CRADLE.coupons) {
+    const h = meshOf(o);
+    const bb = new THREE.Box3().setFromObject(h);
+    const w = bb.max.x - bb.min.x, d = bb.max.y - bb.min.y;
+    if (o.name.includes("beam")) {                  // each beam on its own row
+      if (x > 0) { y -= rowD + 14; x = 0; }
+      h.position.set(-bb.min.x, y - d - bb.min.y, -bb.min.z);
+      y -= d + 14; rowD = 0;
+    } else {                                        // small pieces side by side
+      h.position.set(x - bb.min.x, y - d - bb.min.y, -bb.min.z);
+      x += w + 14; rowD = Math.max(rowD, d);
+    }
+    coup.add(h); coupItems[o.name] = h;
+  }
+  const cb = new THREE.Box3().setFromObject(coup), cc = cb.getCenter(new THREE.Vector3());
+  coup.position.sub(cc);
+  const coupF = frame(coup); scene.add(coupF); coupF.visible = false;
+
+  let cur = "box";
+  const caption = document.getElementById("caption");
+  function partsList() {
+    const list = cur === "box" ? CRADLE.box : CRADLE.coupons, items = cur === "box" ? boxItems : coupItems;
+    document.getElementById("parts").innerHTML = "";
+    for (const o of list) {
+      const h = items[o.name], id = "cb-" + o.name;
+      const row = document.createElement("div"); row.className = "row";
+      row.innerHTML = `<input type="checkbox" id="${id}" ${h.visible ? "checked" : ""}>
+        <span class="sw" style="background:${o.color}"></span><label for="${id}">${o.label}</label>
+        <span class="tag">${o.grams} g</span>`;
+      row.querySelector("input").onchange = ev => { h.visible = ev.target.checked; };
+      document.getElementById("parts").appendChild(row);
+    }
+  }
+  function show(k) {
+    cur = k;
+    boxF.visible = k === "box"; coupF.visible = k === "coupons";
+    document.getElementById("tab-box").classList.toggle("on", k === "box");
+    document.getElementById("tab-coupons").classList.toggle("on", k === "coupons");
+    document.getElementById("ex-ctl").style.display = k === "box" ? "" : "none";
+    document.getElementById("strap-row").style.display = k === "box" ? "" : "none";
+    caption.textContent = k === "box" ? "190 mm cube · walls slide down into the floor groove and each other's dovetails · lid last · 4 cord straps"
+      : "Plate 1, print first (~180 g): corner pair (×2 in the file), cap edge, three panel beams";
+    partsList(); setSection("off"); setView("iso");
+  }
+  function applyExplode() {
+    const v = +document.getElementById("explode").value;
+    document.getElementById("ex-v").textContent = v + " mm";
+    for (const h of Object.values(boxItems)) { const d = h.userData.explode; h.position.set(d[0] * v, d[1] * v, d[2] * v); }
+    straps.visible = v === 0 && document.getElementById("straps").checked &&
+      document.getElementById("sec-axis").value === "off";
+  }
+  // section in MODEL axes; keep the part of the model below the cut value
+  function applySection() {
+    const ax = document.getElementById("sec-axis").value, sl = document.getElementById("section");
+    sl.disabled = ax === "off";
+    applyExplode();
+    if (ax === "off") { clip.set(new THREE.Vector3(1, 0, 0), 1e6); return; }
+    const half = cur === "box" ? H + 95 : 120;
+    cutAt(ax, (+sl.value / 1000) * 2 * half - half);
+  }
+  function cutAt(ax, v) {
+    if (ax === "x") clip.set(new THREE.Vector3(-1, 0, 0), v);       // keep model x <= v
+    if (ax === "y") clip.set(new THREE.Vector3(0, 0, 1), v);        // model y = -world z: keep y <= v
+    if (ax === "z") clip.set(new THREE.Vector3(0, -1, 0), v);       // model z = world y: keep z <= v
+  }
+  function setSection(ax, v) {
+    document.getElementById("sec-axis").value = ax;
+    const half = cur === "box" ? H + 95 : 120;
+    if (v !== undefined) document.getElementById("section").value = Math.round((v + half) / (2 * half) * 1000);
+    applySection();
+  }
+  const w3 = (mx, my, mz) => new THREE.Vector3(mx, mz, -my);   // model -> world
+  function look(target, dir, dist) {
+    controls.target.copy(target);
+    camera.position.copy(target.clone().add(dir.clone().normalize().multiplyScalar(dist)));
+    controls.update();
+  }
+  function setView(v) {
+    const dist = cur === "box" ? 720 : 620;
+    const dirs = { iso: [0.9, 0.75, 1.1], top: [0, 1, 0.001], front: [0, 0.08, 1] };
+    look(new THREE.Vector3(0, 0, 0), new THREE.Vector3(...dirs[v]), dist);
+  }
+  function preset(p) {
+    if (cur !== "box") show("box");
+    document.getElementById("explode").value = 0; applyExplode();
+    if (p === "corner") {
+      setSection("z", 20);
+      look(w3(84, 84, 20), new THREE.Vector3(0.25, 1, 0.15), 120);
+      caption.textContent = "Corner from above, cut at z = 20 mm: the y+ wall's 15° tongue sits in the x+ wall's undercut groove. The fin (5.3 mm) stops the y+ wall moving outward; the undercut stops the x+ wall.";
+    } else if (p === "edge") {
+      setSection("y", 0);
+      look(w3(76, 0, 70), new THREE.Vector3(0.1, 0.05, -1), 170);   // from +y, the side that was cut away
+      caption.textContent = "Lid edge, cut at y = 0: wall housed 3.5 mm deep in a continuous groove, sealed box-section closeout tunnels, solid rim with an R3 edge, honeycomb sandwich inboard. No slot anywhere near the edge.";
+    } else if (p === "core") {
+      setSection("z", 40);
+      look(w3(0, 0, 40), new THREE.Vector3(0.5, 1.2, 0.8), 360);
+      caption.textContent = "Cut at z = 40 mm: the four walls' honeycomb (7 mm cells, 0.86 mm walls, sealed between 0.8 mm skins), with the solid bands at the joints and the Ø14 potted insert bosses.";
+    }
+  }
+
+  document.getElementById("tab-box").onclick = () => show("box");
+  document.getElementById("tab-coupons").onclick = () => show("coupons");
+  document.getElementById("explode").oninput = applyExplode;
+  document.getElementById("straps").onchange = applyExplode;
+  document.getElementById("sec-axis").onchange = applySection;
+  document.getElementById("section").oninput = applySection;
+  document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view));
+  document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => preset(b.dataset.preset));
+  document.querySelectorAll("[data-straps]").forEach(b => b.onclick = () => {
+    show("box"); document.getElementById("straps").checked = true; applyExplode(); setView("iso");
+    caption.textContent = "4 cord straps (2 mm Dyneema): 2 lengthwise, 2 girthwise, over the wall lines and round the R3 rims. They hold the lid; everything else is held by the parts blocking each other.";
+  });
+  const root = document.documentElement;
+  document.getElementById("theme").onclick = () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("hab1-theme", root.dataset.theme); } catch (e) {}
+    scene.background = new THREE.Color(bgColor());
+  };
+  try { const t = localStorage.getItem("hab1-theme"); if (t) root.dataset.theme = t; } catch (e) {}
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => scene.background = new THREE.Color(bgColor()));
+  scene.background = new THREE.Color(bgColor());
+  resize();
+  show("box"); applyExplode();
+  document.getElementById("loading").remove();
+  (function loopR() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loopR); })();
+})();
+</script>
+</body>
+</html>

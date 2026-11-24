@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/cad-heltec-mount/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heltec Stand Mount</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#2f6f9f;--canvas:#e9ecf0;--chip:#eef1f5;--good:#1a7f37;--bad:#c62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34;--good:#3fb950;--bad:#f85149}}
+:root[data-theme="dark"]{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34;--good:#3fb950;--bad:#f85149}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:340px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:16px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:2px 0}.row label{flex:1}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:5px 9px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+select{width:100%}.btns{display:flex;flex-wrap:wrap;gap:5px}
+ul{padding-left:18px;margin:0}li{margin-bottom:4px;font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}td{padding:3px 4px;border-bottom:1px solid var(--rule)}td:last-child{text-align:right;font-weight:600}
+.good{color:var(--good)}.bad{color:var(--bad)}
+main{position:relative;background:var(--canvas)}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+.status{position:absolute;left:12px;top:10px;font-size:13px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--rule);border-radius:6px;padding:7px 10px;font-variant-numeric:tabular-nums;max-width:calc(100% - 24px)}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:58vh auto;height:auto}main{order:-1;height:58vh}}
+</style></head><body><div class="app"><aside>
+<h1>Heltec stand mount</h1>
+<div class="sub">Heltec V3 receiver case on a bolted V-clamp that fits any stand within its range. All PETG, no metal: jaws, case, snap-fit lid, printed M10 bolts and thumb-nuts, press-fit lock pin. Board is Heltec's own STEP, standing on its header pins. Designed and checked in CAD; nothing printed yet.</div>
+
+<h2>Pipe it clamps</h2>
+<div class="row"><select id="kind"><option value="round">Round pipe</option><option value="square">Square tube</option></select></div>
+<div class="lab"><span>Size</span><span id="sizev"></span></div>
+<input id="size" type="range" min="8" max="56" step="0.1" value="26.9">
+<div class="btns" style="margin-top:6px">
+<button data-p="round,26.9">Axle / mast 26.9</button><button data-p="round,33.7">Sleeve 33.7</button><button data-p="round,42.4">32 NB 42.4</button>
+<button data-p="square,16">Boom 16 sq</button><button data-p="square,25">Leg 25 sq</button><button data-p="round,13">Min 13</button><button data-p="round,46.6">Max 46.6</button><button data-p="round,52">52 (too big)</button>
+</div>
+<table style="margin-top:8px" id="fit"></table>
+
+<h2>Case on the clamp</h2>
+<div class="row"><input type="radio" name="ori" id="oAlong" checked><label for="oAlong">Along the pipe (on the axle)</label></div>
+<div class="row"><input type="radio" name="ori" id="oAcross"><label for="oAcross">Across the pipe</label></div>
+
+<h2>View</h2>
+<div class="lab"><span>Explode</span><span id="exv">0 mm</span></div><input id="ex" type="range" min="0" max="60" value="0">
+<div class="row"><input type="checkbox" id="sec"><label for="sec">Section through the centre line</label></div>
+<div class="btns"><button data-v="iso">Iso</button><button data-v="end">Along the pipe</button><button data-v="side">Side</button><button data-v="top">Top</button><button data-v="lid">Lid side (OLED)</button></div>
+
+<h2>Show</h2>
+<div id="show"></div>
+
+<h2>Print (PETG)</h2>
+<table id="mass"></table>
+<ul style="margin-top:8px">
+<li>Jaws print on their end face: the profile lies flat, so the V, the tongue and the bolt holes (teardrops) need no supports.</li>
+<li>Bolts stand head down; thumb-nuts flat; pins head down. 4 walls, 100 % infill for bolts and nuts.</li>
+<li>Case base down; the dovetail channels bridge. Lid outer face down.</li>
+<li>Plate: <code>cad/print/heltec-mount/heltec_mount_plate.3mf</code>, centred on the K2 Plus bed.</li>
+</ul>
+<h2>Printed hardware (no metal)</h2>
+<ul>
+<li>2 x M10 x 1.5 bolt, hex head captive in the jaw: 55 mm for pipes up to 29 mm (this stand), 75 mm up to 46.6 mm.</li>
+<li>2 x knurled thumb-nut, 28 mm across, tightened by hand.</li>
+<li>Lid snaps on with 4 hooks; press the barbs in through the side windows to open it.</li>
+<li>Lock pin: tap it into the tongue through the case floor (0.15 mm press fit).</li>
+<li>Bought parts left: u.FL to SMA-jack bulkhead pigtail; N(M)-SMA(M) adapter to the Yagi.</li>
+</ul>
+</aside>
+<main><canvas id="c"></canvas><div class="status" id="status"></div><div class="hud">drag to orbit, right-drag to pan, scroll to zoom</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="mount_data.js"></script>
+<script>
+(function () {
+"use strict";
+const $ = id => document.getElementById(id), css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const M = window.MOUNT.meta, rad = d => d * Math.PI / 180;
+
+// ---------------------------------------------------------------- fit maths (same as heltec_mount.py)
+const A = rad(M.alpha), kC = 1 / Math.sin(A), kH = Math.cos(A) ** 2 / Math.sin(A);
+function fit(kind, s) {
+  if (kind === "round") {
+    const r = s / 2, h = r * kH, gap = 2 * (r * kC - M.depth);
+    return { gap, contact: h, ok: h <= M.depth - M.edge + 1e-9 && gap >= M.g_min - 1e-9,
+             why: gap < M.g_min ? "too small: the jaws would meet before gripping" : h > M.depth - M.edge ? "too big: it would bear on the V rim" : "" };
+  }
+  const seat = Math.min(s / 2 / Math.tan(A), M.depth), gap = 2 * seat + s - 2 * M.depth;
+  return { gap, contact: seat, ok: gap >= M.g_min && s <= 40.0 + 1e-9, why: gap < M.g_min ? "too small" : s > 40 ? "bigger than checked (40)" : "" };
+}
+const boltNeed = gap => (M.thick - M.head_h) + gap + M.thick + M.nut_h + M.spare;
+
+// ---------------------------------------------------------------- scene (mm; CAD Z up -> three Y up)
+const canvas = $("c"), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.localClippingEnabled = true;
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(35, 1, 1, 5000), controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(1, 2, 1.5); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-1.5, -0.5, -1); scene.add(fill);
+const bg = () => { scene.background = new THREE.Color(css("--canvas")); }; bg();
+const clip = new THREE.Plane(new THREE.Vector3(0, 0, -1), 1e6);
+const world = new THREE.Group(); world.rotation.x = -Math.PI / 2; scene.add(world);   // CAD frame inside
+
+function dec(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return new Float32Array(u.buffer); }
+const mats = [];
+function meshOf(o) {
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(dec(o.pos), 3)); g.computeVertexNormals();
+  const m = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.6, metalness: o.kind === "hw" ? 0.2 : 0.05, side: THREE.DoubleSide,
+    transparent: o.opacity < 1, opacity: o.opacity, depthWrite: o.opacity >= 1, clippingPlanes: [clip] });
+  mats.push(m);
+  const grp = new THREE.Group(); grp.add(new THREE.Mesh(g, m));
+  if (o.kind === "print") { const e = new THREE.LineSegments(new THREE.EdgesGeometry(g, 30), new THREE.LineBasicMaterial({ color: 0x10151c, transparent: true, opacity: 0.35, clippingPlanes: [clip] })); grp.add(e); }
+  return grp;
+}
+const P = {}; for (const o of window.MOUNT.objects) P[o.name] = Object.assign(meshOf(o), { userData: o });
+
+const jawTop = new THREE.Group(), jawBot = new THREE.Group(), caseG = new THREE.Group(), caseIn = new THREE.Group(), lidG = new THREE.Group();
+jawTop.add(P.jaw_top); jawBot.add(P.jaw_bot);
+caseIn.position.set(-M.xc, 0, -M.z_base);            // case frame: crossing point at the group origin, plinth bottom at 0
+for (const k of ["case", "heltec", "oled", "header", "pins", "ufl", "sma"]) caseIn.add(P[k]);
+const pinG = new THREE.Group(); pinG.add(P.pin); pinG.position.set(M.xc, 0, -M.pin_cbore + 1.2); pinG.rotation.x = Math.PI; caseIn.add(pinG);
+lidG.add(P.lid); caseIn.add(lidG);
+caseG.add(caseIn); world.add(jawTop, jawBot, caseG);
+
+// pigtail u.FL -> SMA (case frame), rebuilt once
+(function () {
+  const u = M.ufl, sx = M.x1 - 9, z = M.sma_z;
+  const pts = [[u[0], u[1], u[2] + 1.5], [u[0] + 2, 0, u[2] + 4], [u[0] + 9, 6, M.zc - 2], [u[0] + 15, 4, M.zc - 4], [sx - 3, -3, z + 3], [sx, 0, z]].map(p => new THREE.Vector3(...p));
+  const m = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 0.7, clippingPlanes: [clip] }); mats.push(m);
+  const t = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 60, 0.6, 6), m);
+  t.userData = { label: "u.FL to SMA pigtail" }; caseIn.add(t); P.pigtail = t;
+})();
+
+// pipe, printed bolts and thumb-nuts (placed per pipe)
+const pipeMat = new THREE.MeshStandardMaterial({ color: 0xb8bec7, roughness: 0.5, metalness: 0.5, transparent: true, opacity: 0.9, clippingPlanes: [clip] }); mats.push(pipeMat);
+let pipe = null; const bolts = new THREE.Group(); world.add(bolts);
+function cylZ(r, z0, z1, x, y, mat, seg = 20) { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, z1 - z0, seg), mat); m.rotation.x = Math.PI / 2; m.position.set(x, y, (z0 + z1) / 2); return m; }
+
+// ---------------------------------------------------------------- show toggles
+const SHOW = [["print", "Printed parts", "#2d6cdf", ["jaw_top", "jaw_bot", "case", "pin"]], ["lid", "Lid (translucent)", "#8cc8f0", ["lid"]],
+  ["board", "Heltec + header pins (STEP)", "#d9dde3", ["heltec", "oled", "header", "pins"]], ["rf", "u.FL, pigtail, SMA", "#d4a017", ["ufl", "pigtail", "sma"]],
+  ["bolts", "Printed M10 bolts + thumb-nuts", "#f0a020", []], ["pipe", "Pipe", "#b8bec7", []]];
+$("show").innerHTML = SHOW.map(([k, l, c]) => `<div class="row"><input type="checkbox" id="s_${k}" checked><span class="sw" style="background:${c}"></span><label for="s_${k}">${l}</label></div>`).join("");
+function applyShow() {
+  for (const [k, , , names] of SHOW) for (const n of names) P[n].visible = $("s_" + k).checked;
+  bolts.visible = $("s_bolts").checked; if (pipe) pipe.visible = $("s_pipe").checked;
+}
+
+// ---------------------------------------------------------------- layout for the chosen pipe
+function update() {
+  const kind = $("kind").value, s = +$("size").value, f = fit(kind, s), e = +$("ex").value;
+  $("sizev").textContent = kind === "round" ? `dia ${s.toFixed(1)} mm` : `${s.toFixed(1)} mm square`;
+  $("exv").textContent = `${e} mm`;
+  const half = f.gap / 2;
+  jawTop.position.set(0, 0, half + e * 0.6);
+  jawBot.position.set(0, 0, -half - e * 0.6);
+  caseG.position.set(M.width / 2, 0, half + M.mid + e * 1.4);   // case sits on jaw_top's flat, MID deep
+  caseG.rotation.z = $("oAcross").checked ? Math.PI / 2 : 0;
+  lidG.position.set(0, 0, e * 1.2);
+  P.heltec.position.z = P.oled.position.z = P.header.position.z = P.pins.position.z = P.ufl.position.z = e * 0.6;
+  // pipe
+  if (pipe) world.remove(pipe);
+  const L = M.width + 160;
+  pipe = kind === "round" ? new THREE.Mesh(new THREE.CylinderGeometry(s / 2, s / 2, L, 48), pipeMat)
+                          : new THREE.Mesh(new THREE.BoxGeometry(s, L, s), pipeMat);
+  pipe.rotation.z = Math.PI / 2; pipe.position.set(M.width / 2, 0, 0); world.add(pipe);
+  // printed bolts: hex head in jaw_top's pocket (0.2 below its back), shank down; thumb-nut under jaw_bot,
+  // turned so its thread meets the bolt's (same phase formula as heltec_mount.nut_phase_deg)
+  bolts.clear();
+  const need = boltNeed(f.gap), Lb = M.bolt_lengths.find(L => L >= need);
+  const src = P[Lb === 55 ? "bolt_55" : "bolt_75"];
+  for (const sy of [-1, 1]) {
+    const y = sy * M.bolt_y, top = half + M.thick - (M.head_h - M.head_t) + e * 0.6;
+    const b = src.clone(); b.rotation.x = Math.PI; b.position.set(M.width / 2, y, top); bolts.add(b);
+    const zn = -half - M.thick - M.nut_h - e * 0.6;
+    const ph = ((360 * (zn - top + M.head_t) / M.pitch) % 360 + 360) % 360;
+    const n = P.nut.clone(); n.rotation.z = rad(ph); n.position.set(M.width / 2, y, zn); bolts.add(n);
+  }
+  P.bolt_55.visible = P.bolt_75.visible = P.nut.visible = false;
+  // status and fit table
+  const okTxt = f.ok ? `<span class="good">grips</span>` : `<span class="bad">outside the range: ${f.why}</span>`;
+  $("status").innerHTML = `${kind === "round" ? "Round" : "Square"} ${s.toFixed(1)} mm: ${okTxt} | jaw gap ${f.gap.toFixed(1)} mm | printed bolt: need ${need.toFixed(1)} under the head, ` + (Lb ? `use the ${Lb} mm bolt` : `<span class="bad">longer than 75: not covered</span>`);
+  $("fit").innerHTML = [
+    ["Designed range (round)", `${M.d_min} to ${M.d_max} mm`], ["Square tube", "10 to 40 mm"],
+    ["Gap between the jaws", `${f.gap.toFixed(1)} mm (min ${M.g_min})`],
+    [kind === "round" ? "Contact above V apex" : "Seat above V apex", `${f.contact.toFixed(2)} mm (limit ${(M.depth - M.edge).toFixed(2)})`],
+    ["Bolt length needed", `${need.toFixed(1)} mm (printed: 55 or 75)`]].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("");
+  sec(); applyShow();
+}
+function sec() { clip.set(new THREE.Vector3(0, 0, -1), $("sec").checked ? 0.01 : 1e6); }
+$("mass").innerHTML = Object.entries(M.mass_g).map(([k, g]) => `<tr><td>${k}</td><td>${g} g</td></tr>`).join("") +
+  `<tr><td>total, 100 % infill (CAD volume x 1.25 g/cm3)</td><td>${Object.values(M.mass_g).reduce((a, b) => a + b, 0).toFixed(0)} g</td></tr>`;
+
+// ---------------------------------------------------------------- cameras
+const T = new THREE.Vector3(M.width / 2, 25, 0);   // three coords: CAD (x, z, -y)
+function view(v) {
+  controls.target.copy(T);
+  const d = 260;
+  if (v === "iso") camera.position.set(T.x + d * 0.75, T.y + d * 0.45, T.z + d * 0.85);
+  if (v === "end") camera.position.set(T.x - d * 1.2, T.y + 10, T.z + 1);
+  if (v === "side") camera.position.set(T.x + 1, T.y + 10, T.z + d * 1.2);
+  if (v === "top") camera.position.set(T.x, T.y + d * 1.3, T.z + 1);
+  if (v === "lid") { controls.target.set(T.x, 55, 0); camera.position.set(T.x + 70, 55 + d * 0.9, T.z + 90); }   // the OLED faces DOWN on the stand (case hangs under the axle)
+  controls.update();
+}
+document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => view(b.dataset.v));
+document.querySelectorAll("[data-p]").forEach(b => b.onclick = () => { const [k, s] = b.dataset.p.split(","); $("kind").value = k; $("size").value = s; update(); });
+for (const id of ["kind", "size", "ex", "oAlong", "oAcross"]) $(id).addEventListener("input", update);
+$("sec").onchange = sec; $("show").addEventListener("change", applyShow);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", bg);
+const Q = new URLSearchParams(location.search);
+if (Q.get("theme")) { document.documentElement.dataset.theme = Q.get("theme"); bg(); }
+if (Q.get("export")) { document.querySelector("aside").style.display = "none"; document.querySelector(".app").style.gridTemplateColumns = "1fr"; document.querySelector(".hud").style.display = "none"; }
+for (const k of ["size", "ex"]) if (Q.has(k)) $(k).value = Q.get(k);
+if (Q.has("kind")) $("kind").value = Q.get("kind");
+if (Q.get("sec") === "1") $("sec").checked = true;
+function rs() { const w = canvas.clientWidth, h = canvas.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix(); }
+new ResizeObserver(rs).observe(canvas); rs();
+update(); view(Q.get("view") || "iso");
+(function L() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(L); })();
+})();
+</script></body></html>

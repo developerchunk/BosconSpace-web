@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/ground-station/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yagi Stand Drawings</title>
+<style>
+:root { --bg: #ffffff; }
+html, body { margin: 0; background: var(--bg); }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+canvas { display: block; }
+.nav { position: fixed; top: 8px; right: 8px; font: 14px sans-serif; background: #fff; border: 1px solid #ccc; padding: 6px 10px; border-radius: 6px; }
+.nav a { margin: 0 4px; }
+</style></head><body>
+<canvas id="c" width="3508" height="2480" style="width:100%;max-width:3508px"></canvas>
+<div class="nav" id="nav"></div>
+<script src="heltec_mount_data.js"></script>
+<script>
+"use strict";
+// ======================================================================= design (mm)
+// One source for every number on the sheets. PROPOSAL = my design, not built.
+// CONFIRM = depends on the antenna as delivered; check before cutting.
+const DZ = {
+  H: 1830,              // axle centre above ground (6 ft), chosen 2026-10-23
+  collarY: 1000, collarL: 150,
+  footY: 150,           // top of the socket plate
+  legR: 600,            // foot centres on a 600 mm radius, 120 deg apart
+  sleeveOD: 33.7, sleeveID: 28.5,   // 25 NB (1") light GI pipe, IS 1239: OD 33.7, wall 2.6
+  pipeOD: 26.9,         // 20 NB (3/4") GI pipe, IS 1239: OD 26.9
+  socketL: 80, plate: 100, plateT: 5,
+  teeL: 120, axleL: 400, axleBack: 30, antOff: 250,
+  handleY: 1200, handleL: 300, pointerY: 1090,
+  disk: 220, diskBore: 35,
+  // antenna as delivered: estimates from photos, CONFIRM
+  boom: 760, boomSec: 16, front: 670, rear: 90, elHalf: 90, antPlate: [75, 75], uRod: 6.5,   // plate, boom section, U-bolt rod: measured 2026-10-23
+  els: [205, 290, 335, 404, 473, 542, 611, 680, 749],     // from the rear end of the boom
+  elLen: [180, 160, 130, 130, 130, 130, 130, 130, 130],
+};
+DZ.sleeveR = DZ.sleeveOD / 2; DZ.pipeR = DZ.pipeOD / 2;
+DZ.mastL = Math.round(DZ.H - DZ.sleeveR - DZ.footY);       // foot of mast to underside of tee
+const legDx = DZ.legR - DZ.sleeveR, legDy = DZ.collarY - DZ.plateT;
+DZ.legL = Math.round(Math.hypot(legDx, legDy) / 5) * 5;
+DZ.legAng = Math.round(Math.atan2(legDx, legDy) * 180 / Math.PI);
+const rAtFoot = DZ.legR - (DZ.footY - DZ.plateT) / legDy * legDx;
+DZ.barL = Math.round((rAtFoot - 12.5 - DZ.plate / 2) / 5) * 5;
+DZ.swing = Math.round(Math.hypot(DZ.front, DZ.antOff));
+DZ.topTilt90 = DZ.H + DZ.front + DZ.elHalf * 0;               // boom tip straight up
+DZ.clear = DZ.sleeveID - DZ.pipeOD;
+
+// ======================================================================= canvas helpers
+const cv = document.getElementById("c"), c = cv.getContext("2d");
+const W = 3508, Hpx = 2480, INK = "#111", DIM = "#1d4ed8", RED = "#b91c1c", MUT = "#555", FILL = "#e9edf2", STEEL = "#c9ced6";
+const PX_PER_MM_PAPER = 3508 / 297;           // A4 landscape at 300 dpi
+function font(px, w) { c.font = `${w || 400} ${px}px -apple-system, Segoe UI, Roboto, sans-serif`; }
+function text(t, x, y, o = {}) {
+  font(o.size || 30, o.weight); c.fillStyle = o.color || INK; c.textAlign = o.align || "left"; c.textBaseline = o.base || "middle";
+  if (o.bg) { const w = c.measureText(t).width, s = o.size || 30, ax = o.align === "center" ? w / 2 : o.align === "right" ? w : 0; c.fillStyle = "#fff"; c.fillRect(x - ax - 6, y - s * 0.65, w + 12, s * 1.3); c.fillStyle = o.color || INK; }
+  c.fillText(t, x, y);
+}
+function wrap(t, x, y, maxW, o = {}) {
+  font(o.size || 28, o.weight); const words = t.split(" "); let line = "", yy = y, lh = (o.size || 28) * 1.35;
+  for (const w of words) { const test = line ? line + " " + w : w; if (c.measureText(test).width > maxW && line) { text(line, x, yy, o); line = w; yy += lh; } else line = test; }
+  if (line) text(line, x, yy, o); return yy + lh;
+}
+function view(ox, oy, scale) {        // model mm to px; y up
+  const k = PX_PER_MM_PAPER / scale;
+  return { X: x => ox + x * k, Y: y => oy - y * k, k, scale };
+}
+function line(x1, y1, x2, y2, o = {}) { c.strokeStyle = o.color || INK; c.lineWidth = o.w || 3; c.setLineDash(o.dash || []); c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.setLineDash([]); }
+function rect(x1, y1, x2, y2, o = {}) { const x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x2 - x1), h = Math.abs(y2 - y1); if (o.fill) { c.fillStyle = o.fill; c.fillRect(x, y, w, h); } c.strokeStyle = o.color || INK; c.lineWidth = o.w || 3; c.setLineDash(o.dash || []); c.strokeRect(x, y, w, h); c.setLineDash([]); }
+function circle(x, y, r, o = {}) { c.beginPath(); c.arc(x, y, r, 0, 2 * Math.PI); if (o.fill) { c.fillStyle = o.fill; c.fill(); } c.strokeStyle = o.color || INK; c.lineWidth = o.w || 3; c.setLineDash(o.dash || []); c.stroke(); c.setLineDash([]); }
+function arrowHead(x, y, ang, col) { c.fillStyle = col; c.beginPath(); c.moveTo(x, y); c.lineTo(x - 22 * Math.cos(ang - 0.3), y - 22 * Math.sin(ang - 0.3)); c.lineTo(x - 22 * Math.cos(ang + 0.3), y - 22 * Math.sin(ang + 0.3)); c.closePath(); c.fill(); }
+// dimension between two px points, offset perpendicular by off px, label centred
+function dim(x1, y1, x2, y2, label, off, o = {}) {
+  const col = o.color || DIM, dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+  const a = [x1 + nx * off, y1 + ny * off], b = [x2 + nx * off, y2 + ny * off];
+  line(x1, y1, a[0] + nx * 10 * Math.sign(off), a[1] + ny * 10 * Math.sign(off), { color: col, w: 2 });
+  line(x2, y2, b[0] + nx * 10 * Math.sign(off), b[1] + ny * 10 * Math.sign(off), { color: col, w: 2 });
+  line(a[0], a[1], b[0], b[1], { color: col, w: 2.5 });
+  const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  arrowHead(b[0], b[1], ang, col); arrowHead(a[0], a[1], ang + Math.PI, col);
+  c.save(); c.translate((a[0] + b[0]) / 2 + nx * 26 * Math.sign(off), (a[1] + b[1]) / 2 + ny * 26 * Math.sign(off));
+  let t = ang; if (t > Math.PI / 2 || t < -Math.PI / 2) t += Math.PI; c.rotate(t);
+  text(label, 0, 0, { size: o.size || 30, color: col, align: "center", bg: true, weight: 600 }); c.restore();
+}
+function leader(x1, y1, x2, y2, label, o = {}) {
+  line(x1, y1, x2, y2, { color: o.color || MUT, w: 2 }); circle(x1, y1, 5, { fill: o.color || MUT, color: o.color || MUT });
+  const right = x2 >= x1;
+  line(x2, y2, x2 + (right ? 30 : -30), y2, { color: o.color || MUT, w: 2 });
+  const lines = Array.isArray(label) ? label : [label];
+  lines.forEach((l, i) => text(l, x2 + (right ? 40 : -40), y2 + i * 36, { size: o.size || 30, align: right ? "left" : "right", color: o.tc || INK, weight: i === 0 ? 600 : 400 }));
+}
+function frame(n, total, title, scaleNote) {
+  c.fillStyle = "#fff"; c.fillRect(0, 0, W, Hpx);
+  rect(40, 40, W - 40, Hpx - 40, { w: 5 });
+  // title block
+  const tbY = Hpx - 230;
+  rect(40, tbY, W - 40, Hpx - 40, { w: 5 });
+  line(1700, tbY, 1700, Hpx - 40, { w: 3 }); line(2600, tbY, 2600, Hpx - 40, { w: 3 }); line(3100, tbY, 3100, Hpx - 40, { w: 3 });
+  text("HAB-1 GROUND STATION: YAGI STAND", 70, tbY + 55, { size: 40, weight: 700 });
+  text(title, 70, tbY + 115, { size: 46, weight: 700, color: "#0b3a8a" });
+  text("Antenna: TX900-BM-9, 868/915 MHz 12 dBi, 9 elements. Boscon Space.", 70, tbY + 170, { size: 28, color: MUT });
+  c.fillStyle = "#fff4d6"; c.fillRect(1702, tbY + 2, 896, 64);
+  text("ALL SIZES IN MILLIMETRES (mm)", 1730, tbY + 26, { size: 34, weight: 800, color: "#7c2d12" });
+  text("1000 mm = 1 m = 39.4 inch", 1730, tbY + 56, { size: 24, weight: 600, color: "#7c2d12" });
+  text(scaleNote || "Not to scale where marked NTS.", 1730, tbY + 92, { size: 25 });
+  text("PROPOSAL: not yet built or tested.", 1730, tbY + 128, { size: 25, color: RED, weight: 600 });
+  text("CONFIRM = estimate from photos; check first.", 1730, tbY + 164, { size: 25, color: RED });
+  text("Date", 2630, tbY + 55, { size: 26, color: MUT }); text("2026-10-26", 2630, tbY + 100, { size: 34, weight: 600 });
+  text("Rev C", 2630, tbY + 165, { size: 34, weight: 600 });
+  text("Sheet", 3130, tbY + 55, { size: 26, color: MUT }); text(`${n} / ${total}`, 3130, tbY + 120, { size: 64, weight: 700 });
+
+}
+// every dimension carries its unit: millimetres. Big ones also in metres and inches.
+const mm = v => `${Math.round(v * 10) / 10} mm`;
+const big = v => `${Math.round(v)} mm = ${(v / 1000).toFixed(2)} m = ${(v / 25.4).toFixed(1)} in`;
+
+function northArrow(x, y, s = 1) {
+  line(x, y + 70 * s, x, y - 50 * s, { w: 4 }); arrowHead(x, y - 70 * s, -Math.PI / 2, INK); text("N", x, y + 105 * s, { size: 40, weight: 700, align: "center" });
+}
+
+// ======================================================================= sheets
+const SHEETS = [];
+
+// ---- 1: overview render
+SHEETS.push(["Overview", (img) => {
+  frame(1, SHEETS.length, "OVERVIEW AND KEY DIMENSIONS", "3D render: not to scale (NTS).");
+  if (img) { const w = 2300, h = w * img.height / img.width; c.drawImage(img, 60, 60, w, Math.min(h, 2120)); }
+  let y = 120; const x = 2420;
+  text("What this is", x, y, { size: 44, weight: 700 }); y += 70;
+  y = wrap("A rotating mast on a welded tripod that holds the TX900-BM-9 Yagi at 1830 mm (6 ft). The whole mast turns in a sleeve for azimuth (pan). A horizontal axle through a tee at the top turns for tilt (0 to 90 deg). The antenna clamps to the axle with its own plate and U-bolts.", x, y, 1000, { size: 30 }); y += 30;
+  text("Key dimensions", x, y, { size: 40, weight: 700 }); y += 60;
+  for (const [k, v] of [["Axle centre height", `${DZ.H} mm = 1.83 m = 6 ft`], ["Collar sleeve centre", `${DZ.collarY} mm`], ["Foot socket (mast foot)", `${DZ.footY} mm`],
+    ["Tripod feet", `on a ${DZ.legR} mm radius (1200 mm across), 120 deg apart`], ["Mast", `3/4 inch (20 NB) GI pipe, ${DZ.mastL} mm long`], ["Sleeves", "1 inch (25 NB) light GI pipe, OD 33.7 mm"],
+    ["Axle", `3/4 inch (20 NB) GI pipe, ${DZ.axleL} mm`], ["Antenna on axle", `${DZ.antOff} mm from mast centre`], ["Boom swing radius", `${DZ.swing} mm: keep ${800} mm clear`],
+    ["Highest point (tilt 90)", `about ${DZ.H + DZ.front} mm`]]) {
+    text(k, x, y, { size: 28, color: MUT }); text(v, x + 470, y, { size: 28, weight: 600 }); y += 46;
+  }
+  y += 30; text("Rules", x, y, { size: 40, weight: 700 }); y += 60;
+  for (const r of ["Antenna ELEMENTS VERTICAL, always.", "Mast must turn freely 360 deg in the sleeve.", "Tilt 0 deg = boom level (check with a phone clinometer).", "Azimuth 0 deg = TRUE north.", "Nothing metal within 0.5 m in front of the antenna.", "Paint after welding; keep bores clean and greased."])
+    y = wrap("- " + r, x, y, 1000, { size: 30 });
+}]);
+
+// ---- 2: general arrangement, two elevations at 1:15
+SHEETS.push(["Elevations", () => {
+  frame(2, SHEETS.length, "GENERAL ARRANGEMENT: SIDE AND FRONT ELEVATION", "Scale 1:15 on A4 (print at 100%).");
+  const S = 15;
+  // ---------- side elevation: looking along the axle; boom to the right
+  const A = view(720, 2090, S);
+  text("SIDE ELEVATION (looking along the axle)", A.X(-600), 110, { size: 36, weight: 700 });
+  line(A.X(-900), A.Y(0), A.X(1300), A.Y(0), { w: 3 });
+  for (let x = -900; x < 1300; x += 60) line(A.X(x), A.Y(0), A.X(x - 40), A.Y(0) + 18, { w: 1.5, color: MUT });
+  // legs: feet at z = +600 and -300 (two overlap)
+  const leg = (fz) => { line(A.X(fz), A.Y(DZ.plateT), A.X(Math.sign(fz) * DZ.sleeveR), A.Y(DZ.collarY), { w: 9, color: "#333" }); rect(A.X(fz - 50), A.Y(0), A.X(fz + 50), A.Y(DZ.plateT), { fill: "#333", w: 1 }); };
+  leg(-600); leg(300);
+  // spreader + socket
+  line(A.X(-510), A.Y(DZ.footY), A.X(255), A.Y(DZ.footY), { w: 5, color: "#555" });
+  rect(A.X(-50), A.Y(DZ.footY - DZ.plateT), A.X(50), A.Y(DZ.footY), { fill: "#555", w: 1 });
+  rect(A.X(-DZ.sleeveR), A.Y(DZ.footY), A.X(DZ.sleeveR), A.Y(DZ.footY + DZ.socketL), { fill: FILL });
+  // collar sleeve and disk
+  rect(A.X(-DZ.sleeveR), A.Y(DZ.collarY - DZ.collarL / 2), A.X(DZ.sleeveR), A.Y(DZ.collarY + DZ.collarL / 2), { fill: FILL });
+  rect(A.X(-DZ.disk / 2), A.Y(DZ.collarY + DZ.collarL / 2), A.X(DZ.disk / 2), A.Y(DZ.collarY + DZ.collarL / 2 + 3), { fill: "#888", w: 2 });
+  // mast
+  rect(A.X(-DZ.pipeR), A.Y(DZ.footY), A.X(DZ.pipeR), A.Y(DZ.H - DZ.sleeveR), { fill: STEEL });
+  // handle (end-on) and pointer
+  line(A.X(-150), A.Y(DZ.handleY), A.X(150), A.Y(DZ.handleY), { w: 7 });
+  // tee (end-on: circle) and axle (end-on)
+  circle(A.X(0), A.Y(DZ.H), DZ.sleeveR * A.k, { fill: FILL }); circle(A.X(0), A.Y(DZ.H), DZ.pipeR * A.k, { fill: STEEL });
+  // antenna at tilt 0 (solid) and tilt 90 (dashed); boom forward to the right
+  const yB = DZ.H + DZ.pipeR + 3 + DZ.boomSec / 2;
+  rect(A.X(-DZ.rear), A.Y(yB - DZ.boomSec / 2), A.X(DZ.front), A.Y(yB + DZ.boomSec / 2), { fill: STEEL });
+  DZ.els.forEach((d, i) => { const z = d - DZ.rear; line(A.X(z), A.Y(yB - DZ.elLen[i] / 2), A.X(z), A.Y(yB + DZ.elLen[i] / 2), { w: i === 1 ? 6 : 4, color: i === 1 ? "#1d4ed8" : INK }); });
+  rect(A.X(-50), A.Y(DZ.H + DZ.pipeR), A.X(50), A.Y(DZ.H + DZ.pipeR + 3), { fill: "#888", w: 1 });
+  line(A.X(0), A.Y(DZ.H - DZ.rear), A.X(0), A.Y(DZ.H + DZ.front), { w: 3, dash: [16, 10], color: MUT });
+  text("tilt 90 deg", A.X(30), A.Y(DZ.H + DZ.front - 40), { size: 26, color: MUT });
+  c.strokeStyle = MUT; c.lineWidth = 2; c.setLineDash([10, 8]); c.beginPath(); c.arc(A.X(0), A.Y(DZ.H), 300 * A.k, -Math.PI / 2, 0); c.stroke(); c.setLineDash([]);
+  text("0 to 90 deg", A.X(230), A.Y(DZ.H + 230), { size: 26, color: MUT });
+  // dims
+  dim(A.X(-720), A.Y(0), A.X(-720), A.Y(DZ.H), `axle centre ${big(DZ.H)} (6 ft)`, -30);
+  dim(A.X(-620), A.Y(0), A.X(-620), A.Y(DZ.collarY), `${mm(DZ.collarY)} to collar centre`, 40);
+  dim(A.X(-380), A.Y(0), A.X(-380), A.Y(DZ.footY), mm(DZ.footY), 40);
+  dim(A.X(-230), A.Y(DZ.footY), A.X(-230), A.Y(DZ.H - DZ.sleeveR), `mast ${mm(DZ.mastL)}`, -20);
+  dim(A.X(-DZ.rear), A.Y(DZ.H + 330), A.X(DZ.front), A.Y(DZ.H + 330), `${DZ.rear} mm + ${DZ.front} mm = boom ${mm(DZ.boom)} (CONFIRM)`, -10);
+  dim(A.X(-600), A.Y(-40), A.X(300), A.Y(-40), "900 mm between feet, seen from this side", 25, { size: 26 });
+  leader(A.X(DZ.sleeveR), A.Y(DZ.collarY), A.X(320), A.Y(DZ.collarY + 120), ["collar sleeve", `1 inch (25 NB) pipe x ${mm(DZ.collarL)}`]);
+  leader(A.X(DZ.sleeveR), A.Y(DZ.footY + 40), A.X(400), A.Y(DZ.footY + 260), ["foot socket", `1 inch pipe x ${mm(DZ.socketL)} on ${DZ.plate} x ${DZ.plate} x ${DZ.plateT} mm plate`]);
+  leader(A.X(140), A.Y(DZ.handleY), A.X(420), A.Y(DZ.handleY + 120), ["handle", `16 mm rod x ${mm(DZ.handleL)}, ${mm(DZ.handleY)} above ground`]);
+  leader(A.X(DZ.sleeveR), A.Y(DZ.H), A.X(380), A.Y(DZ.H - 230), ["tee: 1 inch pipe x 120 mm", "axle 3/4 inch pipe inside"]);
+  leader(A.X(DZ.els[1] - DZ.rear), A.Y(yB - 80), A.X(820), A.Y(DZ.H - 90), ["driven element", "(folded dipole)"], { tc: "#1d4ed8" });
+  // ---------- front elevation: looking at the antenna's front; axle left-right
+  const B = view(2550, 2090, S);
+  text("FRONT ELEVATION (looking at the antenna)", B.X(-700), 110, { size: 36, weight: 700 });
+  line(B.X(-800), B.Y(0), B.X(950), B.Y(0), { w: 3 });
+  for (let x = -800; x < 950; x += 60) line(B.X(x), B.Y(0), B.X(x - 40), B.Y(0) + 18, { w: 1.5, color: MUT });
+  for (const fx of [-520, 520, 0]) { line(B.X(fx), B.Y(DZ.plateT), B.X(Math.sign(fx) * DZ.sleeveR), B.Y(DZ.collarY), { w: fx ? 9 : 7, color: fx ? "#333" : "#777" }); rect(B.X(fx - 50), B.Y(0), B.X(fx + 50), B.Y(DZ.plateT), { fill: "#333", w: 1 }); }
+  line(B.X(-445), B.Y(DZ.footY), B.X(445), B.Y(DZ.footY), { w: 5, color: "#555" });
+  rect(B.X(-DZ.sleeveR), B.Y(DZ.footY), B.X(DZ.sleeveR), B.Y(DZ.footY + DZ.socketL), { fill: FILL });
+  rect(B.X(-DZ.sleeveR), B.Y(DZ.collarY - DZ.collarL / 2), B.X(DZ.sleeveR), B.Y(DZ.collarY + DZ.collarL / 2), { fill: FILL });
+  rect(B.X(-DZ.disk / 2), B.Y(DZ.collarY + DZ.collarL / 2), B.X(DZ.disk / 2), B.Y(DZ.collarY + DZ.collarL / 2 + 3), { fill: "#888", w: 2 });
+  rect(B.X(-DZ.pipeR), B.Y(DZ.footY), B.X(DZ.pipeR), B.Y(DZ.H - DZ.sleeveR), { fill: STEEL });
+  rect(B.X(-DZ.handleL / 2), B.Y(DZ.handleY - 8), B.X(DZ.handleL / 2), B.Y(DZ.handleY + 8), { fill: "#333", w: 1 });
+  rect(B.X(-DZ.teeL / 2), B.Y(DZ.H - DZ.sleeveR), B.X(DZ.teeL / 2), B.Y(DZ.H + DZ.sleeveR), { fill: FILL });
+  rect(B.X(-DZ.axleBack), B.Y(DZ.H - DZ.pipeR), B.X(DZ.axleL - DZ.axleBack), B.Y(DZ.H + DZ.pipeR), { fill: STEEL });
+  // antenna seen from the front: plate, boom section, elements vertical
+  rect(B.X(DZ.antOff - DZ.antPlate[1] / 2), B.Y(DZ.H + DZ.pipeR), B.X(DZ.antOff + DZ.antPlate[1] / 2), B.Y(DZ.H + DZ.pipeR + 3), { fill: "#888", w: 1 });
+  rect(B.X(DZ.antOff - 7.5), B.Y(yB - 7.5), B.X(DZ.antOff + 7.5), B.Y(yB + 7.5), { fill: STEEL });
+  line(B.X(DZ.antOff), B.Y(yB - 90), B.X(DZ.antOff), B.Y(yB + 90), { w: 6 });
+  c.strokeStyle = "#1d4ed8"; c.lineWidth = 4; c.beginPath(); c.ellipse(B.X(DZ.antOff), B.Y(yB), 15 * B.k, 80 * B.k, 0, 0, 2 * Math.PI); c.stroke();
+  // U-bolts
+  for (const s of [-1, 1]) { c.strokeStyle = "#666"; c.lineWidth = 3; c.beginPath(); c.arc(B.X(DZ.antOff + s * 25), B.Y(DZ.H), (DZ.pipeR + 4) * B.k, 0, Math.PI); c.stroke(); }
+  dim(B.X(-DZ.axleBack), B.Y(DZ.H - 120), B.X(DZ.axleL - DZ.axleBack), B.Y(DZ.H - 120), `axle ${mm(DZ.axleL)}`, 50);
+  dim(B.X(0), B.Y(DZ.H + 260), B.X(DZ.antOff), B.Y(DZ.H + 260), mm(DZ.antOff), -10);
+  dim(B.X(-DZ.teeL / 2), B.Y(DZ.H + 130), B.X(DZ.teeL / 2), B.Y(DZ.H + 130), `tee ${mm(DZ.teeL)}`, -10, { size: 26 });
+  dim(B.X(-520), B.Y(-40), B.X(520), B.Y(-40), "1040 mm between feet, seen from this side", 25, { size: 26 });
+  dim(B.X(-DZ.handleL / 2), B.Y(DZ.handleY + 90), B.X(DZ.handleL / 2), B.Y(DZ.handleY + 90), mm(DZ.handleL), -10, { size: 26 });
+  dim(B.X(830), B.Y(0), B.X(830), B.Y(DZ.H), big(DZ.H), 50);
+  leader(B.X(DZ.antOff + 10), B.Y(yB + 60), B.X(620), B.Y(DZ.H + 300), ["elements VERTICAL", "antenna U-bolts on axle"], { tc: RED });
+  leader(B.X(DZ.axleL - DZ.axleBack - 10), B.Y(DZ.H), B.X(700), B.Y(DZ.H - 220), ["axle: 3/4 inch GI pipe", "plastic end cap"]);
+  leader(B.X(DZ.pipeR), B.Y(1500), B.X(400), B.Y(1500), ["mast: 3/4 inch GI pipe", `${mm(DZ.mastL)} long`]);
+}]);
+
+// ---- 3: plan view 1:10
+SHEETS.push(["Plan", () => {
+  frame(3, SHEETS.length, "PLAN VIEW: FOOTPRINT, SWING CLEARANCE, AZIMUTH DISK", "Plan 1:10, disk detail 1:2.5, on A4.");
+  const P = view(1150, 1060, 10);
+  text("PLAN (from above), antenna pointing north as an example", 120, 110, { size: 36, weight: 700 });
+  circle(P.X(0), P.Y(0), 800 * P.k, { color: RED, w: 3, dash: [18, 12] });
+  text("keep clear: radius 800 mm (boom swings " + mm(DZ.swing) + ")", P.X(0), P.Y(-800) + 40, { size: 30, color: RED, align: "center", bg: true });
+  circle(P.X(0), P.Y(0), DZ.legR * P.k, { color: MUT, w: 2, dash: [6, 8] });
+  for (const a of [90, 210, 330]) {
+    const fx = DZ.legR * Math.cos(a * Math.PI / 180), fy = DZ.legR * Math.sin(a * Math.PI / 180);
+    line(P.X(0), P.Y(0), P.X(fx), P.Y(fy), { w: 10, color: "#333" });
+    c.save(); c.translate(P.X(fx), P.Y(fy)); c.rotate(-a * Math.PI / 180); c.fillStyle = "#333"; c.fillRect(-50 * P.k, -50 * P.k, 100 * P.k, 100 * P.k); c.restore();
+    circle(P.X(fx), P.Y(fy), 6 * P.k, { fill: "#fff", color: "#fff" });
+    const bx = DZ.legR * 0.85 * Math.cos(a * Math.PI / 180), by = DZ.legR * 0.85 * Math.sin(a * Math.PI / 180);
+    line(P.X(0), P.Y(0), P.X(bx), P.Y(by), { w: 4, color: "#888", dash: [10, 6] });
+  }
+  circle(P.X(0), P.Y(0), DZ.disk / 2 * P.k, { fill: "#f3f4f6", w: 2 });
+  circle(P.X(0), P.Y(0), DZ.pipeR * P.k, { fill: STEEL });
+  // axle east-west, antenna north (boom along +y)
+  rect(P.X(-DZ.axleBack), P.Y(-DZ.pipeR), P.X(DZ.axleL - DZ.axleBack), P.Y(DZ.pipeR), { fill: STEEL });
+  rect(P.X(DZ.antOff - 7.5), P.Y(-DZ.rear), P.X(DZ.antOff + 7.5), P.Y(DZ.front), { fill: STEEL });
+  DZ.els.forEach((d, i) => circle(P.X(DZ.antOff), P.Y(d - DZ.rear), 5, { fill: i === 1 ? "#1d4ed8" : INK, color: i === 1 ? "#1d4ed8" : INK }));
+  rect(P.X(DZ.antOff - 45), P.Y(-50), P.X(DZ.antOff + 45), P.Y(50), { color: "#666", w: 2 });
+  dim(P.X(0), P.Y(0), P.X(DZ.legR * Math.cos(330 * Math.PI / 180)), P.Y(DZ.legR * Math.sin(330 * Math.PI / 180)), `radius ${mm(DZ.legR)}`, -40);
+  dim(P.X(DZ.antOff + 60), P.Y(-DZ.rear), P.X(DZ.antOff + 60), P.Y(DZ.front), `boom ${mm(DZ.boom)}`, 40);
+  dim(P.X(0), P.Y(-160), P.X(DZ.antOff), P.Y(-160), mm(DZ.antOff), 30);
+  text("120 deg", P.X(-170), P.Y(120), { size: 28, color: MUT });
+  leader(P.X(DZ.legR * Math.cos(Math.PI / 2)), P.Y(DZ.legR), P.X(300), P.Y(760), ["foot plate 100 x 100 x 5 mm", "12 mm hole for a ground stake"]);
+  leader(P.X(-260), P.Y(-150), P.X(200), P.Y(-640), ["spreader bars 25 x 5 mm flat", `${mm(DZ.footY)} above ground`]);
+  northArrow(P.X(-700), P.Y(650));
+  text("Tripod orientation does not matter. Set the azimuth disk's 0 deg mark to TRUE north.", 120, 2150, { size: 30 });
+  // azimuth disk detail 1:2
+  const Dd = view(2800, 760, 2.5);
+  text("AZIMUTH DISK (detail, 1:2.5)", Dd.X(0), 110, { size: 36, weight: 700, align: "center" });
+  circle(Dd.X(0), Dd.Y(0), DZ.disk / 2 * Dd.k, { fill: "#f3f4f6", w: 3 });
+  circle(Dd.X(0), Dd.Y(0), DZ.diskBore / 2 * Dd.k, { fill: "#fff", w: 3 });
+  for (let a = 0; a < 360; a += 5) {
+    const r1 = DZ.disk / 2 * Dd.k, r2 = r1 - (a % 30 === 0 ? 40 : a % 10 === 0 ? 28 : 14), ang = (90 - a) * Math.PI / 180;
+    line(Dd.X(0) + r1 * Math.cos(ang), Dd.Y(0) - r1 * Math.sin(ang), Dd.X(0) + r2 * Math.cos(ang), Dd.Y(0) - r2 * Math.sin(ang), { w: a % 30 ? 2 : 4, color: a === 0 ? RED : INK });
+    if (a % 30 === 0) text(`${a}`, Dd.X(0) + (r1 - 75) * Math.cos(ang), Dd.Y(0) - (r1 - 75) * Math.sin(ang), { size: 30, align: "center", weight: 600, color: a === 0 ? RED : INK });
+  }
+  dim(Dd.X(-DZ.disk / 2), Dd.Y(-DZ.disk / 2 - 10), Dd.X(DZ.disk / 2), Dd.Y(-DZ.disk / 2 - 10), `diameter ${mm(DZ.disk)}`, 30);
+  text(`centre hole ${mm(DZ.diskBore)} (slips over the 33.7 mm sleeve)`, Dd.X(0), Dd.Y(-DZ.disk / 2) + 150, { size: 28, align: "center" });
+  let y = Dd.Y(-DZ.disk / 2) + 230;
+  for (const l of ["3 mm aluminium sheet, or 3D-print in PETG.", "Marks every 5 deg, long marks every 10, numbers every 30.", "Rests on the collar sleeve top; hose clip below it.", "Turn the disk until 0 points to TRUE north, then lock.", "Pointer: 6 mm rod x 60 mm, welded to the mast 12 mm above the disk."]) { text("- " + l, Dd.X(-DZ.disk / 2) - 40, y, { size: 28 }); y += 44; }
+}]);
+
+// ---- 4: details, each at its own scale, labels placed relative to the box
+SHEETS.push(["Details", () => {
+  frame(4, SHEETS.length, "DETAILS: SOCKET, COLLAR, TEE, ANTENNA CLAMP", "Details A, B, C at 1:4, D at 1:5, on A4.");
+  const BX = [[60, 70], [1770, 70], [60, 1140], [1770, 1140]], BW = 1680, BH = 1040;
+  const titles = ["A  FOOT SOCKET AND SPREADER", "B  COLLAR SLEEVE AND AZIMUTH LOCK", "C  TEE AND TILT LOCK (top of mast)", "D  ANTENNA ON THE AXLE"];
+  BX.forEach(([x, y], i) => { rect(x, y, x + BW, y + BH, { w: 2, color: "#999" }); text(titles[i], x + 30, y + 50, { size: 36, weight: 700 }); });
+  const brk = (x, y, w) => { c.strokeStyle = MUT; c.lineWidth = 2; c.beginPath(); c.moveTo(x - w, y); c.lineTo(x - w / 3, y - 10); c.lineTo(x + w / 3, y + 10); c.lineTo(x + w, y); c.stroke(); };
+  const note = (bx, by, t, o) => wrap(t, bx + 30, by + BH - 120, BW - 60, Object.assign({ size: 26 }, o || {}));
+  // A: origin = mast centre at the top of the socket plate
+  let [bx, by] = BX[0]; let V = view(bx + 520, by + 700, 4);
+  for (const s of [-1, 1]) { rect(V.X(s * 50), V.Y(-5), V.X(s * 160), V.Y(-30), { fill: "#888", w: 2 }); brk(V.X(s * 160), V.Y(-17), 18); }
+  rect(V.X(-50), V.Y(-5), V.X(50), V.Y(0), { fill: "#555", w: 2 });
+  rect(V.X(-DZ.sleeveR), V.Y(0), V.X(DZ.sleeveR), V.Y(DZ.socketL), { fill: FILL, w: 3 });
+  rect(V.X(-DZ.sleeveR + 2), V.Y(0), V.X(DZ.sleeveR - 2), V.Y(3), { fill: "#333", w: 1 });
+  rect(V.X(-DZ.pipeR), V.Y(3), V.X(DZ.pipeR), V.Y(150), { fill: STEEL, w: 3 }); brk(V.X(0), V.Y(150), 40);
+  dim(V.X(-DZ.sleeveR), V.Y(0), V.X(-DZ.sleeveR), V.Y(DZ.socketL), mm(DZ.socketL), 70);
+  dim(V.X(-50), V.Y(-45), V.X(50), V.Y(-45), `plate ${DZ.plate} x ${DZ.plate} x ${DZ.plateT} mm`, 30, { size: 26 });
+  leader(V.X(0), V.Y(1.5), bx + 1000, by + 600, ["steel washer M24 (24 mm bolt size)", "mast foot sits on it"]);
+  leader(V.X(DZ.sleeveR), V.Y(50), bx + 1000, by + 440, ["socket: 1 inch light GI pipe x 80 mm", "welded to the plate"]);
+  leader(V.X(DZ.pipeR), V.Y(120), bx + 1000, by + 280, ["mast: 3/4 inch GI pipe", "(turns in the socket)"]);
+  leader(V.X(150), V.Y(-17), bx + 1150, by + 780, ["3 spreader bars 25 x 5 mm flat", `about ${mm(DZ.barL)} long, plate to leg`]);
+  note(bx, by, "The socket keeps the mast foot centred under the collar. Plumb-line the socket centre directly under the collar centre before welding the bars. Socket top 150 mm above ground.");
+  // B: origin = collar sleeve centre
+  [bx, by] = BX[1]; V = view(bx + 520, by + 600, 4);
+  for (const s of [-1, 1]) { line(V.X(s * DZ.sleeveR), V.Y(DZ.collarL / 2 - 8), V.X(s * 110), V.Y(-85), { w: 10, color: "#333" }); }
+  rect(V.X(-DZ.sleeveR), V.Y(-DZ.collarL / 2), V.X(DZ.sleeveR), V.Y(DZ.collarL / 2), { fill: FILL, w: 3 });
+  rect(V.X(-DZ.pipeR), V.Y(-120), V.X(DZ.pipeR), V.Y(125), { fill: STEEL, w: 3 }); brk(V.X(0), V.Y(-120), 40); brk(V.X(0), V.Y(125), 40);
+  rect(V.X(-DZ.disk / 2), V.Y(DZ.collarL / 2), V.X(DZ.disk / 2), V.Y(DZ.collarL / 2 + 3), { fill: "#888", w: 2 });
+  rect(V.X(DZ.sleeveR), V.Y(-7), V.X(DZ.sleeveR + 12), V.Y(7), { fill: "#555", w: 2 });
+  rect(V.X(DZ.sleeveR + 12), V.Y(-4), V.X(DZ.sleeveR + 55), V.Y(4), { fill: "#333", w: 1 });
+  rect(V.X(DZ.sleeveR + 55), V.Y(-18), V.X(DZ.sleeveR + 61), V.Y(18), { fill: "#333", w: 1 });
+  line(V.X(DZ.pipeR), V.Y(DZ.collarL / 2 + 15), V.X(DZ.pipeR + 60), V.Y(DZ.collarL / 2 + 15), { w: 6, color: RED });
+  dim(V.X(-DZ.sleeveR), V.Y(-DZ.collarL / 2), V.X(-DZ.sleeveR), V.Y(DZ.collarL / 2), mm(DZ.collarL), 60);
+  dim(V.X(-DZ.disk / 2), V.Y(DZ.collarL / 2 + 45), V.X(DZ.disk / 2), V.Y(DZ.collarL / 2 + 45), `disk diameter ${mm(DZ.disk)}`, -10, { size: 26 });
+  leader(V.X(DZ.sleeveR + 58), V.Y(0), bx + 1000, by + 560, ["M8 nut welded on sleeve +", "M8 x 25 mm thumbscrew: azimuth lock"]);
+  leader(V.X(DZ.pipeR + 45), V.Y(DZ.collarL / 2 + 15), bx + 1000, by + 250, ["pointer: 6 mm rod x 60 mm", "welded to mast, 12 mm above disk"], { tc: RED });
+  leader(V.X(DZ.sleeveR), V.Y(-50), bx + 1000, by + 400, ["collar sleeve: 1 inch light GI pipe x 150 mm", "centre 1000 mm (1 m) above ground"]);
+  leader(V.X(90), V.Y(-70), bx + 1000, by + 780, ["legs: 25 x 25 x 2 mm MS square tube", `about ${mm(DZ.legL)} long, ends cut at ${DZ.legAng} deg`]);
+  note(bx, by, `Mast: 3/4 inch (20 NB) GI pipe, OD 26.9 mm, turns inside 1 inch (25 NB) light GI pipe, ID about 28.5 mm: ${DZ.clear.toFixed(1)} mm clearance. Slide the mast through before welding. Grease the bore. CONFIRM: if your pipes do not slide, change the sleeve, not the mast.`, { size: 25 });
+  // C: origin = axle centre
+  [bx, by] = BX[2]; V = view(bx + 380, by + 440, 4);
+  rect(V.X(-DZ.pipeR), V.Y(-170), V.X(DZ.pipeR), V.Y(-DZ.sleeveR), { fill: STEEL, w: 3 }); brk(V.X(0), V.Y(-170), 40);
+  rect(V.X(-DZ.axleBack), V.Y(-DZ.pipeR), V.X(170), V.Y(DZ.pipeR), { fill: STEEL, w: 2 }); brk(V.X(170), V.Y(0), 30);
+  rect(V.X(-DZ.teeL / 2), V.Y(-DZ.sleeveR), V.X(DZ.teeL / 2), V.Y(DZ.sleeveR), { fill: FILL, w: 3 });
+  rect(V.X(-DZ.axleBack - 8), V.Y(-DZ.pipeR - 2), V.X(-DZ.axleBack), V.Y(DZ.pipeR + 2), { fill: "#222", w: 1 });
+  rect(V.X(-7), V.Y(DZ.sleeveR), V.X(7), V.Y(DZ.sleeveR + 12), { fill: "#555", w: 2 });
+  rect(V.X(-4), V.Y(DZ.sleeveR + 12), V.X(4), V.Y(DZ.sleeveR + 55), { fill: "#333", w: 1 });
+  rect(V.X(-18), V.Y(DZ.sleeveR + 55), V.X(18), V.Y(DZ.sleeveR + 61), { fill: "#333", w: 1 });
+  dim(V.X(-DZ.teeL / 2), V.Y(-DZ.sleeveR - 25), V.X(DZ.teeL / 2), V.Y(-DZ.sleeveR - 25), `tee ${mm(DZ.teeL)}`, 30, { size: 26 });
+  leader(V.X(5), V.Y(DZ.sleeveR + 40), bx + 1000, by + 180, ["M8 nut + M8 x 25 mm thumbscrew: tilt lock", "(add a second if it slips)"]);
+  leader(V.X(DZ.teeL / 2 - 10), V.Y(-12), bx + 1000, by + 380, ["tee: 1 inch light GI pipe x 120 mm", "saddle-welded square on the mast top"]);
+  leader(V.X(150), V.Y(DZ.pipeR - 5), bx + 1000, by + 560, ["axle: 3/4 inch GI pipe x 400 mm (turns = tilt)", `${mm(DZ.axleBack)} out behind the tee, plastic end cap`]);
+  leader(V.X(DZ.pipeR), V.Y(-120), bx + 1000, by + 740, ["mast: 3/4 inch GI pipe", `${mm(DZ.mastL)} long, foot to tee`]);
+  note(bx, by, "Weld the tee square to the mast: axle level when the mast is vertical. Tilt 0 = boom level; set it with a phone clinometer on the boom. Antenna centre of mass about 0.3 m in front of the axle (estimate): about 1.2 N m to hold.", { size: 25 });
+  // D: origin = axle centre (mast centre at x = 0)
+  [bx, by] = BX[3]; V = view(bx + 230, by + 560, 5);
+  rect(V.X(-DZ.axleBack), V.Y(-DZ.pipeR), V.X(DZ.axleL - DZ.axleBack), V.Y(DZ.pipeR), { fill: STEEL, w: 2 });
+  rect(V.X(-DZ.teeL / 2), V.Y(-DZ.sleeveR), V.X(DZ.teeL / 2), V.Y(DZ.sleeveR), { fill: FILL, w: 2 });
+  rect(V.X(-DZ.pipeR), V.Y(-110), V.X(DZ.pipeR), V.Y(-DZ.sleeveR), { fill: STEEL, w: 2 }); brk(V.X(0), V.Y(-110), 40);
+  rect(V.X(DZ.antOff - DZ.antPlate[1] / 2), V.Y(DZ.pipeR), V.X(DZ.antOff + DZ.antPlate[1] / 2), V.Y(DZ.pipeR + 3), { fill: "#888", w: 2 });
+  rect(V.X(DZ.antOff - 7.5), V.Y(DZ.pipeR + 3), V.X(DZ.antOff + 7.5), V.Y(DZ.pipeR + 18), { fill: STEEL, w: 2 });
+  for (const s of [-1, 1]) { c.strokeStyle = "#444"; c.lineWidth = DZ.uRod * V.k; c.beginPath(); c.arc(V.X(DZ.antOff + s * 20), V.Y(0), (DZ.pipeR + DZ.uRod / 2) * V.k, 0, Math.PI); c.stroke(); }
+  line(V.X(DZ.antOff), V.Y(DZ.pipeR + 18), V.X(DZ.antOff), V.Y(DZ.pipeR + 18 + 90), { w: 6 });
+  line(V.X(0), V.Y(-150), V.X(0), V.Y(120), { w: 2, dash: [12, 8], color: MUT });
+  text("mast centre", V.X(0), V.Y(130), { size: 24, align: "center", color: MUT });
+  dim(V.X(0), V.Y(-70), V.X(DZ.antOff), V.Y(-70), mm(DZ.antOff), 25);
+  leader(V.X(DZ.antOff + 30), V.Y(-DZ.pipeR - 4), bx + 1180, by + 720, ["2 U-bolts, rod 6.5 mm", "leg gap 27 to 30 mm (reported)"], { tc: RED });
+  leader(V.X(DZ.antOff + 40), V.Y(DZ.pipeR + 2), bx + 1180, by + 500, ["antenna plate", `${DZ.antPlate[0]} x ${DZ.antPlate[1]} mm (measured)`, "boom 16 mm square"]);
+  leader(V.X(DZ.antOff), V.Y(DZ.pipeR + 90), bx + 1180, by + 260, ["elements point UP", "(vertical)"], { tc: RED });
+  note(bx, by, "U-bolts: rod 6.5 mm (measured), leg gap 27 to 30 mm (reported): they fit the 3/4 inch axle (OD 26.9 mm). Tighten evenly; if the antenna can rock, add a strip of rubber under the plate.", { size: 25, color: RED });
+}]);
+
+// ---- 5: head render
+SHEETS.push(["Head", (img) => {
+  frame(5, SHEETS.length, "HEAD: ANTENNA, TEE, AXLE, HELTEC (3D)", "3D render: not to scale (NTS).");
+  if (img) { const w = 2300, h = w * img.height / img.width; c.drawImage(img, 60, 60, w, Math.min(h, 2120)); }
+  let y = 120; const x = 2420;
+  text("Fitting the antenna", x, y, { size: 44, weight: 700 }); y += 70;
+  for (const l of ["1. Slide the axle through the tee. Lock it with the boom level.", "2. Put the antenna plate on the axle, 250 mm from the mast centre, U-bolts around the axle.", "3. Turn the antenna so the ELEMENTS ARE VERTICAL. Check with a level on the reflector.", "4. Tighten both U-bolts evenly.", "5. Heltec mount (printed, sheet 7): clamp it UNDER the axle, centred 125 mm from the mast, SMA end toward the antenna, OLED facing down.", "6. N(M) to SMA(M) adapter from the antenna's white coax to the case's SMA bulkhead.", "7. USB from the case's mast end along the axle and down the mast, cable-tied every 0.3 m, drip loop at the case.", "8. Turn the axle: the boom must tilt 0 to 90 deg without the cable pulling."])
+    y = wrap(l, x, y, 1000, { size: 30 }) + 12;
+}]);
+
+// ---- 6: cut list and checks
+SHEETS.push(["Cut list", () => {
+  frame(6, SHEETS.length, "CUT LIST, ASSEMBLY ORDER AND CHECKS", "");
+  const rows = [["#", "Part", "Material", "Size", "Qty"],
+    ["1", "Leg", "MS square tube 25 x 25 x 2 mm", `about ${DZ.legL} mm long, ends cut at ${DZ.legAng} deg, cut to fit`, "3"],
+    ["2", "Foot plate", "MS plate 5 mm thick", "100 x 100 mm, 12 mm hole for a stake", "3"],
+    ["3", "Spreader bar", "MS flat 25 x 5 mm", `about ${DZ.barL} mm long, cut to fit`, "3"],
+    ["4", "Socket plate", "MS plate 5 mm thick", "100 x 100 mm", "1"],
+    ["5", "Foot socket", "1 inch (25 NB) light GI pipe, OD 33.7 mm", `${DZ.socketL} mm long`, "1"],
+    ["6", "Collar sleeve", "1 inch (25 NB) light GI pipe", `${DZ.collarL} mm long`, "1"],
+    ["7", "Mast", "3/4 inch (20 NB) GI pipe, OD 26.9 mm", `${DZ.mastL} mm long`, "1"],
+    ["8", "Tee sleeve", "1 inch (25 NB) light GI pipe", `${DZ.teeL} mm long`, "1"],
+    ["9", "Axle", "3/4 inch (20 NB) GI pipe", `${DZ.axleL} mm long`, "1"],
+    ["10", "Handle", "MS round rod 16 mm", `${DZ.handleL} mm long`, "1"],
+    ["11", "Pointer", "MS round rod 6 mm", "60 mm long", "1"],
+    ["12", "Lock nuts + thumbscrews", "M8 nut (welded) + M8 x 25 mm wing or T-handle screw", "none", "3"],
+    ["13", "Azimuth disk", "aluminium sheet 3 mm, or PETG print", `${DZ.disk} mm diameter, ${DZ.diskBore} mm centre hole`, "1"],
+    ["14", "Washer", "steel M24 (fits a 24 mm bolt)", "none", "1"],
+    ["15", "Pipe end caps", "plastic, for 3/4 inch pipe", "none", "2"],
+    ["16", "Hose clips", "stainless, 30 to 40 mm range", "none", "3"],
+    ["17", "Ground stakes or sandbags", "10 mm rod x 300 mm stake, or a 10 kg bag", "none", "3"],
+    ["18", "U-bolts (only if the antenna's do not fit)", "M6, for 3/4 inch pipe (OD 26.9 mm)", "rod 6 to 6.5 mm", "2"],
+    ["19", "Heltec mount (sheet 7)", "all 3D printed in PETG, no metal", "see cad/print/heltec-mount", "1 set"]];
+  const cols = [70, 150, 700, 1600, 2700, 2840];
+  let y = 110;
+  rows.forEach((r, i) => {
+    if (i === 0) c.fillStyle = "#eef2f7", c.fillRect(60, y - 30, 2860, 60);
+    r.forEach((v, j) => text(v, cols[j], y, { size: i ? 28 : 30, weight: i ? 400 : 700 }));
+    line(60, y + 30, 2920, y + 30, { w: 1, color: "#bbb" }); y += 62;
+  });
+  text("Paint everything except the bores with zinc primer + enamel after welding.", 70, y + 20, { size: 28, color: MUT });
+  // confirm-before-cutting box
+  const cy0 = y + 90; rect(60, cy0, 2920, cy0 + 760, { w: 4, color: RED });
+  text("CONFIRM BEFORE CUTTING (these depend on parts you have; they are estimates)", 90, cy0 + 55, { size: 34, weight: 700, color: RED });
+  let yy = cy0 + 125;
+  for (const l of [
+    "1. Antenna U-bolts: rod 6.5 mm (measured), leg gap 27 to 30 mm (reported): fit the 3/4 inch axle (OD 26.9 mm). Check by hand before cutting the axle.",
+    "2. Mast in sleeve: the 3/4 inch pipe must slide and turn freely inside the 1 inch light pipe you buy (expected clearance about 1.6 mm). Test before welding.",
+    "3. Antenna: plate 75 x 75 mm and boom 16 mm square are measured. Boom length 760 mm (listing) and where the plate sits on the boom are still estimates.",
+    "4. Height: the axle centre must end up 1830 mm (1.83 m, 6 ft) above the ground where the stand will stand. Measure on site after assembly; trim the mast if needed.",
+    "5. Balance: with the antenna fitted at 45 deg tilt, the tilt lock must hold it. If not, add a second thumbscrew or a 0.4 kg counterweight behind the axle.",
+  ]) { yy = wrap(l, 90, yy, 2780, { size: 30 }) + 14; }
+  // assembly + checks on the right
+  let x = 2980; y = 110;
+  text("Assembly order", x, y, { size: 36, weight: 700 }); y += 60;
+  for (const l of ["1. Slide-test mast in sleeve and socket.", "2. Weld socket to socket plate.", "3. Weld legs to collar top and foot plates; collar centre 1000 mm above ground.", "4. Plumb socket under collar; weld spreader bars.", "5. Weld tee square on mast top.", "6. Weld pointer and handle.", "7. Paint. Grease bores.", "8. Mast into sleeve, onto washer in socket.", "9. Axle, antenna, Heltec, cables (sheet 5)."]) { y = wrap(l, x, y, 470, { size: 26 }) + 4; }
+  y += 30; text("Checks before use", x, y, { size: 36, weight: 700 }); y += 60;
+  for (const l of ["Mast plumb both ways (spirit level).", "Mast turns 360 deg freely, locks firm.", `Axle centre ${DZ.H} mm (+/- 10 mm) above ground.`, "Elements vertical.", "Tilt 0 to 90 holds with the lock.", "Disk 0 deg on TRUE north.", "Stand steady with antenna fitted: push test at the top."]) { y = wrap("[ ] " + l, x, y, 470, { size: 26 }) + 4; }
+}]);
+
+
+// ---- 7: Heltec mount (3D print)
+SHEETS.push(["Heltec mount", (img) => {
+  frame(7, SHEETS.length, "HELTEC RECEIVER MOUNT (3D PRINT, PETG)", "3D render: not to scale (NTS). CAD: cad/heltec_mount/.");
+  if (img) { const w = 2080, h = w * img.height / img.width; c.drawImage(img, 60, 60, w, Math.min(h, 1560)); }
+  const m = (window.HELTEC_MOUNT || { meta: { d_range: [13, 46.6] } }).meta;
+  let y = 120; const x = 2200;
+  text("What it is", x, y, { size: 42, weight: 700 }); y += 60;
+  y = wrap(`A case for the Heltec V3 on a bolted V-clamp. The clamp is not one size: its 130 deg V-grooves grip any round pipe from ${m.d_range[0]} to ${m.d_range[1]} mm and square tube from 10 to 40 mm (computed, cad/heltec_mount/check_heltec_mount.py). The case slides onto the clamp's dovetail along or across the pipe. All PETG, no metal: printed M10 bolts and thumb-nuts, a snap-fit lid, a press-fit lock pin.`, x, y, 1240, { size: 28 }); y += 24;
+  text("On this stand", x, y, { size: 36, weight: 700 }); y += 54;
+  for (const l of ["Under the 20 NB axle (26.9), centred 125 mm from the mast centre.", "Tilts with the antenna, so the coax never bends; only the USB moves.", "SMA end toward the antenna; USB end toward the mast; OLED faces down."]) y = wrap("- " + l, x, y, 1240, { size: 28 }) + 4;
+  y += 20; text("Print (PETG)", x, y, { size: 36, weight: 700 }); y += 54;
+  for (const l of ["jaw_top, jaw_bot: on their end face (profile flat), no supports. Holes print as teardrops.", "case: base down (dovetail channels bridge). lid: outer face down.", "Bolts head down, nuts flat, pins head down. Jaws 6 walls + 40 % gyroid; case and lid 3 walls + 15 % gyroid; bolts, nuts, pin 100 %.", "96 g of PETG (31.4 m of 1.75 mm) for one mount, sliced in Creality Print; about 4 h 20 min if printed part by part.", "Plates in cad/print/heltec-mount/: plate_1 jaws + case + lid + pins, plate_2 two 55 mm bolts + nuts, plate_3 two 75 mm bolts (only for pipes over 29 mm)."]) y = wrap("- " + l, x, y, 1240, { size: 28 }) + 4;
+  y += 20; text("Printed hardware (no metal)", x, y, { size: 36, weight: 700 }); y += 54;
+  for (const l of ["2 x M10 x 1.5 bolt, hex head captive in jaw_top: 55 mm (this stand) or 75 mm (pipes to 46.6). Thread clearance 0.3 mm radial (computed).", "2 x knurled thumb-nut, 28 mm across, hand tight.", "Lid: 4 snap hooks (2.2 % strain to fit, computed). Lock pin: 3.15 in a 3.0 hole, tap in.", "Bought: u.FL to SMA-jack bulkhead pigtail (BOM row 5), 1 mm foam pad under the header pins."]) y = wrap("- " + l, x, y, 1240, { size: 28 }) + 4;
+  // assembly under the render
+  let ya = 1680;
+  text("Assembly", 70, ya, { size: 36, weight: 700 }); ya += 54;
+  for (const l of ["1. Printed bolt heads into the hex pockets of jaw_top (the jaw with the tongue). Pass the bolts either side of the axle and through jaw_bot; thumb-nuts on loosely.",
+                   "2. Slide the case onto the tongue (channel along the case), line up the centre hole, tap the printed lock pin in from inside the case.",
+                   "3. Fit the SMA bulkhead in the far end wall; plug the pigtail into the Heltec's u.FL; Heltec in on its header pins, USB-C at the port.",
+                   "4. Press the lid on until all 4 hooks click. Hang the clamp under the axle, 125 mm from the mast; tighten both thumb-nuts evenly by hand."]) ya = wrap(l, 70, ya, 2050, { size: 27 }) + 6;
+  text("CONFIRMED by Aditya: the Heltec has its header pins soldered; it stands on them (2.5 plastic + 6.0 pin, standard header, assumed lengths).", 70, ya + 20, { size: 27, color: "#1a7f37", weight: 600 });
+}]);
+
+// ======================================================================= render
+const Q = new URLSearchParams(location.search), n = Math.max(1, Math.min(SHEETS.length, +(Q.get("sheet") || 1)));
+document.getElementById("nav").innerHTML = SHEETS.map((s, i) => `<a href="/hab-testing/ground-station/build-sheets?sheet=${i + 1}">${i + 1} ${s[0]}</a>`).join("");
+if (Q.get("export")) document.getElementById("nav").style.display = "none";
+const imgFor = { 1: "build/render-overall.png", 5: "build/render-head.png", 7: "build/render-mount.png" };
+if (imgFor[n]) { const im = new Image(); im.onload = () => SHEETS[n - 1][1](im); im.onerror = () => SHEETS[n - 1][1](null); im.src = imgFor[n]; }
+else SHEETS[n - 1][1]();
+</script></body></html>

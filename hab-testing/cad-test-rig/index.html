@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/cad-test-rig/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Test Rig</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --panel: #ffffff; --ink: #1d2330; --muted: #5d6675; --rule: #dde1e7;
+    --accent: #2f6f9f; --warn: #a2560c; --canvas: #e9ecf0; --chip: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+      --accent: #6fa8d6; --warn: #e0a15a; --canvas: #0f1217; --chip: #232a34;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b; --panel: #1a1f27; --ink: #e6e9ee; --muted: #9aa3b1; --rule: #2b323d;
+    --accent: #6fa8d6; --warn: #e0a15a; --canvas: #0f1217; --chip: #232a34;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  .app { display: grid; grid-template-columns: 340px 1fr; height: 100vh; }
+  aside { background: var(--panel); border-right: 1px solid var(--rule); overflow-y: auto; padding: 18px 18px 28px; }
+  h1 { font-size: 17px; margin: 0 0 2px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 14px; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
+  .tabs button { padding: 9px 8px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  h2 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 18px 0 8px; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+  .row label { flex: 1; cursor: pointer; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.2); }
+  .tag { font-size: 10.5px; color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 0 5px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .ctl { margin: 6px 0 10px; }
+  .ctl .lab { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); }
+  .views { display: flex; gap: 6px; flex-wrap: wrap; }
+  .views button, select { padding: 6px 10px; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+    border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  td { padding: 4px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td.v { text-align: right; white-space: nowrap; padding-left: 8px; font-variant-numeric: tabular-nums; }
+  .src { color: var(--muted); font-size: 11px; }
+  .open li { margin-bottom: 6px; }
+  .open { padding-left: 18px; margin: 0; }
+  .warn { color: var(--warn); }
+  main { position: relative; background: var(--canvas); min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  .hud { position: absolute; left: 14px; bottom: 12px; font-size: 12px; color: var(--muted);
+    background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 6px 10px; border-radius: 6px; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; }
+    main { order: -1; height: 55vh; }
+    aside { border-right: 0; border-top: 1px solid var(--rule); padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h1>HAB-1 telemetry test rig</h1>
+    <div class="sub">Designed and checked in CAD only. Nothing printed yet.</div>
+    <div class="tabs">
+      <button id="tab-tx" class="on">TX · payload</button>
+      <button id="tab-rx">RX · ground station</button>
+    </div>
+
+    <h2>Parts</h2>
+    <div id="parts"></div>
+
+    <h2>View</h2>
+    <div class="ctl">
+      <div class="lab"><span>Explode lid / cover</span><span id="ex-v">0 mm</span></div>
+      <input id="explode" type="range" min="0" max="80" value="45">
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>Section</span>
+        <select id="sec-axis"><option value="off">off</option><option value="x">cut across X</option>
+          <option value="y">cut across Y</option><option value="z">cut across Z</option></select></div>
+      <input id="section" type="range" min="0" max="1000" value="500" disabled>
+    </div>
+    <div class="row"><input type="checkbox" id="clear" checked><label for="clear">Lid / cover in translucent PETG</label></div>
+    <div class="views">
+      <button data-view="front">Front</button><button data-view="top">Top</button>
+      <button data-view="iso">Iso</button><button data-view="back">Back</button>
+    </div>
+
+    <h2>Numbers</h2>
+    <table id="nums"></table>
+
+    <h2>Not done / to confirm</h2>
+    <ul class="open" id="open"></ul>
+  </aside>
+  <main>
+    <canvas id="c"></canvas>
+    <div class="loading" id="loading">Loading meshes…</div>
+    <div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div>
+  </main>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="rig_data.js"></script>
+<script>
+(function () {
+  const INFO = {
+    tx: {
+      nums: [
+        ["Outside (incl. corner posts)", RIG.meta.tx_size.slice(0,2).join(" × ") + " × 57.5 mm", "CAD"],
+        ["Shell", "hex mesh, 6.0 AF cells / 1.8 ribs", "walls 288 cells, lid 252"],
+        ["Breadboard pocket", "176.5 × 81.5 mm", "fits 160–175 × 67–80 × 8–10 (size not measured)"],
+        ["Headroom above breadboard", "35–37 mm", "chosen: jumper arcs, GPS patch"],
+        ["Sensor-body bay (row-A side)", "47 mm wide", "chosen; NEO-6M ~35 mm overhang assumed"],
+        ["LiPo pocket", "61.5 × 42 mm", "604060 = 60 × 40 × 6 (part name)"],
+        ["Sensor bodies above LiPo", "11.5 mm", "CAD check, want ≥ 8"],
+        ["Tripod nut trap", "11.5 AF × 5.8 deep", "1/4\"-20 UNC 11.11 AF / BSW 11.30 AF"],
+        ["PETG under the nut", "4.2 mm", "CAD"],
+        ["SMA hole (lid)", "Ø 6.6 at X 96, Y 30", "29–33 mm from the u.FL, ≥ 22 mm off the board; est. run 73–78 mm of a 100 mm pigtail"],
+        ["Lid screws", "4 × M3 × 8 csk + heat-set", "insert hole Ø4.2 × 7.5 (v4 stock)"],
+        ["Solid PETG volume", "base 236.8 + lid 39.0 cm³", "≈ 296 g + 49 g at 100 % infill"],
+      ],
+      open: [
+        "<b>Breadboard size not measured.</b> Listings say 175 × 67, the guide figure ~160 long, your estimate 16 × 8 cm. The pocket fits all of them; push the board into the USB-end / fence corner and tape it.",
+        "The lid window, USB notch, antenna reach and sensor clearance were checked at four board sizes (175×67×8 with 60 or 64 columns, 160×80×8, 160×80×10).",
+        "The GPS patch stays under the 2.5 mm PETG lid. The effect on fix time was not measured.",
+        "The battery is held by end ribs plus a velcro strap (15–16 mm) through the floor slots. The strap is not included.",
+        "Never printed. Fits, snaps and screw bites have been checked in CAD only.",
+      ],
+    },
+    rx: {
+      nums: [
+        ["Outside (incl. corner posts)", RIG.meta.rx_size.slice(0,2).join(" × ") + " × 37.5 mm", "CAD"],
+        ["Shell", "hex mesh, 4.5 AF cells / 1.4 ribs", "walls 107, front grille 10, cover 16"],
+        ["Heltec V3 PCB", "51.69 × 25.40 × 1.12 mm", "Heltec STEP (datasheet 50.2 × 25.5)"],
+        ["TFT PCB", "77.18 × 42.72 mm", "lcdwiki MSP2402 drawing"],
+        ["TFT window = active area + 0.4/side", "49.76 × 37.52 mm", "AA 48.96 × 36.72 (drawing)"],
+        ["TFT holes / screws", "67.26 × 36.72, 4 × M3 × 5", "drawing; self-tap Ø2.5 pilot"],
+        ["OLED to panel", "1.5 mm bezel ring", "OLED height 5.0 from envelope STEP (assumed ±0.5)"],
+        ["PRG nub to switch", "0.40 mm gap", "CAD vs Heltec STEP switch"],
+        ["Back posts to PCB", "1.5 mm for 2 mm EVA pad", "chosen"],
+        ["Inner depth", "33 mm", "Heltec stack 10.1 + Dupont 14 + bend"],
+        ["SMA hole (top wall)", "Ø 6.6, wall 2.4 mm", "bulkhead range assumed ≤ 3 mm"],
+        ["Solid PETG volume", "front 34.2 + cover 17.9 cm³", "≈ 43 g + 22 g at 100 % infill"],
+      ],
+      open: [
+        "<b>Which side is the TFT's 14-pin header when the screen reads the right way up?</b> The CAD assumes <b>right</b>. If it's on the left, set <code>TFT_HEADER</code> to \"left\" and re-export.",
+        "The OLED module height (5.0 mm) comes from Heltec's envelope model, not a measurement. The EVA pads take up ±0.5 mm.",
+        "PRG = the +y switch, based on Heltec's V3.2 pinmap and the LED position. Confirm on the fit plate.",
+        "TFT screws self-tap into PETG (3.4 mm of thread). Fine for occasional removal, but don't overtighten.",
+        "Never printed. Print the 6.5 mm fit plate first.",
+      ],
+    },
+  };
+
+  const canvas = document.getElementById("c");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.localClippingEnabled = true;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 1, 5000);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(1, 2, 1.5); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3); fill.position.set(-1.5, -0.5, -1); scene.add(fill);
+
+  function bgColor() { return getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim(); }
+
+  const clip = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+  const groups = {};
+  function decode(b64) {
+    const bin = atob(b64), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Float32Array(buf.buffer);
+  }
+  function build(key) {
+    const g = new THREE.Group();
+    const items = {};
+    for (const o of RIG[key]) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(decode(o.pos), 3));
+      geo.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({
+        color: o.color, roughness: o.kind === "print" ? 0.55 : 0.7, metalness: 0.0,
+        transparent: o.opacity < 1, opacity: o.opacity, side: THREE.DoubleSide,
+        depthWrite: o.opacity >= 1, clippingPlanes: [clip], clipShadows: true,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      const holder = new THREE.Group(); holder.add(mesh);
+      if (o.kind === "print") {
+        const dark = new THREE.Color(o.color).getHSL({}).l < 0.35;
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25),
+          new THREE.LineBasicMaterial({ color: dark ? 0x8d98a8 : 0x10151c, transparent: true,
+            opacity: dark ? 0.45 : 0.35, clippingPlanes: [clip] }));
+        holder.add(edges);
+      }
+      holder.userData = o;
+      g.add(holder);
+      items[o.name] = holder;
+    }
+    // model frames -> three.js (Y up). TX: Z up. RX: front face toward the viewer.
+    if (key === "tx") g.rotation.x = -Math.PI / 2; else g.rotation.y = Math.PI;
+    const box = new THREE.Box3().setFromObject(g);
+    const c = box.getCenter(new THREE.Vector3());
+    g.position.sub(c);
+    const outer = new THREE.Group(); outer.add(g);
+    outer.userData = { items, size: box.getSize(new THREE.Vector3()) };
+    return outer;
+  }
+
+  let cur = "tx";
+  function show(key) {
+    cur = key;
+    for (const k of ["tx", "rx"]) {
+      if (!groups[k]) continue;
+      groups[k].visible = k === key;
+    }
+    if (!groups[key]) { groups[key] = build(key); scene.add(groups[key]); }
+    document.getElementById("tab-tx").classList.toggle("on", key === "tx");
+    document.getElementById("tab-rx").classList.toggle("on", key === "rx");
+    const parts = document.getElementById("parts"); parts.innerHTML = "";
+    for (const o of RIG[key]) {
+      const h = groups[key].userData.items[o.name];
+      const row = document.createElement("div"); row.className = "row";
+      const id = "cb-" + key + "-" + o.name;
+      row.innerHTML = `<input type="checkbox" id="${id}" ${h.visible ? "checked" : ""}>
+        <span class="sw" style="background:${o.color};opacity:${Math.max(o.opacity, .5)}"></span>
+        <label for="${id}">${o.label}</label><span class="tag">${o.kind === "print" ? "print" : o.kind === "zone" ? "keep-out" : "hardware"}</span>`;
+      row.querySelector("input").onchange = e => { h.visible = e.target.checked; };
+      parts.appendChild(row);
+    }
+    const nums = document.getElementById("nums");
+    nums.innerHTML = INFO[key].nums.map(([k, v, s]) =>
+      `<tr><td>${k}<div class="src">${s}</div></td><td class="v">${v}</td></tr>`).join("");
+    document.getElementById("open").innerHTML = INFO[key].open.map(t => `<li>${t}</li>`).join("");
+    applyExplode(); applySection(); setView(key === "rx" ? "front" : "iso");
+  }
+
+  function applyExplode() {
+    const v = +document.getElementById("explode").value;
+    document.getElementById("ex-v").textContent = v + " mm";
+    for (const k in groups) {
+      for (const h of Object.values(groups[k].userData.items)) {
+        const ex = h.userData.explode;
+        if (ex) h.position.set(ex[0] * v, ex[1] * v, ex[2] * v);
+      }
+    }
+  }
+  function applySection() {
+    const ax = document.getElementById("sec-axis").value;
+    const sl = document.getElementById("section");
+    sl.disabled = ax === "off";
+    if (ax === "off") { clip.set(new THREE.Vector3(1, 0, 0), 1e6); return; }
+    const s = groups[cur].userData.size;
+    const half = { x: s.x, y: s.y, z: s.z }[ax] / 2 + 1;
+    const t = (+sl.value / 1000) * 2 * half - half;
+    const n = { x: [-1, 0, 0], y: [0, -1, 0], z: [0, 0, -1] }[ax];
+    clip.set(new THREE.Vector3(...n), t);
+  }
+  function setView(v) {
+    const s = groups[cur].userData.size, r = Math.max(s.x, s.y, s.z) * 2.7;
+    const dirs = { front: [0, 0.05, 1], back: [0, 0.05, -1], top: [0, 1, 0.001], iso: [0.9, 0.75, 1.1] };
+    const d = new THREE.Vector3(...dirs[v]).normalize().multiplyScalar(r);
+    camera.position.copy(d); controls.target.set(0, 0, 0); controls.update();
+  }
+
+  document.getElementById("tab-tx").onclick = () => show("tx");
+  document.getElementById("tab-rx").onclick = () => show("rx");
+  document.getElementById("explode").oninput = applyExplode;
+  document.getElementById("clear").onchange = e => {
+    for (const k in groups) for (const h of Object.values(groups[k].userData.items)) {
+      const o = h.userData; if (o.kind !== "print" || !o.explode) continue;
+      const m = h.children[0].material; const op = e.target.checked ? o.opacity : 1.0;
+      m.opacity = op; m.transparent = op < 1; m.depthWrite = op >= 1; m.needsUpdate = true;
+    }
+  };
+  document.getElementById("sec-axis").onchange = applySection;
+  document.getElementById("section").oninput = applySection;
+  document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view));
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / Math.max(h, 1); camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => scene.background = new THREE.Color(bgColor()));
+  scene.background = new THREE.Color(bgColor());
+  resize();
+  show("tx");
+  document.getElementById("loading").remove();
+  (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+})();
+</script>
+</body>
+</html>

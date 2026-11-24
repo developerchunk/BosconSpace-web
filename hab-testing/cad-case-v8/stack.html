@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head>
+<base href="/hab-testing/cad-case-v8/">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 v8 Single Print</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1d2330;--muted:#5d6675;--rule:#dde1e7;--accent:#2f6f9f;--canvas:#e9ecf0;--chip:#eef1f5}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--panel:#1a1f27;--ink:#e6e9ee;--muted:#9aa3b1;--rule:#2b323d;--accent:#6fa8d6;--canvas:#0f1217;--chip:#232a34}}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.app{display:grid;grid-template-columns:330px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:18px}
+h1{font-size:18px;margin:0 0 2px}.sub{color:var(--muted);font-size:12.5px;margin-bottom:12px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:18px 0 8px}
+.row{display:flex;align-items:center;gap:8px;padding:3px 0}.row label{flex:1}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.2)}
+.tag{font-size:11px;color:var(--muted)}input[type=range]{width:100%;accent-color:var(--accent)}
+.lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted)}
+button,select{padding:6px 10px;border:1px solid var(--rule);background:var(--chip);color:var(--ink);border-radius:6px;cursor:pointer;font-size:12.5px}
+ol,ul{padding-left:18px;margin:0}li{margin-bottom:5px;font-size:13px}
+main{position:relative;background:var(--canvas)}canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted)}
+@media (max-width:700px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}main{order:-1;height:55vh}}
+</style></head><body><div class="app"><aside>
+<h1>HAB-1 v8: the whole box in one print</h1>
+<div class="sub">The K2 Plus bed (350 × 350 mm) as Creality Print will print it: a stack of the 6 honeycomb panels, 89 mm tall, with the 12 keys and 16 clips beside it. Support is modelled (slicer support OFF). Sliced and checked by Creality Print 7.3; not printed yet.</div>
+<h2>Show</h2><div id="parts"></div>
+<h2>View</h2>
+<div class="lab"><span>Lift the levels apart</span><span id="exv">0 mm</span></div><input id="ex" type="range" min="0" max="40" value="0">
+<div class="lab" style="margin-top:8px"><span>Section</span><select id="ax"><option value="off">off</option><option value="y">cut through the stack (front half removed)</option></select></div>
+<h2>How it prints</h2>
+<ol><li>Level 1 and 2: the lid and floor (same part), outer face down.</li><li>Levels 3 to 6: the 4 walls, turned so their cell walls sit exactly on the caps' cell walls.</li><li>Between every two panels, a 1.0 mm gap: 0.2 mm air, a 0.6 mm red release layer of thin lines that only sits on cell walls and edge blocks, 0.2 mm air. The same spacing as the slicer's own support interface.</li><li>Grey towers from the bed hold up the wall fingers that hang over the caps' finger gaps.</li></ol>
+<h2>Numbers</h2>
+<ul><li>Creality Print: 1 d 13 h 36 min, 1270 g PETG, one plate.</li><li>The same box as 7 separate plates: 34 h 42 min in total (2.9 h less printer time, but 6 plate changes).</li><li>Modelled support: 56 g (CAD).</li></ul>
+</aside><main><canvas id="c"></canvas><div class="hud">drag to orbit · right-drag to pan · scroll to zoom</div></main></div>
+<script src="three.min.js"></script><script src="OrbitControls.js"></script><script src="stack_data.js"></script>
+<script>
+(function(){
+const canvas=document.getElementById("c"),renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.localClippingEnabled=true;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(35,1,1,5000),controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xffffff,0x8890a0,0.8));const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(1,2,1.5);scene.add(sun);
+const fill=new THREE.DirectionalLight(0xffffff,0.3);fill.position.set(-1.5,-.5,-1);scene.add(fill);
+scene.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim());
+const clip=new THREE.Plane(new THREE.Vector3(1,0,0),1e6);
+function b64(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer;}
+const g=new THREE.Group();g.rotation.x=-Math.PI/2;g.position.set(-175,0,175);scene.add(g);const items={};
+const bed=new THREE.Mesh(new THREE.BoxGeometry(350,350,2),new THREE.MeshStandardMaterial({color:0x30343b,roughness:.9}));bed.position.set(175,175,-1.05);g.add(bed);
+for(const o of STACK){const q=new Uint16Array(b64(o.pos)),p=new Float32Array(q.length);for(let i=0;i<q.length;i++)p[i]=q[i]*350/65535;
+ const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(p,3));geo.setIndex(new THREE.BufferAttribute(new Uint32Array(b64(o.idx)),1));geo.computeVertexNormals();
+ const h=new THREE.Group();h.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:o.color,roughness:.6,side:THREE.DoubleSide,clippingPlanes:[clip]})));
+ if(o.tris<60000)h.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,30),new THREE.LineBasicMaterial({color:0x10151c,transparent:true,opacity:.25,clippingPlanes:[clip]})));
+ h.userData=o;g.add(h);items[o.name]=h;
+ const r=document.createElement("div");r.className="row";r.innerHTML=`<input type="checkbox" checked><span class="sw" style="background:${o.color}"></span><label>${o.name}</label>`;
+ r.querySelector("input").onchange=e=>{h.visible=e.target.checked};document.getElementById("parts").appendChild(r);}
+function lvlOf(o){if(o.level)return o.level;return 0;}
+function ex(){const v=+document.getElementById("ex").value;document.getElementById("exv").textContent=v+" mm";for(const h of Object.values(items)){const o=h.userData;let L=o.level;if(o.name==="release layers"||o.name==="support towers"||!L)L=0;h.position.set(0,0,L>1?(L-1)*v:0);}}
+function sec(){const a=document.getElementById("ax").value;if(a==="off")clip.set(new THREE.Vector3(1,0,0),1e6);if(a==="y")clip.set(new THREE.Vector3(0,0,-1),10);}
+document.getElementById("ex").oninput=ex;document.getElementById("ax").onchange=sec;
+controls.target.set(0,40,0);camera.position.set(330,330,420);controls.update();
+function rs(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();}
+new ResizeObserver(rs).observe(canvas);rs();ex();
+(function L(){controls.update();renderer.render(scene,camera);requestAnimationFrame(L);})();
+})();
+</script></body></html>

@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+<base href="/hab-testing/ground-station/">
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HAB-1 Yagi Tracking</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #14181f; --muted: #5b6573; --line: #d9dee5;
+  --grid: #e8ebf0; --accent: #1f6feb; --amber: #c27c0e; --grey: #7b8794; --good: #1a7f37;
+  --bad: #c62828; --track-up: #1f6feb; --track-down: #c27c0e; --beam: rgba(31,111,235,0.16);
+  --box: #eef1f5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --panel: #161b22; --ink: #e6edf3; --muted: #8b949e; --line: #30363d;
+    --grid: #21262d; --accent: #58a6ff; --amber: #e3b341; --grey: #8b949e; --good: #3fb950;
+    --bad: #f85149; --track-up: #58a6ff; --track-down: #e3b341; --beam: rgba(88,166,255,0.18);
+    --box: #1f2630;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1116; --panel: #161b22; --ink: #e6edf3; --muted: #8b949e; --line: #30363d;
+  --grid: #21262d; --accent: #58a6ff; --amber: #e3b341; --grey: #8b949e; --good: #3fb950;
+  --bad: #f85149; --track-up: #58a6ff; --track-down: #e3b341; --beam: rgba(88,166,255,0.18);
+  --box: #1f2630;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 20px 16px 60px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 10px; }
+p.sub { color: var(--muted); margin: 0 0 18px; }
+.grid { display: grid; gap: 14px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 14px; }
+label { display: block; font-size: 12px; color: var(--muted); }
+input, select, button { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 5px 7px; width: 100%; margin-top: 3px; }
+button { cursor: pointer; width: auto; padding: 5px 14px; }
+.card .k { font-size: 12px; color: var(--muted); }
+.card .v { font-size: 20px; font-weight: 600; margin-top: 2px; }
+.card .n { font-size: 12px; color: var(--muted); margin-top: 2px; }
+canvas { width: 100%; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 5px; }
+.play { display: flex; gap: 10px; align-items: center; }
+.play input[type=range] { flex: 1; }
+.readout { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); margin-top: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 500; }
+.scroll { max-height: 320px; overflow: auto; }
+.tablewrap { overflow-x: auto; }
+ul.tight { margin: 6px 0 0; padding-left: 18px; }
+ul.tight li { margin: 3px 0; }
+.good { color: var(--good); } .bad { color: var(--bad); }
+.note { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>HAB-1 ground station: TX900-BM-9 Yagi tracking</h1>
+<p class="sub"><a href="yagi3d.html">Open the 3D mount preview</a> (antenna as delivered, stand, beam and direction).</p>
+<p class="sub">SF9 beacon on 866.1 MHz from a 3 dBi duck on the payload to the 12 dBi Yagi on the ground. The flight
+tracks are real: <span id="srcline"></span>. Every number below is computed in this page from the inputs; nothing is
+measured yet.</p>
+
+<div class="panel">
+  <div class="controls">
+    <div><label>Flight (real wind day)<select id="track"></select></label></div>
+    <div><label>Station east of pad, km<input id="stE" type="number" step="1" value="0"></label></div>
+    <div><label>Station north of pad, km<input id="stN" type="number" step="1" value="0"></label></div>
+    <div><label>Yagi height above ground, m<input id="hAnt" type="number" step="0.01" min="0.5" value="1.83"></label></div>
+    <div><label>Clutter height along the path, m<input id="clut" type="number" step="1" min="0" value="10"></label></div>
+    <div><label>Nearest obstruction height, m (0 = none)<input id="obsH" type="number" step="1" min="0" value="0"></label></div>
+    <div><label>Obstruction distance, m<input id="obsD" type="number" step="10" min="10" value="150"></label></div>
+    <div><label>Re-aim when pointing error exceeds, deg<input id="thr" type="number" step="1" min="2" value="20"></label></div>
+    <div><label>...and margin is below, dB (100 = always)<input id="comfort" type="number" step="1" value="100"></label></div>
+    <div><label>TX power, dBm<select id="pt"><option value="22">22 (SX1262)</option><option value="15">15 (SX1261, if the die is that)</option></select></label></div>
+    <div><label>Pendulum swing, deg<input id="swing" type="number" step="1" min="0" value="15"></label></div>
+    <div><label>Feed loss at Yagi, dB<input id="feed" type="number" step="0.1" min="0" value="0.5"></label></div>
+  </div>
+</div>
+
+<div class="grid g4" style="margin-top:14px" id="cards"></div>
+
+<div class="grid g2" style="margin-top:14px">
+  <div class="panel">
+    <h2>Map: track, ground station and where the Yagi points</h2>
+    <canvas id="map" height="420"></canvas>
+    <div class="legend"><span><i style="background:var(--track-up)"></i>ascent</span><span><i style="background:var(--track-down)"></i>descent</span><span><i style="background:var(--beam);height:10px"></i>Yagi half-power beam (54 deg)</span><span>circle = burst, x = landing, square = Yagi</span></div>
+  </div>
+  <div class="panel">
+    <h2>Sky view from the Yagi (centre = straight up, edge = horizon)</h2>
+    <canvas id="sky" height="420"></canvas>
+    <div class="legend"><span><i style="background:var(--track-up)"></i>balloon path</span><span><i style="background:var(--beam);height:10px"></i>beam footprint, current aim</span><span>dot = balloon now</span></div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:14px">
+  <div class="play"><button id="playBtn">Play</button><input id="tSlider" type="range" min="0" max="100" value="0"></div>
+  <div class="readout" id="readout"></div>
+</div>
+
+<div class="panel" style="margin-top:14px">
+  <h2>Mount drawing, to scale (follows the playback time)</h2>
+  <p class="note">Antenna dimensions: TX900-BM-9 listing (760 mm long, 120 mm wide, 400 g) and the listing photo's 14 elements. The delivered antenna has 9 (reflector, folded dipole, 7 directors) and an end plate: see the 3D preview for the real one. Element positions are read off the photo, so measure yours. Mount parts marked "proposal" are my design, not something you already have. Mast height is the "Yagi height" input above.</p>
+  <div class="grid g2">
+    <div><canvas id="mountSide" height="480"></canvas><p class="note">Side elevation, seen from the side-arm side, balloon to the right. The shaded cone is the 48 deg vertical half-power beam.</p></div>
+    <div><canvas id="mountPlan" height="480"></canvas><p class="note">Plan view, north up. The shaded sector is the 54 deg horizontal half-power beam; the dashed line is the direction to the balloon now.</p></div>
+  </div>
+  <div style="margin-top:14px"><canvas id="mountHead" height="460"></canvas><p class="note">Head detail, side elevation. Pivot bolt at the balance point; protractor for tilt; Heltec behind the reflector so it is outside the beam.</p></div>
+  <div class="tablewrap" style="margin-top:10px"><table id="mountParts"></table></div>
+</div>
+
+<div class="panel" style="margin-top:14px">
+  <h2>Link margin over the flight, three ways of handling the Yagi</h2>
+  <canvas id="marginChart" height="260"></canvas>
+  <div class="legend"><span><i style="background:var(--grey)"></i>fixed (best single aim, never touched)</span><span><i style="background:var(--amber)"></i>azimuth only (tilt fixed at best value)</span><span><i style="background:var(--accent)"></i>azimuth and tilt</span><span>gaps = below the radio horizon. 0 dB = packet just decodes.</span></div>
+</div>
+
+<div class="grid g2" style="margin-top:14px">
+  <div class="panel">
+    <h2>Azimuth to the balloon, and where the boom is set</h2>
+    <canvas id="azChart" height="220"></canvas>
+    <div class="legend"><span><i style="background:var(--muted)"></i>balloon azimuth (deg true)</span><span><i style="background:var(--accent)"></i>boom azimuth, azimuth + tilt tracking</span></div>
+  </div>
+  <div class="panel">
+    <h2>Elevation of the balloon, and the boom tilt</h2>
+    <canvas id="elChart" height="220"></canvas>
+    <div class="legend"><span><i style="background:var(--muted)"></i>balloon elevation (deg)</span><span><i style="background:var(--accent)"></i>boom tilt</span><span><i style="background:var(--amber)"></i>best fixed tilt</span></div>
+  </div>
+</div>
+
+<div class="grid g2" style="margin-top:14px">
+  <div class="panel">
+    <h2>Yagi height against the last packet heard on descent</h2>
+    <canvas id="hChart" height="240"></canvas>
+    <div class="legend"><span><i style="background:var(--accent)"></i>with the clutter and obstruction above</span><span><i style="background:var(--grey)"></i>without the nearest obstruction</span></div>
+    <p class="note" id="hNote"></p>
+  </div>
+  <div class="panel">
+    <h2>Operator's re-aim sheet (azimuth and tilt tracking)</h2>
+    <div class="scroll"><table id="aimTable"></table></div>
+    <p class="note">Re-aim from the position in the last packet received. The beacon sends one every 12 s.</p>
+  </div>
+</div>
+
+<div class="grid g2" style="margin-top:14px">
+  <div class="panel">
+    <h2>How to mount the Yagi</h2>
+    <div id="mountText"></div>
+  </div>
+  <div class="panel">
+    <h2>How to mount the payload downlink antenna</h2>
+    <canvas id="payload" height="430"></canvas>
+    <ul class="tight">
+      <li>3 dBi duck on an SMA bulkhead in the <b>centre of the bottom face</b>, hanging <b>straight down</b>, in line with the suspension line. That keeps it vertical, so it matches the vertically polarised Yagi.</li>
+      <li>Heltec inside, close to the bulkhead, 15 cm u.FL pigtail. Tape the u.FL down.</li>
+      <li>Both GPS patches on the <b>top face</b>, under the lid, facing up: about 0.30 m from the duck (the 30 cm box). Check before flight that the GPS signal strength (C/N0) does not drop while the beacon transmits.</li>
+      <li>A vertical duck has a <b>null straight down</b>. The ground station only sees that null when the balloon is nearly overhead, where the range is short; the margin chart includes it.</li>
+      <li>Keep the duck out of both cameras' view, and away from the Pi and the power bank, which are metal and noisy.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:14px">
+  <h2>Inputs and where each comes from</h2>
+  <div class="tablewrap"><table id="assume"></table></div>
+</div>
+</main>
+
+<script src="tracks.js"></script>
+<script>
+"use strict";
+const D = window.HAB_TRACKS;
+const R_E = 6371000, REFF = R_E * 4 / 3, F_MHZ = 866.1, LAMBDA = 299792458 / (F_MHZ * 1e6);
+const PAD = D.pad.elev_m;
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const wrap180 = a => ((a + 540) % 360) - 180;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const FIXED = { sens: -129.5, gp: 3.0, nullFloor: -10, gy: 12.0, hbw: 54, vbw: 48, gyFloor: -3, misc: 1.0 };
+let P = {};
+const $ = id => document.getElementById(id);
+
+document.getElementById("srcline").textContent =
+  `${D.n_flights} October and November launch-hour wind columns at the Solapur pad (GFS archive 2021 to 2025), flown through the filed OSA ascent and descent timeline. Landing distance median ${D.p50_km} km, 95th percentile ${D.p95_km} km, longest ${D.max_km} km (the OSA filed 34.2 / 80.4 / 105.2 km)`;
+
+D.tracks.forEach((t, i) => {
+  const o = document.createElement("option");
+  o.value = i; o.textContent = `${t.label}: ${t.date}, lands ${t.range_km} km at ${t.bearing} deg`;
+  $("track").appendChild(o);
+});
+
+function readParams() {
+  P = Object.assign({}, FIXED, {
+    track: D.tracks[+$("track").value],
+    stE: +$("stE").value || 0, stN: +$("stN").value || 0,
+    h: Math.max(0.5, +$("hAnt").value || 1.83), clut: Math.max(0, +$("clut").value || 0),
+    obsH: Math.max(0, +$("obsH").value || 0), obsD: Math.max(10, +$("obsD").value || 150),
+    thr: Math.max(2, +$("thr").value || 20), comfort: +$("comfort").value,
+    pt: +$("pt").value, swing: Math.max(0, +$("swing").value || 0), feed: Math.max(0, +$("feed").value || 0),
+  });
+}
+
+// ---------------------------------------------------------------- geometry
+function geom(p, h) {
+  const de = p[1] / 1000 - P.stE, dn = p[2] / 1000 - P.stN;      // km
+  const d = Math.hypot(de, dn);
+  const hs = PAD + h, hp = p[3], th = d * 1000 / R_E;
+  const r1 = R_E + hs, r2 = R_E + hp;
+  const slant = Math.sqrt(Math.max(1, r1 * r1 + r2 * r2 - 2 * r1 * r2 * Math.cos(th))) / 1000;
+  const el = deg(Math.atan2(r2 * Math.cos(th) - r1, r2 * Math.sin(th)));
+  const elR = deg(Math.atan2((hp - hs) - (d * 1000) ** 2 / (2 * REFF), d * 1000));
+  const agl = hp - PAD;
+  // horizon over a clutter-raised earth: trees and buildings of height P.clut cover the path
+  const dmax = Math.sqrt(2 * REFF * Math.max(h - P.clut, 0)) + Math.sqrt(2 * REFF * Math.max(agl - P.clut, 0));
+  const az = (deg(Math.atan2(de, dn)) + 360) % 360;
+  const depression = el + deg(th);              // seen from the payload, below its horizontal
+  return { d, slant, el, elR, az, agl, los: d < 0.5 || (agl > P.clut && d * 1000 <= dmax), offBroad: Math.abs(depression) };
+}
+
+function dipoleRel(offBroadDeg) {               // half-wave dipole, 0 dB at broadside
+  const t = rad(Math.max(0.5, 90 - Math.min(90, offBroadDeg)));
+  const f = Math.cos(Math.PI / 2 * Math.cos(t)) / Math.sin(t);
+  return 10 * Math.log10(f * f + 1e-12);
+}
+function payloadGain(g) {
+  return Math.max(P.nullFloor, P.gp + dipoleRel(Math.min(90, g.offBroad + P.swing)));
+}
+function frame(A, T) {
+  const a = rad(A), t = rad(T);
+  return { f: [Math.sin(a) * Math.cos(t), Math.cos(a) * Math.cos(t), Math.sin(t)],
+           r: [Math.cos(a), -Math.sin(a), 0],
+           u: [-Math.sin(a) * Math.sin(t), -Math.cos(a) * Math.sin(t), Math.cos(t)] };
+}
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const losVec = (az, el) => [Math.cos(rad(el)) * Math.sin(rad(az)), Math.cos(rad(el)) * Math.cos(rad(az)), Math.sin(rad(el))];
+function yagiGain(az, el, A, T) {
+  const L = losVec(az, el), F = frame(A, T);
+  const x = dot(L, F.f), y = dot(L, F.r), z = dot(L, F.u);
+  if (x <= 0) return P.gyFloor;
+  const hu = deg(Math.atan2(y, x)), vv = deg(Math.atan2(z, Math.hypot(x, y)));
+  return Math.max(P.gyFloor, P.gy - 12 * ((hu / P.hbw) ** 2 + (vv / P.vbw) ** 2));
+}
+const offAxis = (az, el, A, T) => deg(Math.acos(Math.max(-1, Math.min(1, dot(losVec(az, el), frame(A, T).f)))));
+
+function obstLoss(elR, h, obsH) {               // single knife edge, ITU-R P.526 J(v)
+  if (obsH <= 0) return 0;
+  const ray = h + P.obsD * Math.tan(rad(elR));
+  const v = (obsH - ray) * Math.sqrt(2 / (LAMBDA * P.obsD));
+  if (v <= -0.78) return 0;
+  return 6.9 + 20 * Math.log10(Math.sqrt((v - 0.1) ** 2 + 1) + v - 0.1);
+}
+const fspl = km => 32.44 + 20 * Math.log10(km) + 20 * Math.log10(F_MHZ);
+
+// precompute geometry for a given antenna height
+function geomTrack(h) { return P.track.p.map(p => geom(p, h)); }
+
+function marginAt(g, A, T, h, obsH) {
+  if (!g.los || g.slant < 0.05) return null;
+  return P.pt + payloadGain(g) + yagiGain(g.az, g.el, A, T) - fspl(g.slant) - P.feed - P.misc
+       - obstLoss(g.elR, h, obsH) - P.sens;
+}
+
+// ---------------------------------------------------------------- strategies
+// mode: "fixed" (A,T never change), "az" (azimuth re-aimed, tilt fixed), "full" (both)
+function run(G, mode, A0, T0, h, obsH) {
+  const pts = P.track.p, out = [];
+  let A = A0, T = T0, last = null, reaims = 0;
+  const start = G.findIndex(g => g.slant > 0.2);
+  if (mode !== "fixed" && start >= 0) { A = G[start].az; if (mode === "full") T = Math.max(0, G[start].el); }
+  for (let i = 0; i < G.length; i++) {
+    const g = G[i];
+    const m = marginAt(g, A, T, h, obsH);
+    out.push({ m, A, T, reaim: false });
+    if (m !== null && m >= 0) last = g;
+    if (mode === "fixed" || !last || i < start) continue;
+    const err = mode === "full" ? offAxis(last.az, last.el, A, T) : Math.abs(wrap180(last.az - A));
+    const low = m === null || m < P.comfort;
+    if (err > P.thr && low) {
+      A = last.az; if (mode === "full") T = Math.max(0, Math.min(90, last.el));
+      reaims++; out[i].reaim = true;
+    }
+  }
+  return { out, reaims };
+}
+function stats(G, res) {
+  const pts = P.track.p;
+  let heard = 0, vis = 0, minM = Infinity, minI = -1, lastI = -1;
+  for (let i = 0; i < G.length; i++) {
+    if (pts[i][0] < 60) continue;
+    if (G[i].los) vis++;
+    const m = res.out[i].m;
+    if (m === null) continue;
+    if (m >= 0) { heard++; lastI = i; }
+    if (m < minM) { minM = m; minI = i; }
+  }
+  const total = G.filter((g, i) => pts[i][0] >= 60).length;
+  return { heard, vis, total, minM, minI, lastI };
+}
+
+let S = {};
+function compute() {
+  readParams();
+  const G = geomTrack(P.h);
+  // best fixed aim: max packets heard, then max worst-case margin
+  let best = null;
+  for (let A = 0; A < 360; A += 5) for (let T = 0; T <= 70; T += 2) {
+    const st = stats(G, run(G, "fixed", A, T, P.h, P.obsH));
+    const score = st.heard * 1000 + Math.max(-100, Math.min(100, st.minM));
+    if (!best || score > best.score) best = { A, T, score, st };
+  }
+  let bestAz = null;
+  for (let T = 0; T <= 70; T += 1) {
+    const r = run(G, "az", 0, T, P.h, P.obsH), st = stats(G, r);
+    const score = st.heard * 1000 + Math.max(-100, Math.min(100, st.minM));
+    if (!bestAz || score > bestAz.score) bestAz = { T, score, st, r };
+  }
+  const fixedRun = run(G, "fixed", best.A, best.T, P.h, P.obsH);
+  const fullRun = run(G, "full", 0, 0, P.h, P.obsH);
+  S = { G, best, bestAz, fixedRun, azRun: bestAz.r, fullRun,
+        fixedSt: best.st, azSt: bestAz.st, fullSt: stats(G, fullRun) };
+  S.heights = heightSweep();
+  S.allTracks = allTrackHeights();
+  $("tSlider").max = P.track.p.length - 1;
+  renderCards(); renderAimTable(); renderMountText(); renderAssume();
+  drawAll();
+}
+
+// lowest mast that hears each flight's descent to within one packet of a 20 m mast
+function allTrackHeights() {
+  const keep = P.track, out = [];
+  for (const tr of D.tracks) {
+    P.track = tr;
+    let best = -1, rows = [];
+    for (let h = 0.5; h <= 20.001; h += 0.5) {
+      const G = geomTrack(h), st = stats(G, run(G, "full", 0, 0, h, P.obsH));
+      rows.push({ h, i: st.lastI }); if (st.lastI > best) best = st.lastI;
+    }
+    const ok = rows.find(r => r.i >= 0 && tr.p[best][0] - tr.p[r.i][0] <= 12);
+    const at = h => rows.find(r => Math.abs(r.h - h) < 0.01);
+    const agl = r => r && r.i >= 0 ? Math.round(tr.p[r.i][3] - PAD) : null;
+    out.push({ label: tr.label, range: tr.range_km, need: ok ? ok.h : null, at3: agl(at(3)), atNeed: ok ? agl(ok) : null });
+  }
+  P.track = keep;
+  return out;
+}
+
+function heightSweep() {
+  const res = [];
+  for (let h = 0.5; h <= 20.001; h += 0.5) {
+    const G = geomTrack(h);
+    const a = stats(G, run(G, "full", 0, 0, h, P.obsH));
+    const b = stats(G, run(G, "full", 0, 0, h, 0));
+    res.push({ h, withObs: a.lastI, open: b.lastI });
+  }
+  return res;
+}
+
+// ---------------------------------------------------------------- text
+const fmtT = s => `T+${(s / 60).toFixed(1)} min`;
+function lastHeardText(st) {
+  if (st.lastI < 0) return { v: "none", n: "" };
+  const p = P.track.p[st.lastI], end = P.track.p[P.track.p.length - 1];
+  const before = (end[0] - p[0]) / 60;
+  const fromLand = Math.hypot(p[1] - end[1], p[2] - end[2]) / 1000;
+  return { v: `${Math.round(p[3] - PAD)} m AGL`, n: `${fmtT(p[0])}, ${before.toFixed(1)} min before touchdown, ${fromLand.toFixed(2)} km from the landing point` };
+}
+function card(k, v, n, cls) { return `<div class="panel card"><div class="k">${k}</div><div class="v ${cls || ""}">${v}</div><div class="n">${n || ""}</div></div>`; }
+function renderCards() {
+  const f = S.fullSt, a = S.azSt, x = S.fixedSt;
+  const pct = st => `${(100 * st.heard / st.total).toFixed(1)}%`;
+  const minTxt = st => st.minI < 0 ? "none" : `${st.minM.toFixed(1)} dB`;
+  const minN = st => st.minI < 0 ? "" : `at ${fmtT(P.track.p[st.minI][0])}, ${S.G[st.minI].slant.toFixed(1)} km slant, ${S.G[st.minI].el.toFixed(1)} deg up`;
+  const lh = lastHeardText(f);
+  $("cards").innerHTML =
+    card("Azimuth + tilt tracking", `${pct(f)} heard`, `${f.heard} of ${f.total} packets; ${S.fullRun.reaims} re-aims; worst margin ${minTxt(f)} ${minN(f)}`, f.minM >= 10 ? "good" : (f.minM >= 0 ? "" : "bad")) +
+    card("Azimuth only, tilt fixed", `${pct(a)} heard`, `best tilt ${S.bestAz.T} deg; ${S.azRun.reaims} re-aims; worst margin ${minTxt(a)} ${minN(a)}`) +
+    card("Fixed, never touched", `${pct(x)} heard`, `best aim ${S.best.A} deg az, ${S.best.T} deg tilt; worst margin ${minTxt(x)}`) +
+    card("Last packet on descent", lh.v, lh.n) +
+    card("Packets below the radio horizon", `${f.total - f.vis}`, `of ${f.total}; no antenna fixes these, only height above the terrain or a station closer to the landing`);
+}
+
+function renderAimTable() {
+  const pts = P.track.p, rows = [["Time", "Alt km", "Range km", "Set azimuth", "Set tilt", "Margin before"]];
+  const r = S.fullRun.out;
+  const start = S.G.findIndex(g => g.slant > 0.2);
+  if (start >= 0) rows.push([fmtT(pts[start][0]) + " (launch)", (pts[start][3] / 1000).toFixed(1), S.G[start].slant.toFixed(1), r[start].A.toFixed(0), r[start].T.toFixed(0), ""]);
+  for (let i = 0; i < r.length; i++) if (r[i].reaim) {
+    const n = r[i + 1] || r[i];
+    rows.push([fmtT(pts[i][0]), (pts[i][3] / 1000).toFixed(1), S.G[i].slant.toFixed(1), n.A.toFixed(0), n.T.toFixed(0), r[i].m === null ? "no LOS" : r[i].m.toFixed(1) + " dB"]);
+  }
+  $("aimTable").innerHTML = rows.map((row, i) => `<tr>${row.map(c => i ? `<td>${c}</td>` : `<th>${c}</th>`).join("")}</tr>`).join("");
+}
+
+function recommendedHeight() {
+  const hs = S.heights, best = Math.max(...hs.map(x => x.withObs));
+  const t = P.track.p;
+  const ok = hs.find(x => x.withObs >= 0 && best >= 0 && t[best][0] - t[x.withObs][0] <= 12);
+  return { ok, best };
+}
+function renderMountText() {
+  const rh = recommendedHeight();
+  const hs = S.heights, t = P.track.p;
+  const at = h => hs.reduce((a, b) => Math.abs(b.h - h) < Math.abs(a.h - h) ? b : a);
+  const lastAgl = x => x.withObs < 0 ? "none" : `${Math.round(t[x.withObs][3] - PAD)} m AGL`;
+  const fullStart = S.fullRun.out[S.G.findIndex(g => g.slant > 0.2)] || { A: 0, T: 0 };
+  const fresnel = Math.sqrt(LAMBDA * P.obsD);
+  $("hNote").textContent = rh.ok
+    ? `With ${P.clut} m of clutter on the path${P.obsH > 0 ? ` and a ${P.obsH} m obstruction at ${P.obsD} m` : ""}: ${rh.ok.h} m of mast hears within one packet (12 s) of a 20 m mast. Last packet at 1.5 m: ${lastAgl(at(1.5))}; at 3 m: ${lastAgl(at(3))}; at 6 m: ${lastAgl(at(6))}; at 10 m: ${lastAgl(at(10))}.`
+    : "No height in 0.5 to 20 m hears the descent on this track.";
+  $("mountText").innerHTML = `<ul class="tight">
+    <li><b>Where:</b> at the pad for launch. On this track, with the station there, the last packet comes at ${lastHeardText(S.fullSt).v}. Moving the station towards the landing (east/north inputs above) is the only thing that moves that number much: test it with the inputs.</li>
+    <li><b>Height, this flight:</b> ${!rh.ok ? "no height in 0.5 to 20 m hears the descent on this track" : rh.ok.h <= P.clut ? `mast height makes no difference here: the balloon's own height sets the horizon, and any mast hears it within one packet (12 s) of a 20 m mast` : `<b>${rh.ok.h} m</b>: the lowest mast that hears the descent to within one packet (12 s) of a 20 m mast, with ${P.clut} m of clutter on the path`}. Height only counts above the clutter: below ${P.clut} m the Yagi is inside the trees and adds nothing to the horizon. ${P.obsH > 0 ? `The first Fresnel zone is ${fresnel.toFixed(1)} m in radius at ${P.obsD} m, so the ${P.obsH} m obstruction there costs signal even when you can see over it.` : "Enter the nearest tree or building to see what it costs."}</li>
+    <li><b>Height across all five flights:</b> ${S.allTracks.map(a => `${a.label.toLowerCase()} (${a.range} km) needs ${a.need === null ? "more than 20 m" : a.need <= P.clut ? "any height" : a.need + " m"}${a.at3 !== null && a.atNeed !== null && a.at3 !== a.atNeed ? ` (last packet ${a.at3} m AGL at 3 m, ${a.atNeed} m AGL at ${a.need} m)` : ""}`).join("; ")}. <b>Mast for the site: ${Math.max(2, ...S.allTracks.map(a => a.need || 0))} m</b>, i.e. the Yagi clear of the ${P.clut} m clutter.</li>
+    <li><b>Polarisation:</b> elements <b>vertical</b>, to match the hanging duck. Tilt the boom up in the vertical plane; the elements stay in that plane, so tilting keeps the match. Elements horizontal costs about 20 dB (assumed).</li>
+    <li><b>Mount:</b> a pan-tilt head (azimuth and elevation) on a mast or tripod, boom clamped at its centre of mass; the antenna is 400 g and 760 mm. Guy the mast. Mark azimuth on the base in 10 deg steps and fit a protractor for tilt.</li>
+    <li><b>Radio at the antenna:</b> Heltec on the boom behind the reflector, N(M) to SMA(M) adapter plus the 15 cm pigtail, USB down to the laptop.</li>
+    <li><b>At launch:</b> point azimuth ${fullStart.A.toFixed(0)} deg, tilt ${fullStart.T.toFixed(0)} deg, then follow the re-aim sheet: re-aim from the last packet when the boom is more than ${P.thr} deg off${P.comfort >= 100 ? "" : ` and margin is under ${P.comfort} dB`}. That is ${S.fullRun.reaims} re-aims on this track.</li>
+    <li><b>If nobody can tend it:</b> ${S.bestAz.T} deg fixed tilt with azimuth turned by hand hears ${(100 * S.azSt.heard / S.azSt.total).toFixed(1)}%; a single fixed aim hears ${(100 * S.fixedSt.heard / S.fixedSt.total).toFixed(1)}%.</li>
+  </ul>`;
+}
+
+function renderAssume() {
+  const rows = [
+    ["Input", "Value", "Source"],
+    ["Frequency", "866.1 MHz", "firmware 24_sf9_beacon_tx"],
+    ["Receiver sensitivity", `${P.sens} dBm (SF9, BW125)`, "SX1262 datasheet, used in firmware 24"],
+    ["TX power", `${P.pt} dBm conducted`, "firmware 24 (APC off). 15 dBm if the die is an SX1261: still open"],
+    ["Payload antenna", `${P.gp} dBi peak, half-wave dipole pattern, null floor ${P.nullFloor} dBi`, "3 dBi: seller's claim. Pattern: dipole theory. Null floor: assumed"],
+    ["Pendulum swing", `${P.swing} deg, worst case applied to every packet`, "assumed, not measured"],
+    ["Yagi", `${P.gy} dBi, ${P.hbw} x ${P.vbw} deg half-power, ${P.gyFloor} dBi off the main lobe`, "Hubtronics TX900-BM-9 listing; off-lobe level assumed (no front-to-back given)"],
+    ["Yagi beam shape", "parabolic in dB, 3 dB down at the half-power edge", "standard approximation"],
+    ["Feed loss", `${P.feed} dB`, "assumed: adapter + 15 cm pigtail, radio at the antenna"],
+    ["Other loss", `${P.misc} dB`, "assumed"],
+    ["Radio horizon", "4/3 earth, flat terrain at the pad elevation (509.11 m)", "standard refraction; terrain not modelled"],
+    ["Path clutter", `${P.clut} m: the radio horizon is taken over an earth raised by this much`, "assumed for farmland with trees; doc 16 measured 31 dB of clutter loss at ground level over 1.55 km"],
+    ["Nearest obstruction", P.obsH > 0 ? `${P.obsH} m at ${P.obsD} m, in every direction, single knife edge` : "none entered", "measure the real site. Foliage loss not added"],
+    ["Flight altitude vs time", "OSA section 6 timeline: burst 30,959 m at T+92.2, touchdown T+128.8", "docs/23 [R8]"],
+    ["Winds", "GFS (Open-Meteo gfs_seamless) at the pad, 06 UTC, Oct and Nov 2021 to 2025", "bundled predictor archive; physics tools/drift_sim.py"],
+    ["Not modelled", "ground-reflection multipath, payload spin, receiver desense from local noise, terrain at the landing site", ""],
+  ];
+  $("assume").innerHTML = rows.map((r, i) => `<tr>${r.map(c => i ? `<td>${c}</td>` : `<th>${c}</th>`).join("")}</tr>`).join("");
+}
+
+// ---------------------------------------------------------------- drawing helpers
+function setup(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth;
+  if (!cv.dataset.h) cv.dataset.h = cv.getAttribute("height");   // canvas.height is overwritten below
+  const h = +cv.dataset.h;
+  cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + "px";
+  const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.font = "11px -apple-system, Segoe UI, sans-serif"; c.textBaseline = "middle";
+  return { c, w, h };
+}
+function chart(cv, o) {
+  const { c, w, h } = setup(cv);
+  const L = 44, Rr = 10, Tp = 10, B = 36, pw = w - L - Rr, ph = h - Tp - B;
+  const X = v => L + (v - o.x0) / (o.x1 - o.x0) * pw, Y = v => Tp + (1 - (v - o.y0) / (o.y1 - o.y0)) * ph;
+  c.strokeStyle = css("--grid"); c.fillStyle = css("--muted"); c.lineWidth = 1;
+  for (const v of o.yt) { c.beginPath(); c.moveTo(L, Y(v)); c.lineTo(L + pw, Y(v)); c.stroke(); c.textAlign = "right"; c.fillText(v, L - 6, Y(v)); }
+  c.textAlign = "center";
+  for (let v = 0; v <= o.x1; v += 15) { c.beginPath(); c.moveTo(X(v), Tp); c.lineTo(X(v), Tp + ph); c.stroke(); c.fillText(`${v}`, X(v), Tp + ph + 12); }
+  c.textAlign = "left"; c.fillText(o.xl || "minutes after launch", L, h - 4);
+  (o.guides || []).forEach(gd => { c.strokeStyle = gd.color; c.setLineDash(gd.dash || []); c.beginPath(); c.moveTo(L, Y(gd.y)); c.lineTo(L + pw, Y(gd.y)); c.stroke(); c.setLineDash([]); });
+  for (const s of o.series) {
+    c.strokeStyle = s.color; c.lineWidth = s.w || 1.6; c.beginPath(); let pen = false, prevY = null;
+    for (const [x, y] of s.pts) {
+      if (y === null || y === undefined) { pen = false; continue; }
+      const yy = Math.max(o.y0, Math.min(o.y1, y));
+      if (s.wrap && prevY !== null && Math.abs(y - prevY) > 180) pen = false;
+      if (!pen) { c.moveTo(X(x), Y(yy)); pen = true; } else c.lineTo(X(x), Y(yy));
+      prevY = y;
+    }
+    c.stroke();
+  }
+  if (o.marker !== undefined) { c.strokeStyle = css("--ink"); c.lineWidth = 1; c.setLineDash([3, 3]); c.beginPath(); c.moveTo(X(o.marker), Tp); c.lineTo(X(o.marker), Tp + ph); c.stroke(); c.setLineDash([]); }
+}
+
+function drawMap(i) {
+  const cv = $("map"), { c, w, h } = setup(cv), pts = P.track.p;
+  const xs = pts.map(p => p[1] / 1000).concat([P.stE, 0]), ys = pts.map(p => p[2] / 1000).concat([P.stN, 0]);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const span = Math.max(x1 - x0, y1 - y0, 6) * 1.15, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const s = Math.min(w, h) / span;
+  const X = e => w / 2 + (e - cx) * s, Y = n => h / 2 - (n - cy) * s;
+  // range rings around the station
+  c.strokeStyle = css("--line"); c.fillStyle = css("--muted"); c.textAlign = "left";
+  const step = span > 120 ? 25 : span > 50 ? 10 : 5;
+  for (let r = step; r < span; r += step) { c.beginPath(); c.arc(X(P.stE), Y(P.stN), r * s, 0, 2 * Math.PI); c.stroke(); c.fillText(`${r} km`, X(P.stE) + 3, Y(P.stN) - r * s - 6); }
+  // beam wedge
+  const aim = S.fullRun.out[i], len = Math.min(w, h) * 0.42;
+  c.fillStyle = css("--beam"); c.beginPath(); c.moveTo(X(P.stE), Y(P.stN));
+  for (let a = aim.A - P.hbw / 2; a <= aim.A + P.hbw / 2 + 0.01; a += 2) c.lineTo(X(P.stE) + len * Math.sin(rad(a)), Y(P.stN) - len * Math.cos(rad(a)));
+  c.closePath(); c.fill();
+  // track
+  const burstIdx = pts.findIndex(p => p[0] >= 92.2 * 60);
+  for (const [a, b, col, dash] of [[0, burstIdx, "--track-up", []], [burstIdx, pts.length - 1, "--track-down", [5, 4]]]) {
+    c.strokeStyle = css(col); c.lineWidth = 2; c.setLineDash(dash); c.beginPath();
+    for (let k = a; k <= b; k++) { const p = pts[k]; k === a ? c.moveTo(X(p[1] / 1000), Y(p[2] / 1000)) : c.lineTo(X(p[1] / 1000), Y(p[2] / 1000)); }
+    c.stroke(); c.setLineDash([]);
+  }
+  const ink = css("--ink");
+  c.strokeStyle = ink; c.fillStyle = ink;
+  const bp = pts[burstIdx]; c.beginPath(); c.arc(X(bp[1] / 1000), Y(bp[2] / 1000), 5, 0, 2 * Math.PI); c.stroke();
+  const lp = pts[pts.length - 1], lx = X(lp[1] / 1000), ly = Y(lp[2] / 1000);
+  c.beginPath(); c.moveTo(lx - 5, ly - 5); c.lineTo(lx + 5, ly + 5); c.moveTo(lx + 5, ly - 5); c.lineTo(lx - 5, ly + 5); c.stroke();
+  c.fillRect(X(P.stE) - 4, Y(P.stN) - 4, 8, 8);
+  c.fillText("pad", X(0) + 7, Y(0) + 9);
+  const p = pts[i]; c.fillStyle = css("--bad"); c.beginPath(); c.arc(X(p[1] / 1000), Y(p[2] / 1000), 5, 0, 2 * Math.PI); c.fill();
+  c.fillStyle = css("--muted"); c.textAlign = "right"; c.fillText("N up", w - 6, 10);
+}
+
+function drawSky(i) {
+  const cv = $("sky"), { c, w, h } = setup(cv);
+  const R = Math.min(w, h) / 2 - 22, cx = w / 2, cy = h / 2;
+  const XY = (az, el) => { const r = (90 - Math.max(-2, el)) / 90 * R; return [cx + r * Math.sin(rad(az)), cy - r * Math.cos(rad(az))]; };
+  c.strokeStyle = css("--line"); c.fillStyle = css("--muted"); c.textAlign = "center";
+  for (const el of [0, 30, 60]) { c.beginPath(); c.arc(cx, cy, (90 - el) / 90 * R, 0, 2 * Math.PI); c.stroke(); c.fillText(`${el} deg`, cx + 4, cy - (90 - el) / 90 * R + 9); }
+  for (const [t, a] of [["N", 0], ["E", 90], ["S", 180], ["W", 270]]) { const [x, y] = XY(a, -12); c.fillText(t, x, y); }
+  // beam footprint (half-power ellipse), current aim
+  const aim = S.fullRun.out[i], F = frame(aim.A, aim.T);
+  c.fillStyle = css("--beam"); c.beginPath();
+  for (let k = 0; k <= 72; k++) {
+    const ph = k / 72 * 2 * Math.PI, u = rad(P.hbw / 2 * Math.cos(ph)), v = rad(P.vbw / 2 * Math.sin(ph));
+    const L = [0, 1, 2].map(j => Math.cos(v) * Math.cos(u) * F.f[j] + Math.cos(v) * Math.sin(u) * F.r[j] + Math.sin(v) * F.u[j]);
+    const [x, y] = XY((deg(Math.atan2(L[0], L[1])) + 360) % 360, deg(Math.asin(L[2])));
+    k ? c.lineTo(x, y) : c.moveTo(x, y);
+  }
+  c.closePath(); c.fill();
+  // path
+  c.strokeStyle = css("--track-up"); c.lineWidth = 1.6; c.beginPath(); let pen = false;
+  S.G.forEach((g, k) => { if (g.slant < 0.2 || g.el < -1) { pen = false; return; } const [x, y] = XY(g.az, g.el); pen ? c.lineTo(x, y) : c.moveTo(x, y); pen = true; });
+  c.stroke();
+  const g = S.G[i]; if (g.slant >= 0.2) { const [x, y] = XY(g.az, g.el); c.fillStyle = css("--bad"); c.beginPath(); c.arc(x, y, 5, 0, 2 * Math.PI); c.fill(); }
+}
+
+function drawCharts(i) {
+  const pts = P.track.p, tm = pts.map(p => p[0] / 60), xMax = Math.ceil(tm[tm.length - 1] / 15) * 15;
+  const ser = (run, col, w) => ({ color: col, w, pts: run.out.map((o, k) => [tm[k], o.m]) });
+  chart($("marginChart"), { x0: 0, x1: xMax, y0: -10, y1: 70, yt: [-10, 0, 10, 20, 30, 40, 50, 60, 70],
+    guides: [{ y: 0, color: css("--bad") }, { y: 10, color: css("--muted"), dash: [4, 4] }],
+    series: [ser(S.fixedRun, css("--grey"), 1.4), ser(S.azRun, css("--amber"), 1.6), ser(S.fullRun, css("--accent"), 2)],
+    marker: tm[i] });
+  chart($("azChart"), { x0: 0, x1: xMax, y0: 0, y1: 360, yt: [0, 90, 180, 270, 360],
+    series: [{ color: css("--muted"), wrap: true, pts: S.G.map((g, k) => [tm[k], g.slant > 0.2 ? g.az : null]) },
+             { color: css("--accent"), wrap: true, w: 2, pts: S.fullRun.out.map((o, k) => [tm[k], o.A]) }], marker: tm[i] });
+  chart($("elChart"), { x0: 0, x1: xMax, y0: 0, y1: 90, yt: [0, 15, 30, 45, 60, 75, 90],
+    guides: [{ y: S.bestAz.T, color: css("--amber"), dash: [5, 4] }],
+    series: [{ color: css("--muted"), pts: S.G.map((g, k) => [tm[k], g.slant > 0.2 ? g.el : null]) },
+             { color: css("--accent"), w: 2, pts: S.fullRun.out.map((o, k) => [tm[k], o.T]) }], marker: tm[i] });
+  const agl = k => k < 0 ? null : pts[k][3] - PAD;
+  const hv = S.heights.flatMap(x => [agl(x.withObs), agl(x.open)]).filter(v => v !== null);
+  const yMax = Math.max(100, Math.ceil(Math.max(...hv) / 100) * 100);
+  chart($("hChart"), { x0: 0, x1: 20, y0: 0, y1: yMax, yt: [0, yMax / 4, yMax / 2, 3 * yMax / 4, yMax].map(Math.round), xl: "Yagi height above ground, m (x axis), last-heard altitude above ground, m (y axis)",
+    series: [{ color: css("--grey"), pts: S.heights.map(x => [x.h, agl(x.open)]) }, { color: css("--accent"), w: 2, pts: S.heights.map(x => [x.h, agl(x.withObs)]) }],
+    marker: P.h });
+}
+
+function drawPayload() {
+  const cv = $("payload"), { c, w, h } = setup(cv);
+  const ink = css("--ink"), mut = css("--muted"), box = css("--box"), acc = css("--accent"), amb = css("--amber");
+  const bw = Math.min(200, w * 0.42), bx = w / 2 - bw / 2, by = 90, bh = bw;
+  c.strokeStyle = mut; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(w / 2, 6); c.lineTo(w / 2, by); c.stroke(); c.setLineDash([]);
+  c.fillStyle = mut; c.textAlign = "left"; c.fillText("line to parachute and balloon", w / 2 + 6, 20);
+  c.fillStyle = box; c.strokeStyle = ink; c.lineWidth = 1.5; c.fillRect(bx, by, bw, bh); c.strokeRect(bx, by, bw, bh);
+  c.fillStyle = mut; c.textAlign = "right"; c.fillText("30 cm box", bx - 6, by + bh / 2);
+  // GPS patches on top
+  c.fillStyle = amb;
+  c.fillRect(bx + 18, by + 6, 34, 10); c.fillRect(bx + bw - 52, by + 6, 34, 10);
+  c.fillStyle = mut; c.textAlign = "center";
+  c.fillText("Pi GPS patch", bx + 35, by - 10); c.fillText("beacon GPS patch", bx + bw - 35, by - 10);
+  // inside parts
+  c.strokeStyle = mut; c.lineWidth = 1;
+  c.strokeRect(bx + 22, by + 40, bw - 44, 46); c.fillText("Pi 5 + power bank + cameras", w / 2, by + 63);
+  c.strokeRect(w / 2 - 36, by + bh - 46, 72, 26); c.fillText("Heltec", w / 2, by + bh - 33);
+  c.strokeStyle = acc; c.beginPath(); c.moveTo(w / 2 + 36, by + bh - 33); c.quadraticCurveTo(w / 2 + 30, by + bh - 6, w / 2 + 3, by + bh - 2); c.stroke();
+  c.fillStyle = acc; c.textAlign = "right"; c.fillText("15 cm u.FL pigtail", w / 2 - 42, by + bh - 33);
+  // bulkhead + duck
+  c.fillStyle = ink; c.fillRect(w / 2 - 6, by + bh - 3, 12, 8);
+  const dl = 120; c.fillStyle = acc; c.fillRect(w / 2 - 5, by + bh + 5, 10, dl);
+  c.fillStyle = mut; c.textAlign = "left";
+  c.fillText("SMA bulkhead, bottom centre", w / 2 + 12, by + bh + 16);
+  c.fillText("3 dBi duck, vertical, pointing down", w / 2 + 12, by + bh + 40);
+  c.fillText("(match the Yagi: elements vertical)", w / 2 + 12, by + bh + 56);
+  // separation dimension
+  c.strokeStyle = mut; c.beginPath(); c.moveTo(bx + bw + 14, by + 6); c.lineTo(bx + bw + 14, by + bh); c.stroke();
+  c.textAlign = "left"; c.fillText("about 0.30 m", bx + bw + 18, by + bh / 2 - 8); c.fillText("GPS to duck", bx + bw + 18, by + bh / 2 + 8);
+  c.textAlign = "left"; c.fillText("not to scale", 4, h - 8);
+}
+
+
+// ---------------------------------------------------------------- mount drawings (metres)
+const M = {
+  boom: 0.76,      // listing: overall length 760 mm
+  dir: 0.12,       // listing gives 760 x 120 mm: taken as the director length
+  ref: 0.173,      // about half a wavelength at 866.1 MHz (computed), reflector
+  drv: 0.16,       // folded dipole, estimated from the photo
+  // element positions from the rear of the boom, as a fraction of its length, read off the photo
+  pos: [0.07, 0.17].concat(Array.from({ length: 12 }, (_, k) => 0.25 + k * (0.97 - 0.25) / 11)),
+  arm: 0.35,       // proposal: about one wavelength (346 mm) between the metal mast and the elements
+  legR: 0.6, legH: 1.0,   // proposal: tripod footprint radius and collar height
+};
+const guyGeom = H => { const at = H * 2 / 3; return { at, R: Math.max(1.5, 0.8 * at), need: H > 2.5 }; };
+
+function arrowDim(c, x1, y1, x2, y2, label, off) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, nx = -dy / L * off, ny = dx / L * off;
+  const a = [x1 + nx, y1 + ny], b = [x2 + nx, y2 + ny];
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(a[0], a[1]); c.moveTo(x2, y2); c.lineTo(b[0], b[1]);
+  c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke();
+  for (const [p, q] of [[a, b], [b, a]]) {
+    const ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
+    c.beginPath(); c.moveTo(p[0], p[1]);
+    c.lineTo(p[0] + 7 * Math.cos(ang + 0.35), p[1] + 7 * Math.sin(ang + 0.35));
+    c.lineTo(p[0] + 7 * Math.cos(ang - 0.35), p[1] + 7 * Math.sin(ang - 0.35)); c.closePath(); c.fill();
+  }
+  c.save(); c.translate((a[0] + b[0]) / 2 + nx * 0.6, (a[1] + b[1]) / 2 + ny * 0.6);
+  let ang = Math.atan2(b[1] - a[1], b[0] - a[0]); if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+  c.rotate(ang); c.textAlign = "center"; c.fillText(label, 0, 0); c.restore();
+}
+
+// boom, elements, feed box and Heltec in a side elevation; X/Y map metres to pixels
+function drawYagiSide(c, X, Y, px, py, T, s, detail) {
+  const t = rad(T), dir = [Math.cos(t), Math.sin(t)], perp = [-Math.sin(t), Math.cos(t)];
+  const rear = [px - dir[0] * M.boom / 2, py - dir[1] * M.boom / 2], front = [px + dir[0] * M.boom / 2, py + dir[1] * M.boom / 2];
+  const ink = css("--ink"), acc = css("--accent");
+  c.strokeStyle = ink; c.lineWidth = Math.max(2, 0.02 * s);
+  c.beginPath(); c.moveTo(X(rear[0]), Y(rear[1])); c.lineTo(X(front[0]), Y(front[1])); c.stroke();
+  c.lineWidth = Math.max(1.2, 0.008 * s);
+  M.pos.forEach((f, k) => {
+    const len = k === 0 ? M.ref : k === 1 ? M.drv : M.dir;
+    const q = [rear[0] + dir[0] * f * M.boom, rear[1] + dir[1] * f * M.boom];
+    const a = [q[0] - perp[0] * len / 2, q[1] - perp[1] * len / 2], b = [q[0] + perp[0] * len / 2, q[1] + perp[1] * len / 2];
+    c.strokeStyle = k === 1 ? acc : ink;
+    c.beginPath(); c.moveTo(X(a[0]), Y(a[1])); c.lineTo(X(b[0]), Y(b[1])); c.stroke();
+    if (k === 1 && detail) {     // folded dipole: second conductor
+      const o = 0.012;
+      c.beginPath(); c.moveTo(X(a[0] + dir[0] * o), Y(a[1] + dir[1] * o)); c.lineTo(X(b[0] + dir[0] * o), Y(b[1] + dir[1] * o)); c.stroke();
+    }
+  });
+  // feed box at the rear, Heltec behind it
+  const box = (cx, cy, wm, hm, fill, label) => {
+    c.save(); c.translate(X(cx), Y(cy)); c.rotate(-t);
+    c.fillStyle = fill; c.strokeStyle = ink; c.lineWidth = 1;
+    c.fillRect(-wm * s / 2, -hm * s / 2, wm * s, hm * s); c.strokeRect(-wm * s / 2, -hm * s / 2, wm * s, hm * s);
+    if (label && detail) { c.fillStyle = ink; c.textAlign = "center"; c.fillText(label, 0, hm * s / 2 + 10); }
+    c.restore();
+  };
+  box(rear[0] + dir[0] * 0.03, rear[1] + dir[1] * 0.03, 0.06, 0.06, css("--box"), "");
+  const hx = rear[0] - dir[0] * 0.07 - perp[0] * 0.02, hy = rear[1] - dir[1] * 0.07 - perp[1] * 0.02;
+  box(hx, hy, 0.05, 0.026, css("--amber"), "");
+  c.strokeStyle = css("--amber"); c.lineWidth = 1.2; c.beginPath();      // adapter + pigtail to the feed box
+  c.moveTo(X(hx), Y(hy)); c.lineTo(X(rear[0] + dir[0] * 0.03), Y(rear[1] + dir[1] * 0.03)); c.stroke();
+  return { rear, front, dir, perp, heltec: [hx, hy] };
+}
+
+function drawMountSide(i) {
+  const cv = $("mountSide"), { c, w, h } = setup(cv);
+  const o = S.fullRun.out[i], g = S.G[i], T = o.T, H = P.h, gy = guyGeom(H);
+  const xm = Math.max(gy.R, 1.3) + 0.5, ytop = H + 1.0;
+  const s = Math.min((w - 20) / (2 * xm), (h - 80) / ytop);
+  const X = x => w / 2 + x * s, Y = y => h - 62 - y * s;
+  const ink = css("--ink"), mut = css("--muted");
+  // beam cone and directions
+  const far = 3 * Math.max(w, h) / s;
+  c.fillStyle = css("--beam"); c.beginPath(); c.moveTo(X(0), Y(H));
+  for (let a = T - P.vbw / 2; a <= T + P.vbw / 2 + 0.01; a += 2) c.lineTo(X(far * Math.cos(rad(a))), Y(H + far * Math.sin(rad(a))));
+  c.closePath(); c.fill();
+  c.strokeStyle = css("--accent"); c.setLineDash([6, 4]); c.lineWidth = 1;
+  c.beginPath(); c.moveTo(X(0), Y(H)); c.lineTo(X(far * Math.cos(rad(T))), Y(H + far * Math.sin(rad(T)))); c.stroke();
+  if (g.slant >= 0.2) {
+    c.strokeStyle = css("--bad");
+    c.beginPath(); c.moveTo(X(0), Y(H)); c.lineTo(X(far * Math.cos(rad(g.el))), Y(H + far * Math.sin(rad(g.el)))); c.stroke();
+  }
+  c.setLineDash([]);
+  // ground
+  c.strokeStyle = mut; c.lineWidth = 1; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(w, Y(0)); c.stroke();
+  for (let x = 0; x < w; x += 10) { c.beginPath(); c.moveTo(x, Y(0)); c.lineTo(x - 6, Y(0) + 6); c.stroke(); }
+  // tripod, mast, guys
+  c.strokeStyle = ink; c.lineWidth = 2;
+  for (const xl of [-M.legR, M.legR, -0.15]) { c.beginPath(); c.moveTo(X(xl), Y(0)); c.lineTo(X(0), Y(M.legH)); c.stroke(); }
+  c.lineWidth = 4; c.beginPath(); c.moveTo(X(0), Y(0.15)); c.lineTo(X(0), Y(H)); c.stroke();
+  if (gy.need) {
+    c.lineWidth = 1; c.setLineDash([3, 3]); c.strokeStyle = mut;
+    for (const xr of [-gy.R, gy.R]) { c.beginPath(); c.moveTo(X(0), Y(gy.at)); c.lineTo(X(xr), Y(0)); c.stroke(); }
+    c.setLineDash([]);
+  }
+  // side arm end-on and pivot
+  c.fillStyle = css("--box"); c.strokeStyle = ink; c.lineWidth = 1;
+  c.beginPath(); c.arc(X(0), Y(H), 6, 0, 2 * Math.PI); c.fill(); c.stroke();
+  const yg = drawYagiSide(c, X, Y, 0, H, T, s, false);
+  // USB down the mast
+  c.strokeStyle = css("--amber"); c.lineWidth = 1.2; c.beginPath();
+  c.moveTo(X(yg.heltec[0]), Y(yg.heltec[1])); c.quadraticCurveTo(X(-0.05), Y(H - 0.25), X(-0.03), Y(H - 0.4));
+  c.lineTo(X(-0.03), Y(0.3)); c.quadraticCurveTo(X(-0.05), Y(0.05), X(-0.3), Y(0.03)); c.lineTo(X(-1.0), Y(0.03)); c.stroke();
+  // dimensions
+  c.strokeStyle = mut; c.fillStyle = mut; c.lineWidth = 1;
+  arrowDim(c, X(-0.05), Y(0), X(-0.05), Y(H), `Yagi height ${H} m (pivot)`, -Math.min(70, 0.9 * xm * s));
+  if (gy.need) {
+    arrowDim(c, X(0), Y(0), X(gy.R), Y(0), `guy stakes ${gy.R.toFixed(1)} m out, 3 at 120 deg`, 30);
+    c.textAlign = "left"; c.fillText(`guys at ${gy.at.toFixed(1)} m`, X(0.08), Y(gy.at));
+  }
+  arrowDim(c, X(-M.legR), Y(0), X(M.legR), Y(0), `tripod ${(2 * M.legR).toFixed(1)} m (proposal)`, 18);
+  const above = g.slant >= 0.2 && g.el > T;
+  c.fillStyle = css("--accent"); c.textAlign = above ? "left" : "right";
+  c.fillText(`boresight, tilt ${T.toFixed(0)} deg`, X(1.0 * Math.cos(rad(T))) + (above ? 8 : -8), Y(H + 1.0 * Math.sin(rad(T))) + (above ? 10 : -10));
+  if (g.slant >= 0.2) { c.fillStyle = css("--bad"); c.textAlign = above ? "right" : "left"; c.fillText(`balloon now, el ${g.el.toFixed(0)} deg`, X(0.8 * Math.cos(rad(g.el))) + (above ? -8 : 8), Y(H + 0.8 * Math.sin(rad(g.el)))); }
+  c.fillStyle = mut; c.textAlign = "right"; c.fillText("USB to laptop", X(-1.0) - 4, Y(0.03));
+  // scale bar, top left
+  c.strokeStyle = ink; c.lineWidth = 2; c.beginPath(); c.moveTo(12, 16); c.lineTo(12 + s, 16); c.stroke();
+  c.fillStyle = ink; c.textAlign = "center"; c.fillText("1 m", 12 + s / 2, 28);
+}
+
+function drawMountHead(i) {
+  const cv = $("mountHead"), { c, w, h } = setup(cv);
+  const T = S.fullRun.out[i].T;
+  const s = Math.min((w - 40) / 1.3, (h - 100) / 0.95);
+  const cx = w / 2, cy = (h - 85) / 2 + 10;
+  const X = x => cx + x * s, Y = y => cy - y * s;
+  const ink = css("--ink"), mut = css("--muted");
+  // mast behind the arm
+  c.strokeStyle = mut; c.lineWidth = 4; c.setLineDash([8, 5]);
+  c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(0), Y(-0.36)); c.stroke(); c.setLineDash([]);
+  c.fillStyle = mut; c.textAlign = "left"; c.fillText("mast, 350 mm behind on the side arm", X(0.02), Y(-0.32));
+  // protractor
+  c.strokeStyle = mut; c.lineWidth = 1; const pr = 0.3;
+  c.beginPath(); c.arc(X(0), Y(0), pr * s, -Math.PI / 2, 0); c.stroke();
+  for (let a = 0; a <= 90; a += 10) {
+    const r1 = pr * s, r2 = (pr + (a % 30 ? 0.015 : 0.03)) * s;
+    c.beginPath(); c.moveTo(X(0) + r1 * Math.cos(rad(a)), Y(0) - r1 * Math.sin(rad(a))); c.lineTo(X(0) + r2 * Math.cos(rad(a)), Y(0) - r2 * Math.sin(rad(a))); c.stroke();
+    if (a % 30 === 0) { c.textAlign = "center"; c.fillText(`${a}`, X(0) + (pr + 0.045) * s * Math.cos(rad(a)), Y(0) - (pr + 0.045) * s * Math.sin(rad(a))); }
+  }
+  const yg = drawYagiSide(c, X, Y, 0, 0, T, s, true);
+  // pivot bolt
+  c.fillStyle = css("--box"); c.strokeStyle = ink; c.lineWidth = 1.5;
+  c.beginPath(); c.arc(X(0), Y(0), 7, 0, 2 * Math.PI); c.fill(); c.stroke();
+  // labels and dimensions
+  c.strokeStyle = mut; c.fillStyle = mut; c.lineWidth = 1;
+  const off = 0.13;
+  arrowDim(c, X(yg.rear[0]), Y(yg.rear[1]), X(yg.front[0]), Y(yg.front[1]), "boom 760 mm (listing)", -(off * s));
+  const d0 = M.pos[M.pos.length - 1], q = [yg.rear[0] + yg.dir[0] * d0 * M.boom, yg.rear[1] + yg.dir[1] * d0 * M.boom];
+  arrowDim(c, X(q[0] - yg.perp[0] * M.dir / 2), Y(q[1] - yg.perp[1] * M.dir / 2), X(q[0] + yg.perp[0] * M.dir / 2), Y(q[1] + yg.perp[1] * M.dir / 2), "director 120 mm", 22);
+  const r0 = [yg.rear[0] + yg.dir[0] * M.pos[0] * M.boom, yg.rear[1] + yg.dir[1] * M.pos[0] * M.boom];
+  const pitch = (0.97 - 0.25) / 11 * M.boom * 1000;
+  c.textAlign = "left"; c.fillStyle = ink;
+  const lines = [
+    [ink, `Tilt now ${T.toFixed(0)} deg. Pivot: M6 bolt + wing nut at the balance point, about 380 mm from the rear (measure).`],
+    [ink, "Heltec (amber) + N(M)-SMA(M) adapter + 15 cm pigtail, behind the reflector, outside the beam."],
+    [ink, `14 elements, vertical at 0 deg tilt; director pitch about ${pitch.toFixed(0)} mm (from the photo).`],
+    [ink, "Reflector about 173 mm (half a wavelength, computed). Measure yours."],
+    [css("--accent"), "Blue = driven element (folded dipole)."],
+  ];
+  c.textAlign = "left";
+  lines.forEach(([col, t], k) => { c.fillStyle = col; c.fillText(t, 8, h - 8 - (lines.length - 1 - k) * 15); });
+}
+
+function drawMountPlan(i) {
+  const cv = $("mountPlan"), { c, w, h } = setup(cv);
+  const o = S.fullRun.out[i], g = S.G[i], A = o.A, T = o.T, gy = guyGeom(P.h);
+  const ext = (gy.need ? gy.R : M.legR) + 0.5;
+  const s = Math.min(w, h - 20) / (2 * ext);
+  const cx = w / 2, cy = (h - 10) / 2;
+  const X = e => cx + e * s, Y = n => cy - n * s;
+  const at = (az, r) => [r * Math.sin(rad(az)), r * Math.cos(rad(az))];
+  const ink = css("--ink"), mut = css("--muted");
+  const pv = at(A + 90, M.arm);
+  // beam sector from the pivot
+  const far = 3 * ext;
+  c.fillStyle = css("--beam"); c.beginPath(); c.moveTo(X(pv[0]), Y(pv[1]));
+  for (let a = A - P.hbw / 2; a <= A + P.hbw / 2 + 0.01; a += 2) { const q = at(a, far); c.lineTo(X(pv[0] + q[0]), Y(pv[1] + q[1])); }
+  c.closePath(); c.fill();
+  if (g.slant >= 0.2) {
+    const q = at(g.az, far); c.strokeStyle = css("--bad"); c.setLineDash([6, 4]); c.lineWidth = 1;
+    c.beginPath(); c.moveTo(X(pv[0]), Y(pv[1])); c.lineTo(X(pv[0] + q[0]), Y(pv[1] + q[1])); c.stroke(); c.setLineDash([]);
+    const lq = at(g.az, ext * 0.8); c.fillStyle = css("--bad"); c.textAlign = "left";
+    c.fillText(`balloon az ${g.az.toFixed(0)} deg`, X(pv[0] + lq[0]) + 6, Y(pv[1] + lq[1]));
+  }
+  // tripod legs and guys
+  c.strokeStyle = ink; c.lineWidth = 2;
+  for (const a of [0, 120, 240]) { const q = at(a, M.legR); c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(q[0]), Y(q[1])); c.stroke(); }
+  if (gy.need) {
+    c.strokeStyle = mut; c.lineWidth = 1; c.setLineDash([3, 3]);
+    for (const a of [60, 180, 300]) {
+      const q = at(a, gy.R); c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(q[0]), Y(q[1])); c.stroke();
+      c.setLineDash([]); c.beginPath(); c.arc(X(q[0]), Y(q[1]), 4, 0, 2 * Math.PI); c.stroke(); c.setLineDash([3, 3]);
+    }
+    c.setLineDash([]);
+  }
+  // azimuth ring on the mast
+  const rr = 0.2;
+  c.strokeStyle = mut; c.lineWidth = 1; c.beginPath(); c.arc(X(0), Y(0), rr * s, 0, 2 * Math.PI); c.stroke();
+  for (let a = 0; a < 360; a += 10) {
+    const q1 = at(a, rr), q2 = at(a, rr + (a % 30 ? 0.02 : 0.04));
+    c.beginPath(); c.moveTo(X(q1[0]), Y(q1[1])); c.lineTo(X(q2[0]), Y(q2[1])); c.stroke();
+  }
+  c.fillStyle = mut; c.textAlign = "center";
+  for (const [t, a] of [["N", 0], ["E", 90], ["S", 180], ["W", 270]]) { const q = at(a, rr + 0.09); c.fillText(t, X(q[0]), Y(q[1])); }
+  // mast, side arm, boom (projected), elements as dots
+  c.fillStyle = ink; c.beginPath(); c.arc(X(0), Y(0), 5, 0, 2 * Math.PI); c.fill();
+  c.strokeStyle = css("--grey"); c.lineWidth = 4; c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(pv[0]), Y(pv[1])); c.stroke();
+  const half = M.boom / 2 * Math.cos(rad(T)), d = at(A, 1);
+  c.strokeStyle = ink; c.lineWidth = 2.5;
+  c.beginPath(); c.moveTo(X(pv[0] - d[0] * half), Y(pv[1] - d[1] * half)); c.lineTo(X(pv[0] + d[0] * half), Y(pv[1] + d[1] * half)); c.stroke();
+  M.pos.forEach((f, k) => {
+    const r = (f - 0.5) * M.boom * Math.cos(rad(T));
+    c.fillStyle = k === 1 ? css("--accent") : ink;
+    c.beginPath(); c.arc(X(pv[0] + d[0] * r), Y(pv[1] + d[1] * r), 2.5, 0, 2 * Math.PI); c.fill();
+  });
+  const hp = [pv[0] - d[0] * (half + 0.07), pv[1] - d[1] * (half + 0.07)];
+  c.fillStyle = css("--amber"); c.fillRect(X(hp[0]) - 5, Y(hp[1]) - 5, 10, 10);
+  drawPlanInset(c, w, h, A, T);
+  c.textAlign = "left"; c.fillStyle = ink;
+  c.fillText(`boom az ${A.toFixed(0)} deg, beam 54 deg`, 8, 14);
+  if (gy.need) { c.fillStyle = mut; c.fillText(`guys to stakes ${gy.R.toFixed(1)} m out`, 8, 30); }
+  // north arrow and scale bar
+  c.strokeStyle = ink; c.fillStyle = ink; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(w - 18, 40); c.lineTo(w - 18, 14); c.stroke();
+  c.beginPath(); c.moveTo(w - 18, 10); c.lineTo(w - 23, 20); c.lineTo(w - 13, 20); c.closePath(); c.fill();
+  c.textAlign = "center"; c.fillText("N", w - 18, 50);
+  c.lineWidth = 2; c.beginPath(); c.moveTo(w - 20 - 0.5 * s, h - 10); c.lineTo(w - 20, h - 10); c.stroke();
+  c.fillText("0.5 m", w - 20 - 0.25 * s, h - 20);
+}
+
+// zoomed plan of the head: mast, azimuth ring, side arm, boom (projected) and elements
+function drawPlanInset(c, w, h, A, T) {
+  const size = Math.min(230, w * 0.42), x0 = 8, y0 = h - size - 8;
+  const ink = css("--ink"), mut = css("--muted");
+  c.fillStyle = css("--panel"); c.strokeStyle = css("--line"); c.lineWidth = 1;
+  c.fillRect(x0, y0, size, size); c.strokeRect(x0, y0, size, size);
+  const s = size / 1.5, cx = x0 + size / 2 - 0.1 * s, cy = y0 + size / 2 + 0.05 * s;
+  const at = (az, r) => [r * Math.sin(rad(az)), r * Math.cos(rad(az))];
+  const X = e => cx + e * s, Y = n => cy - n * s;
+  const pv = at(A + 90, M.arm), d = at(A, 1), half = M.boom / 2 * Math.cos(rad(T));
+  c.strokeStyle = mut; c.beginPath(); c.arc(X(0), Y(0), 0.1 * s, 0, 2 * Math.PI); c.stroke();
+  for (let a = 0; a < 360; a += 10) { const q1 = at(a, 0.1), q2 = at(a, a % 30 ? 0.115 : 0.13); c.beginPath(); c.moveTo(X(q1[0]), Y(q1[1])); c.lineTo(X(q2[0]), Y(q2[1])); c.stroke(); }
+  c.fillStyle = mut; c.textAlign = "center"; const nq = at(0, 0.17); c.fillText("N", X(nq[0]), Y(nq[1]));
+  c.fillStyle = ink; c.beginPath(); c.arc(X(0), Y(0), 4, 0, 2 * Math.PI); c.fill();
+  c.strokeStyle = css("--grey"); c.lineWidth = 5; c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(pv[0]), Y(pv[1])); c.stroke();
+  c.strokeStyle = ink; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(X(pv[0] - d[0] * half), Y(pv[1] - d[1] * half)); c.lineTo(X(pv[0] + d[0] * half), Y(pv[1] + d[1] * half)); c.stroke();
+  M.pos.forEach((f, k) => {
+    const r = (f - 0.5) * M.boom * Math.cos(rad(T)), q = [pv[0] + d[0] * r, pv[1] + d[1] * r];
+    const e = k === 0 ? M.ref : k === 1 ? M.drv : M.dir, pr = e / 2 * Math.sin(rad(T));   // vertical elements project along the boom
+    c.strokeStyle = k === 1 ? css("--accent") : ink; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(X(q[0] - d[0] * pr) - 0.5, Y(q[1] - d[1] * pr)); c.lineTo(X(q[0] + d[0] * pr) + 0.5, Y(q[1] + d[1] * pr)); c.stroke();
+  });
+  const hp = [pv[0] - d[0] * (half + 0.07), pv[1] - d[1] * (half + 0.07)];
+  c.fillStyle = css("--amber"); c.fillRect(X(hp[0]) - 4, Y(hp[1]) - 4, 8, 8);
+  c.strokeStyle = mut; c.fillStyle = mut; c.lineWidth = 1;
+  arrowDim(c, X(0), Y(0), X(pv[0]), Y(pv[1]), "arm 350 mm", 12);
+  c.textAlign = "left"; c.fillStyle = ink; c.fillText("head, zoomed", x0 + 6, y0 + 12);
+  c.fillStyle = mut; c.fillText(`boom ${Math.round(M.boom * 1000 * Math.cos(rad(T)))} mm seen from above`, x0 + 6, y0 + size - 10);
+}
+
+function renderParts() {
+  const gy = guyGeom(P.h);
+  const rows = [["Part", "Dimension", "Why / source"],
+    ["Yagi TX900-BM-9", "760 mm boom, 120 mm wide, 400 g, N-female", "Hubtronics listing"],
+    ["Mast", `tube ${(P.h - 0.15).toFixed(2)} m long, from 0.15 m up to the axle, through the collar at 1.0 m; 25 mm aluminium or GI (proposal)`, "puts the pivot at the Yagi height input"],
+    ["Tripod / base", `${(2 * M.legR).toFixed(1)} m leg spread, collar at ${M.legH} m, mast turns in the collar (proposal)`, "azimuth: turn the whole mast"],
+    ["Azimuth scale", "ring on the mast at the collar, marked every 10 deg, zero set to true north", "set north with a compass, then add the local declination"],
+    ["Side arm", "350 mm, PVC or wood (proposal)", "keeps the vertical metal mast about one wavelength (346 mm, computed) from the vertical elements"],
+    ["Tilt pivot", "M6 bolt + wing nut through a clamp at the boom's balance point (about 380 mm from the rear, measure), protractor 0 to 90 deg", "tilt from the re-aim sheet"],
+    ["Guys", gy.need ? `3 at 120 deg, tied at ${gy.at.toFixed(1)} m, stakes ${gy.R.toFixed(1)} m out (proposal)` : "not needed at this height (2.5 m or less)", "wind on a 760 mm boom at the top of a mast"],
+    ["Radio", "Heltec on the boom behind the reflector; N(M)-SMA(M) adapter + 15 cm u.FL pigtail", "no coax loss; outside the beam"],
+    ["Cable", `USB, ${Math.ceil(P.h + 3)} m, tied to the mast every 0.5 m, with a drip loop at the Heltec`, "data and power down to the laptop"],
+  ];
+  $("mountParts").innerHTML = rows.map((r, k) => `<tr>${r.map(x => k ? `<td>${x}</td>` : `<th>${x}</th>`).join("")}</tr>`).join("");
+}
+
+function drawTime(i) { drawMap(i); drawSky(i); drawCharts(i); renderReadout(i); drawMountSide(i); drawMountPlan(i); drawMountHead(i); }
+
+let curI = 100;   // T+20 min
+function drawAll() {
+  curI = Math.min(curI, P.track.p.length - 1);
+  drawTime(curI); drawPayload(); renderParts();
+}
+function renderReadout(i) {
+  const p = P.track.p[i], g = S.G[i], o = S.fullRun.out[i];
+  if (g.slant < 0.2) { $("readout").textContent = `${fmtT(p[0])}  |  on or just above the pad, ${Math.round(p[3] - PAD)} m AGL`; return; }
+  const m = o.m === null ? "no line of sight" : `${o.m.toFixed(1)} dB margin`;
+  $("readout").textContent = `${fmtT(p[0])}  |  altitude ${(p[3] / 1000).toFixed(2)} km  |  ground ${g.d.toFixed(1)} km, slant ${g.slant.toFixed(1)} km  |  balloon at az ${g.az.toFixed(0)} deg, el ${g.el.toFixed(1)} deg  |  boom az ${o.A.toFixed(0)} deg, tilt ${o.T.toFixed(0)} deg  |  ${m}`;
+}
+
+$("tSlider").addEventListener("input", e => { curI = +e.target.value; drawTime(curI); });
+let timer = null;
+$("playBtn").addEventListener("click", () => {
+  if (timer) { clearInterval(timer); timer = null; $("playBtn").textContent = "Play"; return; }
+  $("playBtn").textContent = "Pause";
+  timer = setInterval(() => {
+    curI = (curI + 3) % P.track.p.length; $("tSlider").value = curI;
+    drawTime(curI);
+  }, 60);
+});
+let deb = null;
+document.querySelectorAll("input:not([type=range]), select").forEach(el => el.addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(compute, 150); }));
+window.addEventListener("resize", () => { clearTimeout(deb); deb = setTimeout(drawAll, 100); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+compute();
+</script>
+</body>
+</html>

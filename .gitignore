@@ -1,2 +1,5 @@
 .DS_Store
 .vercel
+
+# local test PIN for tools/dev_server.mjs
+.env.local

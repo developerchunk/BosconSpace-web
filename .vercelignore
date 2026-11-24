@@ -1,0 +1,3 @@
+# not deployed: build and test tools
+tools/
+.env.local
