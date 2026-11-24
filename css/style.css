@@ -242,6 +242,8 @@ h1, h2, h3 { margin: 0; font-family: var(--head); font-weight: 500; letter-spaci
 .timeline__item.is-now .label { color: var(--fg); }
 .timeline__item h3 { font-size: clamp(30px, 3.4vw, 46px); margin-bottom: 12px; }
 .timeline__item p { color: var(--fg-dim); font-size: 16px; line-height: 1.6; max-width: 500px; }
+.timeline__more { display: inline-block; margin-top: 16px; font-size: 15px; color: var(--fg); border-bottom: 1px solid var(--rule); padding-bottom: 2px; transition: border-color .3s; }
+.timeline__more:hover { border-color: var(--fg); }
 
 /* ---------- Contact ---------- */
 
