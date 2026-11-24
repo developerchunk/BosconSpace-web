@@ -6,14 +6,15 @@
 // Vercel environment variables (Project Settings > Environment Variables, Production):
 //   HAB_TESTING_PIN     exactly 6 digits
 //   HAB_TESTING_SECRET  32 or more random characters; signs the unlock cookie
-//   HAB_MAPBOX_TOKEN    the HAB-1 page's Mapbox public token, sent as /hab-testing/config.js after the PIN
+//   HAB_MAPBOX_TOKEN    the HAB-1 pages' Mapbox public token: /hab-testing/config.js after the PIN, and
+//                       /hab-1-flight/config.js for the public page, without one. Never a file in git.
 // If either is missing or malformed, /hab-testing answers 503 (fails closed).
 //
 // After a correct PIN the browser gets a signed, HttpOnly cookie for /hab-testing, valid 12 hours.
 // Changing the PIN or the secret invalidates every cookie. A wrong PIN waits 1.5 s before answering.
 // Tests: node website/tools/test_gate.mjs (and --break). Local run: node website/tools/dev_server.mjs
 
-export const config = { matcher: ['/hab-testing', '/hab-testing/:path*'] };
+export const config = { matcher: ['/hab-testing', '/hab-testing/:path*', '/hab-1-flight/config.js'] };
 
 const COOKIE = 'hab_testing';
 const MAX_AGE_S = 12 * 60 * 60;
@@ -89,7 +90,13 @@ button{margin-top:14px;width:100%;padding:13px;font:500 15px/1 inherit;backgroun
 
 const plain = (status, text) => new Response(text, { status, headers: { ...NOSTORE, 'Content-Type': 'text/plain; charset=utf-8' } });
 
+const tokenJs = cache => new Response(`window.HAB_MAPBOX_TOKEN = ${JSON.stringify(process.env.HAB_MAPBOX_TOKEN || '')};\n`,
+  { status: 200, headers: { 'Cache-Control': cache, 'Content-Type': 'text/javascript; charset=utf-8' } });
+
 export default async function middleware(request) {
+  // The public HAB-1 page's map token: public by design, no PIN; kept out of git all the same.
+  if (new URL(request.url).pathname === '/hab-1-flight/config.js') return tokenJs('public, max-age=300');
+
   const pin = process.env.HAB_TESTING_PIN || '';
   const secret = process.env.HAB_TESTING_SECRET || '';
   if (!/^\d{6}$/.test(pin) || secret.length < 32) return plain(503, 'hab-testing is not configured');
@@ -116,8 +123,7 @@ export default async function middleware(request) {
   if (await unlocked(request, pin, secret)) {
     // The HAB-1 page's Mapbox token: from the Vercel variable HAB_MAPBOX_TOKEN, never a file in git.
     if (url.pathname === '/hab-testing/config.js') {
-      return new Response(`window.HAB_MAPBOX_TOKEN = ${JSON.stringify(process.env.HAB_MAPBOX_TOKEN || '')};\n`,
-        { status: 200, headers: { ...NOSTORE, 'Content-Type': 'text/javascript; charset=utf-8' } });
+      return tokenJs('no-store');
     }
     return;                                              // nothing returned: on to the static file
   }

@@ -1,5 +1,8 @@
 .DS_Store
 .vercel
 
+# full HAB-1 flight data is private; the public page is hab-1-flight/
+/hab-1/
+
 # local test PIN for tools/dev_server.mjs
 .env.local

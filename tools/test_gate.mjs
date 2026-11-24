@@ -84,5 +84,9 @@ check((await get('/hab-testing'))?.status === 503, 'short secret: 503, fails clo
 env('', '');
 check((await get('/hab-testing'))?.status === 503, 'nothing configured: 503, fails closed');
 
+process.env.HAB_MAPBOX_TOKEN = 'pk.test-token';
+r = await get('/hab-1-flight/config.js', null, '*/*');
+check(r?.status === 200 && (await r.text()).includes('"pk.test-token"'), 'public /hab-1-flight/config.js: token without a PIN, even with the gate unconfigured');
+
 console.log(fails ? `${fails} CHECK(S) FAILED` : 'ALL CHECKS PASS');
 process.exit(fails ? 1 : 0);
