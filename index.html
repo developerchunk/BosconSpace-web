@@ -17,7 +17,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://images.unsplash.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://gibs.earthdata.nasa.gov" crossorigin>
+  <link rel="stylesheet" href="css/style.css?v=9">
+  <script type="importmap">
+  { "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  } }
+  </script>
 </head>
 <body>
 
@@ -72,34 +80,42 @@
       <p class="thesis__text" id="thesisText">Compute belongs where the data is made. No satellite should wait for a pass. Boscon Space builds the hardware, the links and the ground, end to end, so that space is no limit for AI or communication.</p>
     </section>
 
-    <!-- MESH: sticky photo scrollytelling -->
-    <section class="story" id="mesh">
+    <!-- MESH: pinned 3D scroll story. The scene is driven by scroll position only. -->
+    <section class="orbit" id="mesh">
       <header class="sec">
         <span class="label">Boscon Mesh</span>
         <h2 class="sec__title rv">Every satellite can see one that can see the ground.</h2>
       </header>
-      <div class="story__grid">
-        <div class="story__stage">
-          <img class="story__img is-active" src="https://images.unsplash.com/photo-1572224104782-91a08d296390?auto=format&fit=crop&w=1800&q=80" alt="A large ground-station dish at dusk" loading="lazy">
-          <img class="story__img" src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=1800&q=80" alt="A satellite in low-Earth orbit against the curve of the planet" loading="lazy">
-          <img class="story__img" src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=80" alt="The full disc of Earth against black space" loading="lazy">
-          <span class="story__count" id="storyCount">01 / 03</span>
-        </div>
-        <div class="story__steps">
-          <div class="story__step" data-step="0">
-            <span class="label">Today</span>
-            <h3>A satellite reaches its ground station for minutes per pass.</h3>
-            <p>Only while it is high above the horizon. The rest of the orbit, data waits on board.</p>
+      <div class="orbit__track" id="orbitTrack">
+        <div class="orbit__stage">
+          <img class="orbit__fallback" src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&w=1800&q=80" alt="The full disc of Earth against black space" loading="lazy" hidden>
+          <canvas class="orbit__canvas" id="orbitCanvas" aria-hidden="true"></canvas>
+          <div class="orbit__copy">
+            <div class="orbit__step is-active" data-from="0" data-name="In orbit">
+              <span class="label">In orbit</span>
+              <h3>Relays, AI nodes and research centres, joined by laser links.</h3>
+              <p>Each spacecraft holds links to its neighbours. Together they form one network around the planet.</p>
+            </div>
+            <div class="orbit__step" data-from="0.2" data-name="Uplink">
+              <span class="label">Uplink</span>
+              <h3>An instruction leaves the ground.</h3>
+              <p>It climbs to the nearest satellite in view, then hops across the mesh to the AI node that will run it.</p>
+            </div>
+            <div class="orbit__step" data-from="0.47" data-name="Compute and downlink">
+              <span class="label">Compute and downlink</span>
+              <h3>The work runs in orbit. Only the result comes down.</h3>
+              <p>The answer hops to whichever satellite has a station in view and lands without waiting for a pass.</p>
+            </div>
+            <div class="orbit__step" data-from="0.82" data-name="Result">
+              <span class="label">Result</span>
+              <h3>A live link, every minute of every orbit.</h3>
+              <p>Signals reach their operators when they are produced. Ground-station elevation stops being a constraint.</p>
+            </div>
           </div>
-          <div class="story__step" data-step="1">
-            <span class="label">With Boscon Mesh</span>
-            <h3>Traffic hands off across satellites, ours or anyone's.</h3>
-            <p>Whichever spacecraft has a station in view carries the signal down. Nothing waits for a pass.</p>
-          </div>
-          <div class="story__step" data-step="2">
-            <span class="label">Result</span>
-            <h3>A live link, every minute of every orbit.</h3>
-            <p>Signals reach their operators when they are produced. Ground-station elevation stops being a constraint.</p>
+          <div class="orbit__foot">
+            <span class="orbit__fill" id="orbitFill"></span>
+            <span id="orbitCount">01 / 04</span>
+            <span id="orbitName">In orbit</span>
           </div>
         </div>
       </div>
@@ -212,13 +228,13 @@
 
   <footer class="foot">
     <span>© 2026 Boscon Space</span>
-    <span>Photography: NASA and Unsplash contributors</span>
+    <span>Imagery: NASA and Unsplash contributors</span>
     <a href="#top">Back to top</a>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
-  <script src="js/main.js?v=3"></script>
+  <script src="js/main.js?v=8"></script>
 </body>
 </html>

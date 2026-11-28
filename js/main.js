@@ -120,6 +120,56 @@
     steps[0].classList.add('is-active');
   }
 
+  /* ---- Mesh: 3D scroll story ---- */
+  const track = $('#orbitTrack');
+  if (track) {
+    const canvas = $('#orbitCanvas'), steps = $$('.orbit__step'), count = $('#orbitCount'), name = $('#orbitName'), fill = $('#orbitFill');
+    const total = String(steps.length).padStart(2, '0');
+    let scene = null, progress = 0, active = -1, onScreen = false;
+    const measure = () => {
+      const r = track.getBoundingClientRect();
+      return Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - window.innerHeight)));
+    };
+    const update = () => {
+      progress = measure();
+      let k = 0;
+      steps.forEach((s, i) => { if (progress >= Number(s.dataset.from)) k = i; });
+      if (k !== active) {
+        active = k;
+        steps.forEach((s, i) => s.classList.toggle('is-active', i === k));
+        count.textContent = String(k + 1).padStart(2, '0') + ' / ' + total;
+        name.textContent = steps[k].dataset.name;
+      }
+      fill.style.transform = 'scaleX(' + progress.toFixed(4) + ')';
+      if (scene) scene.setProgress(progress);
+    };
+    if (lenis) lenis.on('scroll', update);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+
+    const fallback = () => { $('.orbit__fallback').hidden = false; canvas.hidden = true; };
+    let gl = false;
+    try { const c = document.createElement('canvas'); gl = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { gl = false; }
+    if (!gl) fallback();
+    else {
+      let loading = false;
+      const load = () => {
+        if (loading) return;
+        loading = true;
+        import('/js/mesh3d/scene.js?v=5').then((m) => {
+          scene = m.createOrbitStory(canvas, { onReady: (ok) => { if (ok) canvas.classList.add('is-ready'); else fallback(); } });
+          scene.setProgress(progress);
+          scene.setVisible(onScreen);
+          window.__orbit = scene;
+        }).catch(fallback);
+      };
+      // fetch three.js and the imagery a little before the section arrives; render only while it is on screen
+      new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) load(); }, { rootMargin: '150% 0px' }).observe(track);
+      new IntersectionObserver((es) => { es.forEach((e) => { onScreen = e.isIntersecting; if (scene) scene.setVisible(onScreen); }); }, { rootMargin: '0px' }).observe(track);
+    }
+  }
+
   /* ---- Platform ledger ---- */
   const ledger = $('#ledger');
   if (ledger) {

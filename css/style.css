@@ -173,6 +173,38 @@ h1, h2, h3 { margin: 0; font-family: var(--head); font-weight: 500; letter-spaci
 .story__step h3 { font-size: clamp(28px, 3vw, 42px); margin-bottom: 20px; }
 .story__step p { color: var(--fg-dim); font-size: 16px; line-height: 1.6; }
 
+/* ---------- Mesh: 3D scroll story ---------- */
+
+.orbit { padding: clamp(80px, 12vh, 140px) 0 0; }
+.orbit__track { position: relative; height: 560svh; }
+.orbit__stage { position: sticky; top: 0; height: 100svh; overflow: hidden; background: var(--bg); }
+.orbit__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.8s var(--ease); }
+.orbit__canvas.is-ready { opacity: 1; }
+.orbit__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.orbit__stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(to right, rgba(10,10,11,0.78) 0%, rgba(10,10,11,0.35) 30%, rgba(10,10,11,0) 52%),
+              linear-gradient(to bottom, var(--bg) 0%, rgba(10,10,11,0) 16%, rgba(10,10,11,0) 78%, rgba(10,10,11,0.9) 100%);
+}
+.orbit__copy { position: absolute; z-index: 2; left: var(--gutter); bottom: clamp(110px, 18vh, 190px); width: min(480px, 38vw); }
+.orbit__step {
+  position: absolute; left: 0; bottom: 0; width: 100%;
+  opacity: 0; transform: translateY(18px); pointer-events: none;
+  transition: opacity 0.7s var(--ease), transform 0.9s var(--ease);
+}
+.orbit__step.is-active { opacity: 1; transform: none; transition-delay: 0.12s; }
+.orbit__step .label { margin-bottom: 22px; }
+.orbit__step h3 { font-size: clamp(28px, 3vw, 42px); margin-bottom: 20px; text-wrap: balance; }
+.orbit__step p { color: var(--fg-dim); font-size: 16px; line-height: 1.6; max-width: 440px; }
+.orbit__foot {
+  position: absolute; z-index: 2; left: var(--gutter); right: var(--gutter); bottom: 28px;
+  display: flex; justify-content: space-between; gap: 24px;
+  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-dim);
+  border-top: 1px solid rgba(243,243,241,0.22); padding-top: 18px;
+}
+.orbit__foot #orbitCount { color: var(--fg); }
+.orbit__fill { position: absolute; left: 0; top: -1px; width: 100%; height: 1px; background: var(--fg); transform: scaleX(0); transform-origin: left; }
+
 /* ---------- Platform ---------- */
 
 .platform { padding: clamp(100px, 16vh, 180px) 0; }
@@ -295,6 +327,12 @@ h1, h2, h3 { margin: 0; font-family: var(--head); font-weight: 500; letter-spaci
   .story__stage { height: 56svh; }
   .story__steps { padding: 0 var(--gutter); background: var(--bg); position: relative; }
   .story__step { min-height: 0; padding: 44px 0; opacity: 1; max-width: none; border-top: 1px solid var(--rule); }
+  .orbit__track { height: 500svh; }
+  .orbit__copy { left: var(--gutter); right: var(--gutter); width: auto; bottom: 96px; }
+  .orbit__step h3 { font-size: clamp(26px, 7vw, 34px); margin-bottom: 14px; }
+  .orbit__step .label { margin-bottom: 14px; }
+  .orbit__step p { font-size: 15px; }
+  .orbit__stage::after { background: linear-gradient(to bottom, var(--bg) 0%, rgba(10,10,11,0) 14%, rgba(10,10,11,0) 46%, rgba(10,10,11,0.82) 70%, rgba(10,10,11,0.96) 100%); }
   .platform__grid { grid-template-columns: 1fr; }
   .ledger__media { display: none; }
   .ledger__mimg { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; margin-top: 24px; }
