@@ -33,26 +33,15 @@ section[id] { scroll-margin-top: 70px; }
 .hx__specs dd { margin: 6px 0 0; font-family: var(--head); font-weight: 500; font-size: clamp(22px, 2.6vw, 38px); letter-spacing: -0.03em; color: var(--fg); }
 .hx__cap { position: absolute; left: var(--gutter); right: var(--gutter); bottom: 16px; font-size: 12px; color: var(--fg-mute); z-index: 2; }
 
-/* ---------- Tags ---------- */
-
-.tag { font-style: normal; display: inline-block; font-size: 10.5px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 7px 2px; border: 1px solid var(--line2); color: var(--fg-dim); border-radius: 2px; }
-.tag--m { color: var(--fg); border-color: rgba(243,243,241,0.5); }
-.tag--c { color: var(--fg-dim); }
-.tag--p { color: var(--fg-dim); border-style: dashed; }
-.tag--r { color: var(--fg); background: rgba(243,243,241,0.12); border-color: transparent; }
-
 /* ---------- Glance ---------- */
 
 .glance { padding: 0 0 clamp(100px, 14vh, 160px); }
-.glance__legend { padding: 0 var(--gutter); display: flex; flex-wrap: wrap; gap: 10px 26px; margin: -30px 0 34px; font-size: 13px; color: var(--fg-mute); }
-.glance__legend .tag { margin-right: 6px; }
 .specs { margin: 0 var(--gutter); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 28px; border-bottom: 1px solid var(--rule); }
-.spec { border-top: 1px solid var(--rule); padding: 26px 0 24px; display: flex; flex-direction: column; gap: 8px; min-height: 210px; }
+.spec { border-top: 1px solid var(--rule); padding: 26px 0 24px; display: flex; flex-direction: column; gap: 8px; min-height: 170px; }
 .spec:not(:first-child) { padding-left: 0; }
 .spec dt { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-dim); font-weight: 500; }
 .spec dd { margin: 0; font-family: var(--head); font-weight: 500; font-size: clamp(28px, 2.6vw, 38px); letter-spacing: -0.03em; line-height: 1.05; }
 .spec p { color: var(--fg-mute); font-size: 13.5px; line-height: 1.55; flex: 1; }
-.spec .tag { align-self: flex-start; }
 
 .comp, .ai, .foot2 { padding: clamp(90px, 12vh, 140px) 0; }
 
