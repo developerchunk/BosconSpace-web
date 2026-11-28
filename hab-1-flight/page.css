@@ -21,6 +21,7 @@ section[id] { scroll-margin-top: 70px; }
 .hx__text { position: absolute; left: var(--gutter); right: var(--gutter); top: clamp(110px, 17vh, 170px); max-width: 1100px; }
 .hx__kicker { margin-bottom: 22px; color: var(--fg); }
 .hx__title { font-size: clamp(46px, 8.4vw, 124px); letter-spacing: -0.04em; line-height: 0.96; margin-bottom: 26px; text-shadow: 0 2px 30px rgba(0,0,0,0.55), 0 0 2px rgba(0,0,0,0.25); }
+.hx__title-line > span { white-space: nowrap; font-size: clamp(28px, 8.4vw, 124px); }
 .hx__lede { max-width: 540px; font-size: clamp(16px, 1.35vw, 19px); line-height: 1.5; text-shadow: 0 1px 18px rgba(0,0,0,0.5); }
 .hx__specs {
   position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 18px var(--gutter) 44px;
