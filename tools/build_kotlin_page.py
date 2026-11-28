@@ -71,7 +71,7 @@ page = f"""<!doctype html>
       <a href="/payload-box">Payload in 3D</a>
       <a href="/#contact">Contact</a>
     </nav>
-    <a class="menu__foot" href="mailto:aditya@ketoy.dev">aditya@ketoy.dev</a>
+    <a class="menu__foot" href="mailto:info@boscon.space">info@boscon.space</a>
   </div>
 
   <main id="top">

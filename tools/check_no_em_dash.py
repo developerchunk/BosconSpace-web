@@ -13,7 +13,7 @@ REPO = SITE.parent
 TEXT = {".html", ".css", ".js", ".md", ".py", ".json", ".txt", ".svg"}
 SKIP = {".git", "node_modules"}
 
-roots = [SITE, REPO / "jetbrains-page"]
+roots = [SITE, REPO / "jetbrains-page", REPO / "hab-2"]
 files = [REPO / "kapex" / "docs" / "07-kotlin-on-the-balloon.md", REPO / "kapex" / "README.md", REPO / "CLAUDE.md"]
 for r in roots:
     if r.exists():
